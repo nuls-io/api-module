@@ -11,6 +11,14 @@
 
     <groupId>io.nuls</groupId>
     <artifactId>jsonrpc</artifactId>
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.glassfish.grizzly/grizzly-http-server -->
+        <dependency>
+            <groupId>org.glassfish.grizzly</groupId>
+            <artifactId>grizzly-http-server</artifactId>
+            <version>2.4.3.1</version>
+        </dependency>
 
+    </dependencies>
 
 </project>
