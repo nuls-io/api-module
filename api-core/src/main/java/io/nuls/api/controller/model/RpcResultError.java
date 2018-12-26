@@ -25,17 +25,17 @@ package io.nuls.api.controller.model;
  */
 public class RpcResultError {
 
-    private String code;
+    private int code;
 
     private String message;
 
     private Object data;
 
-    public String getCode() {
+    public int getCode() {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(int code) {
         this.code = code;
     }
 
