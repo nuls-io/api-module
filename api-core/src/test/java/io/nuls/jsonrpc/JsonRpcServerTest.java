@@ -21,14 +21,13 @@
 package io.nuls.jsonrpc;
 
 import io.nuls.bean.SpringLiteContext;
-import org.junit.Test;
 
 /**
  * @author Niels
  */
 public class JsonRpcServerTest {
 
-    @Test
+    //    @Test
     public void startServer() {
 
         SpringLiteContext.init("io.nuls");
