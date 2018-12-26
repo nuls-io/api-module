@@ -20,9 +20,12 @@
 
 package io.nuls.api.controller.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  * @author Niels
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RpcResult {
 
     private String jsonrpc = "2.0";
