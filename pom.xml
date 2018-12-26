@@ -6,11 +6,12 @@
 
   <groupId>io.nuls</groupId>
   <artifactId>api-module</artifactId>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
   <version>1.0-SNAPSHOT</version>
   <modules>
     <module>api-core</module>
     <module>api-bridge</module>
+      <module>api-main</module>
   </modules>
 
   <name>api-module</name>
