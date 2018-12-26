@@ -39,7 +39,6 @@ import java.util.Map;
  */
 public class JsonRpcHandler extends HttpHandler {
 
-    //todo 批量调用的支持
     @Override
     public void service(Request request, Response response) throws Exception {
         if (!request.getMethod().equals(Method.POST)) {
@@ -58,14 +57,35 @@ public class JsonRpcHandler extends HttpHandler {
             responseError(response, -32700, "", 0);
             return;
         }
-        Map<String, Object> jsonRpcParam = null;
-        try {
-            jsonRpcParam = JSONUtils.json2map(content);
-        } catch (Exception e) {
-            Log.error(e);
-            responseError(response, -32700, "the request is not a json-rpc 2.0 request", 0);
-            return;
+        content = content.trim();
+        if (content.startsWith("[")) {
+            List<Map> paramList;
+            try {
+                paramList = JSONUtils.json2list(content, Map.class);
+            } catch (Exception e) {
+                Log.error(e);
+                responseError(response, -32700, "the request is not a json-rpc 2.0 request", 0);
+                return;
+            }
+
+            for (Map<String, Object> map : paramList) {
+                doHandler(map, response);
+            }
+        } else {
+
+            Map<String, Object> jsonRpcParam = null;
+            try {
+                jsonRpcParam = JSONUtils.json2map(content);
+            } catch (Exception e) {
+                Log.error(e);
+                responseError(response, -32700, "the request is not a json-rpc 2.0 request", 0);
+                return;
+            }
+            doHandler(jsonRpcParam, response);
         }
+    }
+
+    private void doHandler(Map<String, Object> jsonRpcParam, Response response) throws Exception {
         String method = (String) jsonRpcParam.get("method");
         int id = (int) jsonRpcParam.get("id");
         if (!"2.0".equals(jsonRpcParam.get("jsonrpc"))) {
