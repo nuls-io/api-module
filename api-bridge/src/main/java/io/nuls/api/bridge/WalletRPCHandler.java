@@ -34,14 +34,13 @@ import io.nuls.sdk.core.model.Block;
 import io.nuls.sdk.core.model.Result;
 import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.tool.NulsSDKTool;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 /**
  * 钱包RPC调用处理器
  */
-@Component
+
 public class WalletRPCHandler {
 
     private RestFulUtils restFulUtils = RestFulUtils.getInstance();
