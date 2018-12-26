@@ -18,20 +18,16 @@
  * SOFTWARE.
  */
 
-package io.nuls.jsonrpc;
+package io.nuls.bean.annotation;
 
-import org.glassfish.grizzly.http.server.HttpHandler;
-import org.glassfish.grizzly.http.server.Request;
-import org.glassfish.grizzly.http.server.Response;
+import java.lang.annotation.*;
 
 /**
  * @author Niels
  */
-public class JsonRpcHandler extends HttpHandler {
-    @Override
-    public void service(Request request, Response response) throws Exception {
-        System.out.println("request::::::::::::" + request.getContextPath());
-    }
 
-
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Controller {
 }

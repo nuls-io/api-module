@@ -18,27 +18,23 @@
  * SOFTWARE.
  */
 
-package io.nuls.jsonrpc;
+package io.nuls.bean.annotation;
 
-import org.junit.Test;
-
-import static org.junit.Assert.*;
+import java.lang.annotation.*;
 
 /**
  * @author Niels
  */
-public class JsonRpcServerTest {
 
-    @Test
-    public void startServer() {
-        JsonRpcServer server = new JsonRpcServer();
-        server.startServer("127.0.0.1", 8080);
-        while (true){
-            try {
-                Thread.sleep(10000L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface RpcMethod {
+
+    /**
+     * JSON-RPC Method
+     *
+     * @return
+     */
+    String value();
 }

@@ -18,7 +18,10 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.core;
+package io.nuls;
+
+import io.nuls.bean.SpringLiteContext;
+import io.nuls.jsonrpc.JsonRpcServer;
 
 /**
  * @author Niels
@@ -26,6 +29,8 @@ package io.nuls.api.core;
 public class ApiModuleBootstrap {
 
     public static void main(String[] args) {
-
+        SpringLiteContext.init("io.nuls");
+        JsonRpcServer server = new JsonRpcServer();
+        server.startServer("0.0.0.0", 8080);
     }
 }

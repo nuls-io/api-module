@@ -20,6 +20,10 @@
 
 package io.nuls.jsonrpc;
 
+import io.nuls.api.core.util.Log;
+import io.nuls.bean.SpringLiteContext;
+import io.nuls.bean.annotation.Controller;
+import io.nuls.bean.annotation.RpcMethod;
 import org.glassfish.grizzly.http.server.*;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
@@ -28,6 +32,9 @@ import org.glassfish.grizzly.utils.Charsets;
 import org.glassfish.jersey.internal.guava.ThreadFactoryBuilder;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Map;
 
 
@@ -39,7 +46,7 @@ public class JsonRpcServer {
     private HttpServer httpServer;
 
     public void startServer(String ip, int port) {
-
+        initRpcMethodHandlers();
         this.httpServer = new HttpServer();
         NetworkListener listener = new NetworkListener("NULS-RPC", ip, port);
         TCPNIOTransport transport = listener.getTransport();
@@ -61,12 +68,34 @@ public class JsonRpcServer {
         config.setDefaultQueryEncoding(Charsets.UTF8_CHARSET);
 
         try {
-            ClassLoader loader = this.getClass().getClassLoader();
-
             httpServer.start();
         } catch (IOException e) {
 //            Log.error(e);
             httpServer.shutdownNow();
+        }
+    }
+
+    private void initRpcMethodHandlers() {
+        Collection<Object> beanList = SpringLiteContext.getAllBeanList();
+        for (Object bean : beanList) {
+            Annotation anno = SpringLiteContext.getFromArray(bean.getClass().getDeclaredAnnotations(), Controller.class);
+            if (null == anno) {
+                continue;
+            }
+            Method[] methods = bean.getClass().getDeclaredMethods();
+            if (null == methods || methods.length == 0) {
+                continue;
+            }
+            for (Method method : methods) {
+                RpcMethod rpc = (RpcMethod) SpringLiteContext.getFromArray(method.getDeclaredAnnotations(), RpcMethod.class);
+                String methodCmd = rpc.value();
+                if (methodCmd == null || methodCmd.trim().length() == 0) {
+                    Log.warn("null method:" + bean.getClass() + ":" + method.getName());
+                    continue;
+                }
+                JsonRpcContext.RPC_METHOD_INVOKER_MAP.put(methodCmd, new RpcMethodInvoker(bean, method));
+            }
+
         }
     }
 
