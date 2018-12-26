@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 所有该端口的请求都发送到这里统一处理，在此类中封装JSON-RPC 2.0规范的框架
+ *
  * @author Niels
  */
 public class JsonRpcHandler extends HttpHandler {
@@ -58,7 +60,9 @@ public class JsonRpcHandler extends HttpHandler {
             return;
         }
         content = content.trim();
+
         if (content.startsWith("[")) {
+            // 处理批量请求
             List<Map> paramList;
             try {
                 paramList = JSONUtils.json2list(content, Map.class);
@@ -72,7 +76,7 @@ public class JsonRpcHandler extends HttpHandler {
                 doHandler(map, response);
             }
         } else {
-
+            // 处理单个请求
             Map<String, Object> jsonRpcParam = null;
             try {
                 jsonRpcParam = JSONUtils.json2map(content);
