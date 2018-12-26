@@ -17,40 +17,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.nuls.utils;
 
-package io.nuls;
+import org.ini4j.Config;
+import org.ini4j.Ini;
 
-import io.nuls.api.core.util.Log;
-import io.nuls.bean.SpringLiteContext;
-import io.nuls.jsonrpc.JsonRpcServer;
-import io.nuls.sdk.core.utils.StringUtils;
-import io.nuls.utils.ConfigLoader;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Properties;
 
 /**
  * @author Niels
  */
-public class ApiModuleBootstrap {
+public class ConfigLoader {
 
-    public static void main(String[] args) {
-        SpringLiteContext.init("io.nuls");
-        JsonRpcServer server = new JsonRpcServer();
-        String ip = "0.0.0.0";
-        int port = 8080;
-        try {
-            Properties prop = ConfigLoader.loadProperties("cfg.properties");
-            String ipOfCfg = prop.getProperty("listener.ip");
-            if (!StringUtils.isBlank(ipOfCfg)) {
-                ip = ipOfCfg;
-            }
-            String portOfCfg = prop.getProperty("listener.port");
-            if (StringUtils.isNotBlank(portOfCfg)) {
-                port = Integer.parseInt(portOfCfg);
-            }
-        } catch (Exception e) {
-            Log.error(e);
-        }
-        server.startServer(ip, port);
+    public static Properties loadProperties(String fileName) throws IOException {
+        InputStream is = ConfigLoader.class.getClassLoader().getResourceAsStream(fileName);
+        Properties prop = new Properties();
+        prop.load(is);
+        is.close();
+        return prop;
     }
+
 }
