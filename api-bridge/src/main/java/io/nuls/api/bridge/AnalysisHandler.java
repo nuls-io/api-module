@@ -39,6 +39,7 @@ import io.nuls.sdk.core.crypto.Hex;
 import io.nuls.sdk.core.model.*;
 import io.nuls.sdk.core.model.transaction.*;
 import io.nuls.sdk.core.utils.AddressTool;
+import io.nuls.sdk.core.utils.JSONUtils;
 import io.nuls.sdk.core.utils.VarInt;
 import org.spongycastle.util.Arrays;
 
@@ -156,7 +157,7 @@ public class AnalysisHandler {
         return outPuts;
     }
 
-    private static TxData toTxData(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static TxData toTxData(io.nuls.sdk.core.model.transaction.Transaction tx) throws Exception {
         if (tx.getType() == TransactionConstant.TX_TYPE_ALIAS) {
             return toAlias(tx);
         } else if (tx.getType() == TransactionConstant.TX_TYPE_REGISTER_AGENT) {
@@ -168,8 +169,15 @@ public class AnalysisHandler {
         } else if (tx.getType() == TransactionConstant.TX_TYPE_STOP_AGENT) {
             return toStopAgent(tx);
         } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
-            RedPunishTransaction redPunishTransaction = (RedPunishTransaction) tx;
-            return toRedPulishLog(redPunishTransaction);
+            return toRedPublishLog(tx);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
+            return toContractCreateInfo(tx);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
+            return toContractCallInfo(tx);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_DELETE_CONTRACT) {
+            return toContractDeleteInfo(tx);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
+            return toContractTransferInfo(tx);
         }
         return null;
     }
@@ -258,8 +266,9 @@ public class AnalysisHandler {
         return logList;
     }
 
-    private static PunishLog toRedPulishLog(RedPunishTransaction tx) {
-        RedPunishData model = tx.getTxData();
+    private static PunishLog toRedPublishLog(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        RedPunishTransaction redPunishTx = (RedPunishTransaction) tx;
+        RedPunishData model = redPunishTx.getTxData();
 
         PunishLog punishLog = new PunishLog();
         punishLog.setType(NulsConstant.PUTLISH_RED);
@@ -275,8 +284,68 @@ public class AnalysisHandler {
         punishLog.setBlockHeight(tx.getBlockHeight());
         punishLog.setTime(tx.getTime());
 //        punishLog.setRoundIndex(header.getRoundIndex());
-        //        punishLog.setReason(new String (model.get);
         return punishLog;
+
+    }
+
+    private static ContractCreateInfo toContractCreateInfo(io.nuls.sdk.core.model.transaction.Transaction tx) throws Exception {
+        CreateContractTransaction createContractTx = (CreateContractTransaction) tx;
+        CreateContractData model = createContractTx.getTxData();
+        ContractCreateInfo contractInfo = new ContractCreateInfo();
+
+        contractInfo.setCreater(AddressTool.getStringAddressByBytes(model.getSender()));
+        contractInfo.setContractAddress(AddressTool.getStringAddressByBytes(model.getContractAddress()));
+        contractInfo.setContractCode(Hex.encode(model.getCode()));
+        contractInfo.setGaslimit(model.getGasLimit());
+        contractInfo.setPrice(model.getPrice());
+        contractInfo.setArgs(JSONUtils.obj2json(model.getArgs()));
+
+        return contractInfo;
+    }
+
+    private static ContractCallInfo toContractCallInfo(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        CallContractTransaction callContractTx = (CallContractTransaction) tx;
+        CallContractData contractData = callContractTx.getTxData();
+
+        ContractCallInfo callInfo = new ContractCallInfo();
+        callInfo.setCreater(AddressTool.getStringAddressByBytes(contractData.getSender()));
+        callInfo.setContractAddress(AddressTool.getStringAddressByBytes(contractData.getContractAddress()));
+        callInfo.setGasLimit(contractData.getGasLimit());
+        callInfo.setPrice(contractData.getPrice());
+        callInfo.setMethodName(contractData.getMethodName());
+        callInfo.setMethodDesc(contractData.getMethodDesc());
+        String args = "";
+        String[][] arrays = contractData.getArgs();
+        if (arrays != null) {
+            for (String[] arg : arrays) {
+                if (arg != null) {
+                    for (String s : arg) {
+                        args = args + s + ",";
+                    }
+                }
+            }
+        }
+        callInfo.setArgs(args);
+        return callInfo;
+    }
+
+    private static ContractDeleteInfo toContractDeleteInfo(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        DeleteContractTransaction deleteContractTx = (DeleteContractTransaction) tx;
+        DeleteContractData model = deleteContractTx.getTxData();
+        ContractDeleteInfo info = new ContractDeleteInfo();
+        info.setCreater(AddressTool.getStringAddressByBytes(model.getSender()));
+        info.setContractAddress(AddressTool.getStringAddressByBytes(model.getContractAddress()));
+        return info;
+    }
+
+
+    private static ContractTransferInfo toContractTransferInfo(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        ContractTransferTransaction contractTransferTx = (ContractTransferTransaction) tx;
+        ContractTransferData model = contractTransferTx.getTxData();
+        ContractTransferInfo info = new ContractTransferInfo();
+        info.setContractAddress(AddressTool.getStringAddressByBytes(model.getContractAddress()));
+        info.setOrginTxHash(model.getOrginTxHash().getDigestHex());
+        return info;
 
     }
 
