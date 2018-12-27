@@ -2,7 +2,7 @@ package io.nuls.api.core.model;
 
 import java.util.List;
 
-public class Transaction<T extends TxData> {
+public class Transaction {
 
     private String hash;
 
@@ -22,13 +22,13 @@ public class Transaction<T extends TxData> {
 
     private String txDataHex;
 
-    private T txData;
-
     private List<Input> froms;
 
     private List<OutPut> tos;
 
-    private Long values;
+    private TxData txData;
+
+    private List<TxData> txDataList;
 
     public String getHash() {
         return hash;
@@ -102,11 +102,11 @@ public class Transaction<T extends TxData> {
         this.txDataHex = txDataHex;
     }
 
-    public T getTxData() {
+    public TxData getTxData() {
         return txData;
     }
 
-    public void setTxData(T txData) {
+    public void setTxData(TxData txData) {
         this.txData = txData;
     }
 
@@ -126,11 +126,11 @@ public class Transaction<T extends TxData> {
         this.tos = tos;
     }
 
-    public Long getValues() {
-        return values;
+    public List<TxData> getTxDataList() {
+        return txDataList;
     }
 
-    public void setValues(Long values) {
-        this.values = values;
+    public void setTxDataList(List<TxData> txDataList) {
+        this.txDataList = txDataList;
     }
 }

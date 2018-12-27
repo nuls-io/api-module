@@ -26,13 +26,23 @@
  */
 package io.nuls.api.bridge;
 
+import io.nuls.api.core.constant.NulsConstant;
+import io.nuls.api.core.model.Agent;
+import io.nuls.api.core.model.Alias;
+import io.nuls.api.core.model.Block;
+import io.nuls.api.core.model.BlockHeader;
+import io.nuls.api.core.model.Deposit;
 import io.nuls.api.core.model.*;
+import io.nuls.api.core.model.Transaction;
+import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.crypto.Hex;
-import io.nuls.sdk.core.model.BlockExtendsData;
+import io.nuls.sdk.core.model.*;
+import io.nuls.sdk.core.model.transaction.*;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.VarInt;
 import org.spongycastle.util.Arrays;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -146,6 +156,130 @@ public class AnalysisHandler {
         return outPuts;
     }
 
+    private static TxData toTxData(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        if (tx.getType() == TransactionConstant.TX_TYPE_ALIAS) {
+            return toAlias(tx);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_REGISTER_AGENT) {
+            return toAgent(tx);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_JOIN_CONSENSUS) {
+            return toDeposit(tx);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_CANCEL_DEPOSIT) {
+            return toCancelDeposit(tx);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_STOP_AGENT) {
+            return toStopAgent(tx);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
+            RedPunishTransaction redPunishTransaction = (RedPunishTransaction) tx;
+            return toRedPulishLog(redPunishTransaction);
+        }
+        return null;
+    }
+
+    private static List<TxData> toTxDataList(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        if (tx.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
+            YellowPunishTransaction yellowPunishTx = (YellowPunishTransaction) tx;
+            return toYellowPunishLog(yellowPunishTx);
+        }
+        return null;
+    }
+
+    private static TxData toAlias(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        AliasTransaction aliasTx = (AliasTransaction) tx;
+        io.nuls.sdk.core.model.Alias model = aliasTx.getTxData();
+        Alias alias = new Alias();
+        alias.setAddress(AddressTool.getStringAddressByBytes(model.getAddress()));
+        alias.setAlias(model.getAlias());
+        return alias;
+    }
+
+    private static TxData toAgent(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        CreateAgentTransaction agentTransaction = (CreateAgentTransaction) tx;
+        io.nuls.sdk.core.model.Agent model = agentTransaction.getTxData();
+
+        Agent agent = new Agent();
+        agent.setTxHash(tx.getHash().getDigestHex());
+        agent.setAgentAddress(AddressTool.getStringAddressByBytes(model.getAgentAddress()));
+        agent.setPackingAddress(AddressTool.getStringAddressByBytes(model.getPackingAddress()));
+        agent.setRewardAddress(AddressTool.getStringAddressByBytes(model.getRewardAddress()));
+        agent.setDeposit(model.getDeposit().getValue());
+        agent.setCommissionRate(new BigDecimal(model.getCommissionRate()));
+        agent.setBlockHeight(tx.getBlockHeight());
+        agent.setStatus(model.getStatus());
+        agent.setDepositCount(model.getMemberCount());
+        agent.setCreditValue(new BigDecimal(model.getCreditVal()));
+        agent.setCreateTime(tx.getTime());
+        agent.setTxHash(tx.getHash().getDigestHex());
+        return agent;
+    }
+
+    private static Deposit toDeposit(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        DepositTransaction depositTx = (DepositTransaction) tx;
+        io.nuls.sdk.core.model.Deposit model = depositTx.getTxData();
+
+        Deposit deposit = new Deposit();
+        deposit.setTxHash(tx.getHash().getDigestHex());
+        deposit.setAmount(model.getDeposit().getValue());
+        deposit.setAgentHash(model.getAgentHash().getDigestHex());
+        deposit.setAddress(AddressTool.getStringAddressByBytes(model.getAddress()));
+        deposit.setTxHash(tx.getHash().getDigestHex());
+        deposit.setBlockHeight(tx.getBlockHeight());
+        deposit.setCreateTime(tx.getTime());
+        return deposit;
+    }
+
+    private static Deposit toCancelDeposit(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        CancelDepositTransaction cancelDepositTx = (CancelDepositTransaction) tx;
+        CancelDeposit cancelDeposit = cancelDepositTx.getTxData();
+        Deposit deposit = new Deposit();
+        deposit.setTxHash(cancelDeposit.getJoinTxHash().getDigestHex());
+        return deposit;
+    }
+
+    private static Agent toStopAgent(io.nuls.sdk.core.model.transaction.Transaction tx) {
+        StopAgentTransaction stopAgentTx = (StopAgentTransaction) tx;
+        StopAgent stopAgent = stopAgentTx.getTxData();
+        Agent agentNode = new Agent();
+        agentNode.setTxHash(stopAgent.getCreateTxHash().getDigestHex());
+        return agentNode;
+    }
+
+    private static List<TxData> toYellowPunishLog(YellowPunishTransaction tx) {
+
+        YellowPunishData model = tx.getTxData();
+        List<TxData> logList = new ArrayList<>();
+        for (byte[] address : model.getAddressList()) {
+            PunishLog log = new PunishLog();
+            log.setAddress(AddressTool.getStringAddressByBytes(address));
+            log.setBlockHeight(tx.getBlockHeight());
+            log.setTime(tx.getTime());
+            log.setType(NulsConstant.PUBLISH_YELLOW);
+            log.setReason("No packaged blocks");
+            logList.add(log);
+        }
+        return logList;
+    }
+
+    private static PunishLog toRedPulishLog(RedPunishTransaction tx) {
+        RedPunishData model = tx.getTxData();
+
+        PunishLog punishLog = new PunishLog();
+        punishLog.setType(NulsConstant.PUTLISH_RED);
+        punishLog.setAddress(AddressTool.getStringAddressByBytes(model.getAddress()));
+        if (model.getReasonCode() == NulsConstant.TRY_FORK) {
+            punishLog.setReason("Trying to bifurcate many times");
+        } else if (model.getReasonCode() == NulsConstant.DOUBLE_SPEND) {
+            punishLog.setReason("double-send tx in the block");
+        } else if (model.getReasonCode() == NulsConstant.TOO_MUCH_YELLOW_PUNISH) {
+            punishLog.setReason("too much yellow publish");
+        }
+
+        punishLog.setBlockHeight(tx.getBlockHeight());
+        punishLog.setTime(tx.getTime());
+//        punishLog.setRoundIndex(header.getRoundIndex());
+        //        punishLog.setReason(new String (model.get);
+        return punishLog;
+
+    }
+
     /**
      * 计算每个区块的coinbase奖励
      *
@@ -157,9 +291,10 @@ public class AnalysisHandler {
         if (coinBaseTx.getTos() == null) {
             return 0L;
         }
-//        for(OutPut outPut : coinBaseTx.getTos()) {
-//            reward += outPut.getValue();
-//        }
+
+        for (OutPut outPut : coinBaseTx.getTos()) {
+            reward += outPut.getValue();
+        }
 
         return reward;
     }
