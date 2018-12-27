@@ -18,49 +18,23 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.controller.model;
+package io.nuls.api.bean.annotation;
+
+import java.lang.annotation.*;
 
 /**
  * @author Niels
  */
-public class RpcResultError {
 
-    private int code;
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface RpcMethod {
 
-    private String message;
-
-    private Object data;
-
-    public RpcResultError() {
-    }
-
-    public RpcResultError(int code, String message, Object data) {
-        this.code = code;
-        this.message = message;
-        this.data = data;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public Object getData() {
-        return data;
-    }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
+    /**
+     * JSON-RPC Method
+     *
+     * @return
+     */
+    String value();
 }

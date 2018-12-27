@@ -17,13 +17,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.nuls.bean;
+package io.nuls.api.bean;
 
 import io.nuls.api.core.util.Log;
-import io.nuls.bean.annotation.Autowired;
-import io.nuls.bean.annotation.Component;
-import io.nuls.bean.annotation.Controller;
-import io.nuls.utils.ScanUtil;
+import io.nuls.api.bean.annotation.Autowired;
+import io.nuls.api.bean.annotation.Component;
+import io.nuls.api.bean.annotation.Controller;
+import io.nuls.api.utils.ScanUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;

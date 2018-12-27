@@ -21,8 +21,8 @@
 package io.nuls.api.controller;
 
 import io.nuls.api.controller.model.RpcResult;
-import io.nuls.bean.annotation.Controller;
-import io.nuls.bean.annotation.RpcMethod;
+import io.nuls.api.bean.annotation.Controller;
+import io.nuls.api.bean.annotation.RpcMethod;
 
 import java.util.List;
 

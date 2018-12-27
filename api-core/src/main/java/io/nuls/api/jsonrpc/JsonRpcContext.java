@@ -18,16 +18,15 @@
  * SOFTWARE.
  */
 
-package io.nuls.bean.annotation;
+package io.nuls.api.jsonrpc;
 
-import java.lang.annotation.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Niels
  */
+public class JsonRpcContext {
 
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface Controller {
+    public static final Map<String, RpcMethodInvoker> RPC_METHOD_INVOKER_MAP = new HashMap<>();
 }

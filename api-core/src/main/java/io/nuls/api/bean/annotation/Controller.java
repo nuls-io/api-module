@@ -18,28 +18,16 @@
  * SOFTWARE.
  */
 
-package io.nuls.jsonrpc;
+package io.nuls.api.bean.annotation;
 
-import io.nuls.bean.SpringLiteContext;
+import java.lang.annotation.*;
 
 /**
  * @author Niels
  */
-public class JsonRpcServerTest {
 
-    //    @Test
-    public void startServer() {
-
-        SpringLiteContext.init("io.nuls");
-        JsonRpcServer server = new JsonRpcServer();
-        server.startServer("0.0.0.0", 8080);
-
-        while (true) {
-            try {
-                Thread.sleep(10000L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Controller {
 }

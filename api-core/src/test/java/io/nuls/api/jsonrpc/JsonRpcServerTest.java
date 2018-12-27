@@ -18,45 +18,28 @@
  * SOFTWARE.
  */
 
-package io.nuls.jsonrpc;
+package io.nuls.api.jsonrpc;
 
-import io.nuls.api.controller.model.RpcResult;
-
-import java.lang.reflect.Method;
-import java.util.List;
+import io.nuls.api.bean.SpringLiteContext;
 
 /**
  * @author Niels
  */
-public class RpcMethodInvoker {
+public class JsonRpcServerTest {
 
-    private Object bean;
+    //    @Test
+    public void startServer() {
 
-    private Method method;
+        SpringLiteContext.init("io.nuls");
+        JsonRpcServer server = new JsonRpcServer();
+        server.startServer("0.0.0.0", 8080);
 
-    public RpcMethodInvoker(Object bean, Method method) {
-        this.bean = bean;
-        this.method = method;
+        while (true) {
+            try {
+                Thread.sleep(10000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
-
-    public Object getBean() {
-        return bean;
-    }
-
-    public void setBean(Object bean) {
-        this.bean = bean;
-    }
-
-    public Method getMethod() {
-        return method;
-    }
-
-    public void setMethod(Method method) {
-        this.method = method;
-    }
-
-    public RpcResult invoke(List<Object> jsonParams) throws Exception {
-        return (RpcResult) method.invoke(bean, jsonParams);
-    }
-
 }

@@ -17,27 +17,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.nuls.bean.annotation;
 
-import java.lang.annotation.*;
+package io.nuls.api.jsonrpc;
+
+import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.controller.model.RpcResultError;
+import io.nuls.api.utils.JsonRpcException;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 
 /**
- * 用来标记bean的属性，标记了该注解之后，系统在初始化阶段会对该字段自动赋值
- * After the annotation is marked with the attributes used to mark the bean,
- * the system is automatically assigned to the field during the initialization phase.
- *
- * @author Niels Wang
+ * @author Niels
  */
-@Target({ElementType.FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface Autowired {
+public class RpcMethodInvoker {
 
-    /**
-     * 依赖的bean名称，可以为空，默认为空
-     * Depending on the bean name, it can be empty and the default is empty.
-     *
-     * @return 对象名称/bean name
-     */
-    String value() default "";
+    private Object bean;
+
+    private Method method;
+
+    public RpcMethodInvoker(Object bean, Method method) {
+        this.bean = bean;
+        this.method = method;
+    }
+
+    public RpcResult invoke(List<Object> jsonParams) {
+        RpcResult result = null;
+        try {
+            result = (RpcResult) method.invoke(bean, jsonParams);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            result = new RpcResult();
+            RpcResultError error = new RpcResultError();
+            error.setMessage(e.getMessage());
+            error.setCode(-32603);
+            result.setError(error);
+        } catch (JsonRpcException e) {
+            result = new RpcResult();
+            result.setError(e.getError());
+        }
+        return result;
+    }
+
 }
