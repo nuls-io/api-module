@@ -1,9 +1,10 @@
 package io.nuls;
 
-import static org.junit.Assert.assertTrue;
-
+import io.nuls.sdk.core.utils.RestFulUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit test for simple App.
@@ -15,7 +16,7 @@ public class AppTest {
 
     @Before
     public void init() {
-        RestFulUtils.getInstance().init(serverUri);
+        RestFulUtils.getInstance().setServerUri(serverUri);
     }
 
     /**
