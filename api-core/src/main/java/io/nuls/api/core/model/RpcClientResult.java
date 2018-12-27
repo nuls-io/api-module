@@ -40,20 +40,20 @@ import java.util.Map;
  */
 public class RpcClientResult<T> {
     private boolean success;
-    private String code;
+    private int code;
     private String msg;
     private T data;
 
     public RpcClientResult() {
     }
 
-    public RpcClientResult(boolean success, String code, String msg) {
+    public RpcClientResult(boolean success, int code, String msg) {
         this.success = success;
         this.code = code;
         this.msg = msg;
     }
 
-    public RpcClientResult(boolean success, String code, String msg, T data) {
+    public RpcClientResult(boolean success, int code, String msg, T data) {
         this.success = success;
         this.code = code;
         this.msg = msg;
@@ -62,15 +62,15 @@ public class RpcClientResult<T> {
 
     public RpcClientResult(boolean success, ErrorCode errorCode) {
         this.success = success;
-        this.code = errorCode.getCode();
+        this.code = Integer.parseInt(errorCode.getCode());
         this.msg = errorCode.getMsg();
     }
 
-    public String getCode() {
+    public int getCode() {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(int code) {
         this.code = code;
     }
 
@@ -109,7 +109,7 @@ public class RpcClientResult<T> {
     }
 
     public static RpcClientResult getFailed(String msg) {
-        return new RpcClientResult(false, KernelErrorCode.FAILED.getCode(), msg);
+        return new RpcClientResult(false, Integer.parseInt(KernelErrorCode.FAILED.getCode()), msg);
     }
 
     public static RpcClientResult getFailed(ErrorCode errorCode) {
@@ -127,7 +127,7 @@ public class RpcClientResult<T> {
         }
         if (data != null) {
             Map<String, Object> errorMap = (Map<String, Object>) data;
-            code = (String) errorMap.get("code");
+            code = (Integer) errorMap.get("code");
             msg = (String) errorMap.get("msg");
             data = null;
         }
@@ -142,7 +142,7 @@ public class RpcClientResult<T> {
         RpcClientResult clientResult = new RpcClientResult();
         clientResult.setSuccess(false);
         ErrorData errorData = (ErrorData) result.getData();
-        clientResult.setCode(errorData.getCode());
+        clientResult.setCode(Integer.parseInt(errorData.getCode()));
         clientResult.setMsg(errorData.getMsg());
         return clientResult;
     }
