@@ -60,7 +60,7 @@ public class WalletRPCHandler {
         RpcClientResult clientResult = new RpcClientResult();
         try {
             BlockHeader blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
-            result.setData(blockHeader);
+            clientResult.setData(blockHeader);
         } catch (Exception e) {
             Log.error(e);
             clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
@@ -82,7 +82,7 @@ public class WalletRPCHandler {
         RpcClientResult clientResult = new RpcClientResult();
         try {
             BlockHeader blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
-            result.setData(blockHeader);
+            clientResult.setData(blockHeader);
         } catch (Exception e) {
             Log.error(e);
             clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);

@@ -21,6 +21,8 @@
 package io.nuls.api.controller.block;
 
 import io.nuls.api.bridge.WalletRPCHandler;
+import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.core.model.BlockHeader;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.bean.annotation.Autowired;
@@ -29,6 +31,7 @@ import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.controller.constant.RpcErrorCode;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.utils.JsonRpcException;
+import io.nuls.sdk.core.utils.StringUtils;
 
 import java.util.List;
 
@@ -42,13 +45,36 @@ public class BlockController {
     private WalletRPCHandler rpcHandler;
 
     @RpcMethod("getHeaderByHeight")
-    public void getHeaderByHeight(List<Object> params) {
+    public RpcResult getHeaderByHeight(List<Object> params) {
         VerifyUtils.verifyParams(params, 1);
-        long height = (long) params.get(0);
+        long height = Long.parseLong("" + params.get(0));
         if (height < 0) {
             throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
         }
         RpcClientResult<BlockHeader> result = rpcHandler.getBlockHeader(height);
         BlockHeader header = result.getData();
+        if (result.isFailed()) {
+            throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
+        }
+        RpcResult rpcResult = new RpcResult();
+        rpcResult.setResult(header);
+        return rpcResult;
+    }
+
+    @RpcMethod("getHeaderByHash")
+    public RpcResult getHeaderByHash(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        String hash = (String) params.get(0);
+        if (StringUtils.isBlank(hash)) {
+            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+        }
+        RpcClientResult<BlockHeader> result = rpcHandler.getBlockHeader(hash);
+        BlockHeader header = result.getData();
+        if (result.isFailed()) {
+            throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
+        }
+        RpcResult rpcResult = new RpcResult();
+        rpcResult.setResult(header);
+        return rpcResult;
     }
 }
