@@ -20,16 +20,17 @@
 
 package io.nuls.api.controller.block;
 
-import io.nuls.api.bridge.WalletRPCHandler;
-import io.nuls.api.controller.model.RpcResult;
-import io.nuls.api.controller.model.RpcResultError;
-import io.nuls.api.core.model.BlockHeaderInfo;
-import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
+import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.controller.constant.RpcErrorCode;
+import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
+import io.nuls.api.core.model.BlockHeaderInfo;
+import io.nuls.api.core.model.BlockInfo;
+import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.StringUtils;
 
@@ -77,4 +78,40 @@ public class BlockController {
         rpcResult.setResult(header);
         return rpcResult;
     }
+
+    @RpcMethod("getBlockByHash")
+    public RpcResult getBlockByHash(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        String hash = (String) params.get(0);
+        if (StringUtils.isBlank(hash)) {
+            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+        }
+        RpcClientResult<BlockInfo> result = rpcHandler.getBlock(hash);
+        BlockInfo block = result.getData();
+        if (result.isFailed()) {
+            throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
+        }
+        RpcResult rpcResult = new RpcResult();
+        rpcResult.setResult(block);
+        return rpcResult;
+    }
+
+    @RpcMethod("getBlockByHeight")
+    public RpcResult getBlockByHeight(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        long height = Long.parseLong("" + params.get(0));
+        if (height < 0) {
+            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+        }
+        RpcClientResult<BlockInfo> result = rpcHandler.getBlock(height);
+        BlockInfo block = result.getData();
+        if (result.isFailed()) {
+            throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
+        }
+        RpcResult rpcResult = new RpcResult();
+        rpcResult.setResult(block);
+        return rpcResult;
+    }
+
+
 }

@@ -134,4 +134,28 @@ public class WalletRPCHandler {
         }
         return clientResult;
     }
+
+    /**
+     * 根据区块hash获取完整区块
+     *
+     * @param height 区块height
+     * @return 区块信息
+     */
+    public RpcClientResult<BlockInfo> getBlock(long height) {
+//        Result result = NulsSDKTool.getBlockWithBytes(height);
+//        if (result.isFailed()) {
+//            return RpcClientResult.errorResult(result);
+//        }
+        RpcClientResult clientResult = new RpcClientResult();
+//        try {
+//            io.nuls.sdk.core.model.Block nulsBlock = (io.nuls.sdk.core.model.Block) result.getData();
+//            BlockInfo block = AnalysisHandler.toBlock(nulsBlock);
+//            clientResult.setSuccess(true);
+//            clientResult.setData(block);
+//        } catch (Exception e) {
+//            Log.error(e);
+//            clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
+//        }
+        return clientResult;
+    }
 }
