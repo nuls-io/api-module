@@ -26,7 +26,6 @@
  */
 package io.nuls.api.bridge;
 
-import afu.org.checkerframework.checker.oigj.qual.O;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
