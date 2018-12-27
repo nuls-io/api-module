@@ -231,6 +231,7 @@ public class AnalysisHandler {
         info.setBlockHeight(tx.getBlockHeight());
         info.setStatus(model.getStatus());
         info.setDepositCount(model.getMemberCount());
+        info.setTotalDeposit(model.getTotalDeposit());
         info.setCreditValue(new BigDecimal(model.getCreditVal()));
         info.setCreateTime(tx.getTime());
         info.setTxHash(tx.getHash().getDigestHex());

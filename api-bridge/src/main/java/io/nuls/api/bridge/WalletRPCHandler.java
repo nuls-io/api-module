@@ -32,6 +32,7 @@ import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.sdk.core.contast.KernelErrorCode;
+import io.nuls.sdk.core.model.Block;
 import io.nuls.sdk.core.model.Result;
 import io.nuls.sdk.core.model.transaction.Transaction;
 import io.nuls.sdk.core.utils.RestFulUtils;
@@ -124,10 +125,10 @@ public class WalletRPCHandler {
         }
         RpcClientResult clientResult = new RpcClientResult();
         try {
-            io.nuls.sdk.core.model.Block nulsBlock = (io.nuls.sdk.core.model.Block) result.getData();
-            BlockInfo block = AnalysisHandler.toBlock(nulsBlock);
+            Block block = (Block) result.getData();
+            BlockInfo blockInfo = AnalysisHandler.toBlock(block);
             clientResult.setSuccess(true);
-            clientResult.setData(block);
+            clientResult.setData(blockInfo);
         } catch (Exception e) {
             Log.error(e);
             clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
