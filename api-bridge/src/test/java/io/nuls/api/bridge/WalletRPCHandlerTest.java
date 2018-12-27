@@ -18,47 +18,26 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.jsonrpc;
+package io.nuls.api.bridge;
 
-import io.nuls.api.controller.model.RpcResult;
-import io.nuls.api.controller.model.RpcResultError;
-import io.nuls.api.core.util.Log;
-import io.nuls.api.utils.JsonRpcException;
+import io.nuls.sdk.core.utils.RestFulUtils;
+import org.junit.Test;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
+import static org.junit.Assert.*;
 
 /**
  * @author Niels
  */
-public class RpcMethodInvoker {
+public class WalletRPCHandlerTest {
 
-    private Object bean;
+    @Test
+    public void testGetTx() {
+        RestFulUtils.getInstance().setServerUri("http://192.168.1.37:8001/api");
+        WalletRPCHandler handler = new WalletRPCHandler();
+        String hash = "0020927f2308b258426dd2cb769aa34750f1435c41f895340c749b0b15a9287fb23b";
+        Object value = handler.getTx(hash);
+        System.out.println(value);
 
-    private Method method;
-
-    public RpcMethodInvoker(Object bean, Method method) {
-        this.bean = bean;
-        this.method = method;
-    }
-
-    public RpcResult invoke(List<Object> jsonParams) {
-        RpcResult result = null;
-        try {
-            result = (RpcResult) method.invoke(bean, jsonParams);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            Log.error(e);
-            result = new RpcResult();
-            RpcResultError error = new RpcResultError();
-            error.setMessage(e.getMessage());
-            error.setCode(-32603);
-            result.setError(error);
-        } catch (JsonRpcException e) {
-            result = new RpcResult();
-            result.setError(e.getError());
-        }
-        return result;
     }
 
 }

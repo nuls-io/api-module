@@ -26,6 +26,7 @@
  */
 package io.nuls.api.bridge;
 
+import afu.org.checkerframework.checker.oigj.qual.O;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
@@ -33,9 +34,11 @@ import io.nuls.api.core.util.Log;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.sdk.core.contast.KernelErrorCode;
 import io.nuls.sdk.core.model.Result;
+import io.nuls.sdk.core.model.transaction.Transaction;
 import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.tool.NulsSDKTool;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -57,7 +60,7 @@ public class WalletRPCHandler {
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
-        RpcClientResult clientResult = new RpcClientResult();
+        RpcClientResult clientResult = RpcClientResult.getSuccess();
         try {
             BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
             clientResult.setSuccess(true);
@@ -80,11 +83,28 @@ public class WalletRPCHandler {
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
-        RpcClientResult clientResult = new RpcClientResult();
+        RpcClientResult clientResult = RpcClientResult.getSuccess();
         try {
             BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
             clientResult.setData(blockHeader);
             clientResult.setSuccess(true);
+        } catch (Exception e) {
+            Log.error(e);
+            clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
+        }
+        return clientResult;
+    }
+
+    public RpcClientResult<Transaction> getTx(String hash) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", hash);
+        Result result = restFulUtils.get("/tx/bytes", params);
+        if (result.isFailed()) {
+            return RpcClientResult.errorResult(result);
+        }
+        RpcClientResult clientResult = RpcClientResult.getSuccess();
+        try {
+
         } catch (Exception e) {
             Log.error(e);
             clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);

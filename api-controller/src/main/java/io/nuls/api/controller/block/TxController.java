@@ -18,47 +18,46 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.jsonrpc;
+package io.nuls.api.controller.block;
 
+import io.nuls.api.bean.annotation.Autowired;
+import io.nuls.api.bean.annotation.Controller;
+import io.nuls.api.bean.annotation.RpcMethod;
+import io.nuls.api.bridge.WalletRPCHandler;
+import io.nuls.api.controller.constant.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
-import io.nuls.api.core.util.Log;
+import io.nuls.api.controller.utils.VerifyUtils;
+import io.nuls.api.core.model.BlockHeader;
+import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.utils.JsonRpcException;
+import io.nuls.sdk.core.utils.StringUtils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 /**
  * @author Niels
  */
-public class RpcMethodInvoker {
+@Controller
+public class TxController {
 
-    private Object bean;
+    @Autowired
+    private WalletRPCHandler rpcHandler;
 
-    private Method method;
-
-    public RpcMethodInvoker(Object bean, Method method) {
-        this.bean = bean;
-        this.method = method;
-    }
-
-    public RpcResult invoke(List<Object> jsonParams) {
-        RpcResult result = null;
-        try {
-            result = (RpcResult) method.invoke(bean, jsonParams);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            Log.error(e);
-            result = new RpcResult();
-            RpcResultError error = new RpcResultError();
-            error.setMessage(e.getMessage());
-            error.setCode(-32603);
-            result.setError(error);
-        } catch (JsonRpcException e) {
-            result = new RpcResult();
-            result.setError(e.getError());
+    @RpcMethod("getTx")
+    public RpcResult getTx(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        long height = Long.parseLong("" + params.get(0));
+        if (height < 0) {
+            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
         }
-        return result;
+        RpcClientResult<BlockHeader> result = rpcHandler.getBlockHeader(height);
+        BlockHeader header = result.getData();
+        if (result.isFailed()) {
+            throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
+        }
+        RpcResult rpcResult = new RpcResult();
+        rpcResult.setResult(header);
+        return rpcResult;
     }
-
 }
