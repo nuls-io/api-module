@@ -20,6 +20,9 @@
 
 package io.nuls.api;
 
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
+import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.bean.SpringLiteContext;
 import io.nuls.api.jsonrpc.JsonRpcServer;
@@ -38,6 +41,9 @@ public class ApiModuleBootstrap {
         String ip = "0.0.0.0";
         int port = 8080;
         String walletUrl = "";
+        String dbIp = "127.0.0.1";
+        int dbPort = 27017;
+        String dbName = "nuls";
         try {
             Properties prop = ConfigLoader.loadProperties("cfg.properties");
             String ipOfCfg = prop.getProperty("listener.ip");
@@ -54,7 +60,14 @@ public class ApiModuleBootstrap {
         }
         RestFulUtils.getInstance().setServerUri(walletUrl);
 
+        MongoClient mongoClient = new MongoClient(dbIp, dbPort);
+        MongoDatabase mongoDatabase = mongoClient.getDatabase(dbName);
+        MongoDBService dbService = new MongoDBService(mongoDatabase);
+        SpringLiteContext.putBean("dbService", dbService);
+
         SpringLiteContext.init("io.nuls");
+
+
         JsonRpcServer server = new JsonRpcServer();
 
         server.startServer(ip, port);

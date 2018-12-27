@@ -125,12 +125,12 @@ public class RpcClientResult<T> {
         if (success) {
             return false;
         }
-        if (data != null) {
-            Map<String, Object> errorMap = (Map<String, Object>) data;
-            code = (Integer) errorMap.get("code");
-            msg = (String) errorMap.get("msg");
-            data = null;
-        }
+//        if (data != null) {
+//            Map<String, Object> errorMap = (Map<String, Object>) data;
+//            code = (Integer) errorMap.get("code");
+//            msg = (String) errorMap.get("msg");
+//            data = null;
+//        }
         return true;
     }
 
