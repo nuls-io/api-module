@@ -17,50 +17,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.nuls.api.utils;
 
-package io.nuls.api.controller.model;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * @author Niels
  */
-public class RpcResultError {
+public class ConfigLoader {
 
-    private int code;
-
-    private String message;
-
-    private Object data;
-
-    public RpcResultError() {
+    public static Properties loadProperties(String fileName) throws IOException {
+        InputStream is = ConfigLoader.class.getClassLoader().getResourceAsStream(fileName);
+        Properties prop = new Properties();
+        prop.load(is);
+        is.close();
+        return prop;
     }
 
-    public RpcResultError(int code, String message, Object data) {
-        this.code = code;
-        this.message = message;
-        this.data = data;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public Object getData() {
-        return data;
-    }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
 }

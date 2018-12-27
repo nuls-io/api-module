@@ -17,27 +17,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.nuls.utils;
 
-import org.ini4j.Config;
-import org.ini4j.Ini;
+package io.nuls.api.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Properties;
+import io.nuls.api.controller.model.RpcResultError;
 
 /**
  * @author Niels
  */
-public class ConfigLoader {
+public class JsonRpcException extends RuntimeException {
+    private RpcResultError error;
 
-    public static Properties loadProperties(String fileName) throws IOException {
-        InputStream is = ConfigLoader.class.getClassLoader().getResourceAsStream(fileName);
-        Properties prop = new Properties();
-        prop.load(is);
-        is.close();
-        return prop;
+    public JsonRpcException() {
     }
 
+    public JsonRpcException(RpcResultError error) {
+        this.error = error;
+    }
+
+    public RpcResultError getError() {
+        return error;
+    }
+
+    public void setError(RpcResultError error) {
+        this.error = error;
+    }
 }

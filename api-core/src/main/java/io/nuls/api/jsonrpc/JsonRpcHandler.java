@@ -18,7 +18,7 @@
  * SOFTWARE.
  */
 
-package io.nuls.jsonrpc;
+package io.nuls.api.jsonrpc;
 
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
@@ -105,14 +105,8 @@ public class JsonRpcHandler extends HttpHandler {
             return;
         }
 
-        RpcResult result = null;
-        try {
-            result = invoker.invoke((List<Object>) jsonRpcParam.get("params"));
-        } catch (Exception e) {
-            Log.error(e);
-            responseError(response, -32602, "Invalid params!", id);
-            return;
-        }
+        RpcResult result = invoker.invoke((List<Object>) jsonRpcParam.get("params"));
+
         result.setId(id);
         try {
             response.getWriter().write(JSONUtils.obj2json(result));

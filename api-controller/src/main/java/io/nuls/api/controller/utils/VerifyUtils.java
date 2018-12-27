@@ -17,14 +17,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.nuls.api.controller.utils;
 
-package io.nuls.controller.block;
+import io.nuls.api.controller.constant.RpcErrorCode;
+import io.nuls.api.utils.JsonRpcException;
 
-import io.nuls.bean.annotation.Controller;
+import java.util.List;
 
 /**
  * @author Niels
  */
-@Controller
-public class BlockController {
+public class VerifyUtils {
+
+    public static void verifyParams(List<Object> params, int minSize) {
+        if (null == params || params.size() < minSize) {
+            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+        }
+    }
 }

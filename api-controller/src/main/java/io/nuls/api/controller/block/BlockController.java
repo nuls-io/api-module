@@ -18,23 +18,37 @@
  * SOFTWARE.
  */
 
-package io.nuls.bean.annotation;
+package io.nuls.api.controller.block;
 
-import java.lang.annotation.*;
+import io.nuls.api.bridge.WalletRPCHandler;
+import io.nuls.api.core.model.BlockHeader;
+import io.nuls.api.core.model.RpcClientResult;
+import io.nuls.api.bean.annotation.Autowired;
+import io.nuls.api.bean.annotation.Controller;
+import io.nuls.api.bean.annotation.RpcMethod;
+import io.nuls.api.controller.constant.RpcErrorCode;
+import io.nuls.api.controller.utils.VerifyUtils;
+import io.nuls.api.utils.JsonRpcException;
+
+import java.util.List;
 
 /**
  * @author Niels
  */
+@Controller
+public class BlockController {
 
-@Target({ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface RpcMethod {
+    @Autowired
+    private WalletRPCHandler rpcHandler;
 
-    /**
-     * JSON-RPC Method
-     *
-     * @return
-     */
-    String value();
+    @RpcMethod("getHeaderByHeight")
+    public void getHeaderByHeight(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        long height = (long) params.get(0);
+        if (height < 0) {
+            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+        }
+        RpcClientResult<BlockHeader> result = rpcHandler.getBlockHeader(height);
+        BlockHeader header = result.getData();
+    }
 }

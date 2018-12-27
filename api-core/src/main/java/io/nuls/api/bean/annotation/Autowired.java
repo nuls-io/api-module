@@ -17,50 +17,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.nuls.api.bean.annotation;
 
-package io.nuls.api.controller.model;
+import java.lang.annotation.*;
 
 /**
- * @author Niels
+ * 用来标记bean的属性，标记了该注解之后，系统在初始化阶段会对该字段自动赋值
+ * After the annotation is marked with the attributes used to mark the bean,
+ * the system is automatically assigned to the field during the initialization phase.
+ *
+ * @author Niels Wang
  */
-public class RpcResultError {
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Autowired {
 
-    private int code;
-
-    private String message;
-
-    private Object data;
-
-    public RpcResultError() {
-    }
-
-    public RpcResultError(int code, String message, Object data) {
-        this.code = code;
-        this.message = message;
-        this.data = data;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public Object getData() {
-        return data;
-    }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
+    /**
+     * 依赖的bean名称，可以为空，默认为空
+     * Depending on the bean name, it can be empty and the default is empty.
+     *
+     * @return 对象名称/bean name
+     */
+    String value() default "";
 }
