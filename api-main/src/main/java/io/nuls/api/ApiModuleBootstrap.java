@@ -18,11 +18,12 @@
  * SOFTWARE.
  */
 
-package io.nuls;
+package io.nuls.api;
 
 import io.nuls.api.core.util.Log;
 import io.nuls.api.bean.SpringLiteContext;
 import io.nuls.api.jsonrpc.JsonRpcServer;
+import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.core.utils.StringUtils;
 import io.nuls.api.utils.ConfigLoader;
 
@@ -34,10 +35,9 @@ import java.util.Properties;
 public class ApiModuleBootstrap {
 
     public static void main(String[] args) {
-        SpringLiteContext.init("io.nuls");
-        JsonRpcServer server = new JsonRpcServer();
         String ip = "0.0.0.0";
         int port = 8080;
+        String walletUrl = "";
         try {
             Properties prop = ConfigLoader.loadProperties("cfg.properties");
             String ipOfCfg = prop.getProperty("listener.ip");
@@ -48,9 +48,15 @@ public class ApiModuleBootstrap {
             if (StringUtils.isNotBlank(portOfCfg)) {
                 port = Integer.parseInt(portOfCfg);
             }
+            walletUrl = prop.getProperty("wallet.url");
         } catch (Exception e) {
             Log.error(e);
         }
+        RestFulUtils.getInstance().setServerUri(walletUrl);
+
+        SpringLiteContext.init("io.nuls");
+        JsonRpcServer server = new JsonRpcServer();
+
         server.startServer(ip, port);
     }
 }
