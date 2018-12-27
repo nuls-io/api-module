@@ -2,7 +2,7 @@ package io.nuls.api.core.model;
 
 import java.math.BigDecimal;
 
-public class Agent extends TxData{
+public class AgentInfo extends TxData{
 
     private String txHash;
 

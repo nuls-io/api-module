@@ -1,6 +1,6 @@
 package io.nuls.api.core.model;
 
-public class Alias extends TxData {
+public class AliasInfo extends TxData {
 
     private String address;
 

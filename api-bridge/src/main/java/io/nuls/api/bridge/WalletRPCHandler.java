@@ -26,12 +26,12 @@
  */
 package io.nuls.api.bridge;
 
-import io.nuls.api.core.model.BlockHeader;
+import io.nuls.api.core.model.BlockHeaderInfo;
+import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.sdk.core.contast.KernelErrorCode;
-import io.nuls.sdk.core.model.Block;
 import io.nuls.sdk.core.model.Result;
 import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.tool.NulsSDKTool;
@@ -52,14 +52,15 @@ public class WalletRPCHandler {
      * @param height 区块高度
      * @return 区块头信息
      */
-    public RpcClientResult<BlockHeader> getBlockHeader(long height) {
+    public RpcClientResult<BlockHeaderInfo> getBlockHeader(long height) {
         Result result = restFulUtils.get("/block/header/height/" + height, null);
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
         RpcClientResult clientResult = new RpcClientResult();
         try {
-            BlockHeader blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
+            BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
+            clientResult.setSuccess(true);
             clientResult.setData(blockHeader);
         } catch (Exception e) {
             Log.error(e);
@@ -74,15 +75,16 @@ public class WalletRPCHandler {
      * @param hash 区块hash
      * @return 区块头信息
      */
-    public RpcClientResult<BlockHeader> getBlockHeader(String hash) {
+    public RpcClientResult<BlockHeaderInfo> getBlockHeader(String hash) {
         Result result = restFulUtils.get("/block/header/hash/" + hash, null);
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
         RpcClientResult clientResult = new RpcClientResult();
         try {
-            BlockHeader blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
+            BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
             clientResult.setData(blockHeader);
+            clientResult.setSuccess(true);
         } catch (Exception e) {
             Log.error(e);
             clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
@@ -96,13 +98,21 @@ public class WalletRPCHandler {
      * @param hash 区块hash
      * @return 区块信息
      */
-    public RpcClientResult<Block> getBlock(String hash) {
+    public RpcClientResult<BlockInfo> getBlock(String hash) {
         Result result = NulsSDKTool.getBlockWithBytes(hash);
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
         RpcClientResult clientResult = new RpcClientResult();
-
-        return null;
+        try {
+            io.nuls.sdk.core.model.Block nulsBlock = (io.nuls.sdk.core.model.Block) result.getData();
+            BlockInfo block = AnalysisHandler.toBlock(nulsBlock);
+            clientResult.setSuccess(true);
+            clientResult.setData(block);
+        } catch (Exception e) {
+            Log.error(e);
+            clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
+        }
+        return clientResult;
     }
 }

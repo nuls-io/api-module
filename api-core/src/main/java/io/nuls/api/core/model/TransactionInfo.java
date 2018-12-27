@@ -2,7 +2,7 @@ package io.nuls.api.core.model;
 
 import java.util.List;
 
-public class Transaction {
+public class TransactionInfo {
 
     private String hash;
 

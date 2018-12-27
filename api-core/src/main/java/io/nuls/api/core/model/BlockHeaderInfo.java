@@ -28,7 +28,7 @@ package io.nuls.api.core.model;
 
 import java.util.List;
 
-public class BlockHeader {
+public class BlockHeaderInfo {
 
     private String hash;
 
@@ -57,9 +57,6 @@ public class BlockHeader {
     private Integer packingIndexOfRound;
 
     private String scriptSign;
-
-    private byte[] extend;
-
 
     private List<String> txHashList;
 
@@ -173,5 +170,13 @@ public class BlockHeader {
 
     public void setScriptSign(String scriptSign) {
         this.scriptSign = scriptSign;
+    }
+
+    public List<String> getTxHashList() {
+        return txHashList;
+    }
+
+    public void setTxHashList(List<String> txHashList) {
+        this.txHashList = txHashList;
     }
 }

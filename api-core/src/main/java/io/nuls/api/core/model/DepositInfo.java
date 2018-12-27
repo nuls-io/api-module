@@ -1,6 +1,6 @@
 package io.nuls.api.core.model;
 
-public class Deposit extends TxData {
+public class DepositInfo extends TxData {
     private String txHash;
 
     private Long amount;

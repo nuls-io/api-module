@@ -2,7 +2,6 @@ package io.nuls;
 
 import static org.junit.Assert.assertTrue;
 
-import io.nuls.api.core.util.RestFulUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,6 +28,6 @@ public class AppTest {
 
     @Test
     public void testGetBlockHeader() {
-//        RpcClientResult<BlockHeader> clientResult =
+//        RpcClientResult<BlockHeaderInfo> clientResult =
     }
 }

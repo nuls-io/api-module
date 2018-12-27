@@ -23,7 +23,7 @@ package io.nuls.api.controller.block;
 import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
-import io.nuls.api.core.model.BlockHeader;
+import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
@@ -51,8 +51,8 @@ public class BlockController {
         if (height < 0) {
             throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
         }
-        RpcClientResult<BlockHeader> result = rpcHandler.getBlockHeader(height);
-        BlockHeader header = result.getData();
+        RpcClientResult<BlockHeaderInfo> result = rpcHandler.getBlockHeader(height);
+        BlockHeaderInfo header = result.getData();
         if (result.isFailed()) {
             throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
         }
@@ -68,8 +68,8 @@ public class BlockController {
         if (StringUtils.isBlank(hash)) {
             throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
         }
-        RpcClientResult<BlockHeader> result = rpcHandler.getBlockHeader(hash);
-        BlockHeader header = result.getData();
+        RpcClientResult<BlockHeaderInfo> result = rpcHandler.getBlockHeader(hash);
+        BlockHeaderInfo header = result.getData();
         if (result.isFailed()) {
             throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
         }

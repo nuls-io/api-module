@@ -27,13 +27,13 @@
 package io.nuls.api.bridge;
 
 import io.nuls.api.core.constant.NulsConstant;
-import io.nuls.api.core.model.Agent;
-import io.nuls.api.core.model.Alias;
-import io.nuls.api.core.model.Block;
-import io.nuls.api.core.model.BlockHeader;
-import io.nuls.api.core.model.Deposit;
+import io.nuls.api.core.model.AgentInfo;
+import io.nuls.api.core.model.AliasInfo;
+import io.nuls.api.core.model.BlockInfo;
+import io.nuls.api.core.model.BlockHeaderInfo;
+import io.nuls.api.core.model.DepositInfo;
 import io.nuls.api.core.model.*;
-import io.nuls.api.core.model.Transaction;
+import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.crypto.Hex;
 import io.nuls.sdk.core.model.*;
@@ -53,81 +53,99 @@ import java.util.Map;
  */
 public class AnalysisHandler {
 
-    public static BlockHeader toBlockHeader(Map<String, Object> map) {
-        BlockHeader blockHeader = new BlockHeader();
-        blockHeader.setHash((String) map.get("hash"));
-        blockHeader.setTxCount((Integer) map.get("txCount"));
-        blockHeader.setSize((Integer) map.get("size"));
-        blockHeader.setMerkleHash((String) map.get("merkleHash"));
-        blockHeader.setPreHash((String) map.get("preHash"));
-        blockHeader.setHeight(Long.parseLong(map.get("height").toString()));
-        blockHeader.setPackingIndexOfRound((Integer) map.get("packingIndexOfRound"));
-        blockHeader.setReward(Long.parseLong(map.get("reward").toString()));
-        blockHeader.setRoundIndex(Long.parseLong(map.get("roundIndex").toString()));
-        blockHeader.setTotalFee(Long.parseLong(map.get("fee").toString()));
-        blockHeader.setCreateTime(Long.parseLong(map.get("time").toString()));
-        blockHeader.setPackingAddress((String) map.get("packingAddress"));
-        blockHeader.setScriptSign((String) map.get("scriptSig"));
-        return blockHeader;
+    public static BlockHeaderInfo toBlockHeader(Map<String, Object> map) {
+        BlockHeaderInfo info = new BlockHeaderInfo();
+        info.setHash((String) map.get("hash"));
+        info.setTxCount((Integer) map.get("txCount"));
+        info.setSize((Integer) map.get("size"));
+        info.setMerkleHash((String) map.get("merkleHash"));
+        info.setPreHash((String) map.get("preHash"));
+        info.setHeight(Long.parseLong(map.get("height").toString()));
+        info.setPackingIndexOfRound((Integer) map.get("packingIndexOfRound"));
+        info.setReward(Long.parseLong(map.get("reward").toString()));
+        info.setRoundIndex(Long.parseLong(map.get("roundIndex").toString()));
+        info.setTotalFee(Long.parseLong(map.get("fee").toString()));
+        info.setCreateTime(Long.parseLong(map.get("time").toString()));
+        info.setPackingAddress((String) map.get("packingAddress"));
+        info.setScriptSign((String) map.get("scriptSig"));
+        return info;
     }
 
-    public static Block toBlock(io.nuls.sdk.core.model.Block nulsBlock) throws Exception {
-        Block block = new Block();
+    public static BlockInfo toBlock(Block block) throws Exception {
+        BlockInfo blockInfo = new BlockInfo();
 
-        block.setTxs(toTxs(nulsBlock.getTxs()));
-        BlockHeader blockHeader = toBlockHeader(nulsBlock.getHeader());
+        blockInfo.setTxs(toTxs(block.getTxs()));
+        BlockHeaderInfo blockHeader = toBlockHeader(block.getHeader());
         //计算coinbase奖励
-        blockHeader.setReward(calcCoinBaseReward(block.getTxs().get(0)));
+        blockHeader.setReward(calcCoinBaseReward(blockInfo.getTxs().get(0)));
         //计算总手续费
-        blockHeader.setTotalFee(calcFee(block.getTxs()));
-        return block;
+        blockHeader.setTotalFee(calcFee(blockInfo.getTxs()));
+
+        List<String> txHashList = new ArrayList<>();
+        for (int i = 0; i < block.getTxs().size(); i++) {
+            txHashList.add(blockInfo.getTxs().get(i).getHash());
+        }
+        blockHeader.setTxHashList(txHashList);
+        blockInfo.setBlockHeader(blockHeader);
+        return blockInfo;
     }
 
-    private static BlockHeader toBlockHeader(io.nuls.sdk.core.model.BlockHeader nulsBlockHeader) throws Exception {
-        BlockHeader blockHeader = new BlockHeader();
-        blockHeader.setHash(nulsBlockHeader.getHash().getDigestHex());
-        blockHeader.setHeight(nulsBlockHeader.getHeight());
-        blockHeader.setPreHash(nulsBlockHeader.getPreHash().getDigestHex());
-        blockHeader.setMerkleHash(nulsBlockHeader.getMerkleHash().getDigestHex());
-        blockHeader.setSize(nulsBlockHeader.getSize());
-        blockHeader.setScriptSign(Hex.encode(nulsBlockHeader.getBlockSignature().serialize()));
-        blockHeader.setTxCount(new Long(nulsBlockHeader.getTxCount()).intValue());
-        BlockExtendsData extendsData = new BlockExtendsData(nulsBlockHeader.getExtend());
-        blockHeader.setRoundIndex(extendsData.getRoundIndex());
-        blockHeader.setPackingIndexOfRound(extendsData.getPackingIndexOfRound());
-        blockHeader.setCreateTime(nulsBlockHeader.getTime());
-        return blockHeader;
+    private static BlockHeaderInfo toBlockHeader(BlockHeader blockHeader) throws Exception {
+        BlockHeaderInfo info = new BlockHeaderInfo();
+        info.setHash(blockHeader.getHash().getDigestHex());
+        info.setHeight(blockHeader.getHeight());
+        info.setPreHash(blockHeader.getPreHash().getDigestHex());
+        info.setMerkleHash(blockHeader.getMerkleHash().getDigestHex());
+        info.setSize(blockHeader.getSize());
+        info.setScriptSign(Hex.encode(blockHeader.getBlockSignature().serialize()));
+        info.setTxCount(Long.valueOf(blockHeader.getTxCount()).intValue());
+        BlockExtendsData extendsData = new BlockExtendsData(blockHeader.getExtend());
+        info.setRoundIndex(extendsData.getRoundIndex());
+        info.setPackingIndexOfRound(extendsData.getPackingIndexOfRound());
+        info.setCreateTime(blockHeader.getTime());
+        info.setPackingAddress(AddressTool.getStringAddressByBytes(blockHeader.getPackingAddress()));
+        return info;
     }
 
-    private static List<Transaction> toTxs(List<io.nuls.sdk.core.model.transaction.Transaction> txList) throws Exception {
-        List<Transaction> txs = new ArrayList<>();
+    private static List<TransactionInfo> toTxs(List<Transaction> txList) throws Exception {
+        List<TransactionInfo> txs = new ArrayList<>();
         for (int i = 0; i < txList.size(); i++) {
             txs.add(toTransaction(txList.get(i)));
         }
         return txs;
     }
 
-    private static Transaction toTransaction(io.nuls.sdk.core.model.transaction.Transaction tx) throws Exception {
-        Transaction transaction = new Transaction();
-        transaction.setHash(tx.getHash().getDigestHex());
-        transaction.setHeight(tx.getBlockHeight());
-        transaction.setFee(tx.getFee().getValue());
-        transaction.setType(tx.getType());
-        transaction.setSize(tx.getSize());
-        transaction.setTxDataHex(Hex.encode(tx.getTxData().serialize()));
-        transaction.setFroms(toInputs(tx.getCoinData()));
-        transaction.setTos(toOutputs(tx.getCoinData(), transaction.getHash()));
-        transaction.setRemark(Hex.encode(tx.getRemark()));
-        return transaction;
+    private static TransactionInfo toTransaction(Transaction tx) throws Exception {
+        TransactionInfo info = new TransactionInfo();
+        info.setHash(tx.getHash().getDigestHex());
+        info.setHeight(tx.getBlockHeight());
+        info.setFee(tx.getFee().getValue());
+        info.setType(tx.getType());
+        info.setSize(tx.getSize());
+        if (tx.getTxData() != null) {
+            info.setTxDataHex(Hex.encode(tx.getTxData().serialize()));
+        }
+        if (tx.getRemark() != null) {
+            info.setRemark(Hex.encode(tx.getRemark()));
+        }
+        info.setFroms(toInputs(tx.getCoinData()));
+        info.setTos(toOutputs(tx.getCoinData(), info.getHash()));
+
+        if (info.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
+            info.setTxDataList(toTxDataList(tx));
+        } else {
+            info.setTxData(toTxData(tx));
+        }
+        return info;
     }
 
-    private static List<Input> toInputs(io.nuls.sdk.core.model.CoinData coinData) {
+    private static List<Input> toInputs(CoinData coinData) {
         if (coinData.getFrom() == null || coinData.getFrom().isEmpty()) {
             return null;
         }
         List<Input> inputs = new ArrayList<>();
         Input input;
-        for (io.nuls.sdk.core.model.Coin coin : coinData.getFrom()) {
+        for (Coin coin : coinData.getFrom()) {
             input = new Input();
             input.setKey(Hex.encode(coin.getOwner()));
             inputs.add(input);
@@ -135,14 +153,14 @@ public class AnalysisHandler {
         return inputs;
     }
 
-    private static List<OutPut> toOutputs(io.nuls.sdk.core.model.CoinData coinData, String txHash) {
+    private static List<OutPut> toOutputs(CoinData coinData, String txHash) {
         if (coinData.getTo() == null || coinData.getTo().isEmpty()) {
             return null;
         }
         List<OutPut> outPuts = new ArrayList<>();
         OutPut outPut;
         byte[] txHashBytes = Hex.decode(txHash);
-        io.nuls.sdk.core.model.Coin coin;
+        Coin coin;
         for (int i = 0; i < coinData.getTo().size(); i++) {
             coin = coinData.getTo().get(i);
             outPut = new OutPut();
@@ -157,7 +175,7 @@ public class AnalysisHandler {
         return outPuts;
     }
 
-    private static TxData toTxData(io.nuls.sdk.core.model.transaction.Transaction tx) throws Exception {
+    private static TxData toTxData(Transaction tx) throws Exception {
         if (tx.getType() == TransactionConstant.TX_TYPE_ALIAS) {
             return toAlias(tx);
         } else if (tx.getType() == TransactionConstant.TX_TYPE_REGISTER_AGENT) {
@@ -182,7 +200,7 @@ public class AnalysisHandler {
         return null;
     }
 
-    private static List<TxData> toTxDataList(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static List<TxData> toTxDataList(Transaction tx) {
         if (tx.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
             YellowPunishTransaction yellowPunishTx = (YellowPunishTransaction) tx;
             return toYellowPunishLog(yellowPunishTx);
@@ -190,68 +208,67 @@ public class AnalysisHandler {
         return null;
     }
 
-    private static TxData toAlias(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static TxData toAlias(Transaction tx) {
         AliasTransaction aliasTx = (AliasTransaction) tx;
-        io.nuls.sdk.core.model.Alias model = aliasTx.getTxData();
-        Alias alias = new Alias();
-        alias.setAddress(AddressTool.getStringAddressByBytes(model.getAddress()));
-        alias.setAlias(model.getAlias());
-        return alias;
+        Alias model = aliasTx.getTxData();
+        AliasInfo info = new AliasInfo();
+        info.setAddress(AddressTool.getStringAddressByBytes(model.getAddress()));
+        info.setAlias(model.getAlias());
+        return info;
     }
 
-    private static TxData toAgent(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static TxData toAgent(Transaction tx) {
         CreateAgentTransaction agentTransaction = (CreateAgentTransaction) tx;
-        io.nuls.sdk.core.model.Agent model = agentTransaction.getTxData();
+        Agent model = agentTransaction.getTxData();
 
-        Agent agent = new Agent();
-        agent.setTxHash(tx.getHash().getDigestHex());
-        agent.setAgentAddress(AddressTool.getStringAddressByBytes(model.getAgentAddress()));
-        agent.setPackingAddress(AddressTool.getStringAddressByBytes(model.getPackingAddress()));
-        agent.setRewardAddress(AddressTool.getStringAddressByBytes(model.getRewardAddress()));
-        agent.setDeposit(model.getDeposit().getValue());
-        agent.setCommissionRate(new BigDecimal(model.getCommissionRate()));
-        agent.setBlockHeight(tx.getBlockHeight());
-        agent.setStatus(model.getStatus());
-        agent.setDepositCount(model.getMemberCount());
-        agent.setCreditValue(new BigDecimal(model.getCreditVal()));
-        agent.setCreateTime(tx.getTime());
-        agent.setTxHash(tx.getHash().getDigestHex());
-        return agent;
+        AgentInfo info = new AgentInfo();
+        info.setTxHash(tx.getHash().getDigestHex());
+        info.setAgentAddress(AddressTool.getStringAddressByBytes(model.getAgentAddress()));
+        info.setPackingAddress(AddressTool.getStringAddressByBytes(model.getPackingAddress()));
+        info.setRewardAddress(AddressTool.getStringAddressByBytes(model.getRewardAddress()));
+        info.setDeposit(model.getDeposit().getValue());
+        info.setCommissionRate(new BigDecimal(model.getCommissionRate()));
+        info.setBlockHeight(tx.getBlockHeight());
+        info.setStatus(model.getStatus());
+        info.setDepositCount(model.getMemberCount());
+        info.setCreditValue(new BigDecimal(model.getCreditVal()));
+        info.setCreateTime(tx.getTime());
+        info.setTxHash(tx.getHash().getDigestHex());
+        return info;
     }
 
-    private static Deposit toDeposit(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static DepositInfo toDeposit(Transaction tx) {
         DepositTransaction depositTx = (DepositTransaction) tx;
-        io.nuls.sdk.core.model.Deposit model = depositTx.getTxData();
+        Deposit deposit = depositTx.getTxData();
 
-        Deposit deposit = new Deposit();
-        deposit.setTxHash(tx.getHash().getDigestHex());
-        deposit.setAmount(model.getDeposit().getValue());
-        deposit.setAgentHash(model.getAgentHash().getDigestHex());
-        deposit.setAddress(AddressTool.getStringAddressByBytes(model.getAddress()));
-        deposit.setTxHash(tx.getHash().getDigestHex());
-        deposit.setBlockHeight(tx.getBlockHeight());
-        deposit.setCreateTime(tx.getTime());
-        return deposit;
+        DepositInfo info = new DepositInfo();
+        info.setTxHash(tx.getHash().getDigestHex());
+        info.setAmount(deposit.getDeposit().getValue());
+        info.setAgentHash(deposit.getAgentHash().getDigestHex());
+        info.setAddress(AddressTool.getStringAddressByBytes(deposit.getAddress()));
+        info.setTxHash(tx.getHash().getDigestHex());
+        info.setBlockHeight(tx.getBlockHeight());
+        info.setCreateTime(tx.getTime());
+        return info;
     }
 
-    private static Deposit toCancelDeposit(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static DepositInfo toCancelDeposit(Transaction tx) {
         CancelDepositTransaction cancelDepositTx = (CancelDepositTransaction) tx;
         CancelDeposit cancelDeposit = cancelDepositTx.getTxData();
-        Deposit deposit = new Deposit();
+        DepositInfo deposit = new DepositInfo();
         deposit.setTxHash(cancelDeposit.getJoinTxHash().getDigestHex());
         return deposit;
     }
 
-    private static Agent toStopAgent(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static AgentInfo toStopAgent(Transaction tx) {
         StopAgentTransaction stopAgentTx = (StopAgentTransaction) tx;
         StopAgent stopAgent = stopAgentTx.getTxData();
-        Agent agentNode = new Agent();
+        AgentInfo agentNode = new AgentInfo();
         agentNode.setTxHash(stopAgent.getCreateTxHash().getDigestHex());
         return agentNode;
     }
 
     private static List<TxData> toYellowPunishLog(YellowPunishTransaction tx) {
-
         YellowPunishData model = tx.getTxData();
         List<TxData> logList = new ArrayList<>();
         for (byte[] address : model.getAddressList()) {
@@ -266,7 +283,7 @@ public class AnalysisHandler {
         return logList;
     }
 
-    private static PunishLog toRedPublishLog(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static PunishLog toRedPublishLog(Transaction tx) {
         RedPunishTransaction redPunishTx = (RedPunishTransaction) tx;
         RedPunishData model = redPunishTx.getTxData();
 
@@ -288,7 +305,7 @@ public class AnalysisHandler {
 
     }
 
-    private static ContractCreateInfo toContractCreateInfo(io.nuls.sdk.core.model.transaction.Transaction tx) throws Exception {
+    private static ContractCreateInfo toContractCreateInfo(Transaction tx) throws Exception {
         CreateContractTransaction createContractTx = (CreateContractTransaction) tx;
         CreateContractData model = createContractTx.getTxData();
         ContractCreateInfo contractInfo = new ContractCreateInfo();
@@ -303,7 +320,7 @@ public class AnalysisHandler {
         return contractInfo;
     }
 
-    private static ContractCallInfo toContractCallInfo(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static ContractCallInfo toContractCallInfo(Transaction tx) {
         CallContractTransaction callContractTx = (CallContractTransaction) tx;
         CallContractData contractData = callContractTx.getTxData();
 
@@ -329,7 +346,7 @@ public class AnalysisHandler {
         return callInfo;
     }
 
-    private static ContractDeleteInfo toContractDeleteInfo(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static ContractDeleteInfo toContractDeleteInfo(Transaction tx) {
         DeleteContractTransaction deleteContractTx = (DeleteContractTransaction) tx;
         DeleteContractData model = deleteContractTx.getTxData();
         ContractDeleteInfo info = new ContractDeleteInfo();
@@ -339,7 +356,7 @@ public class AnalysisHandler {
     }
 
 
-    private static ContractTransferInfo toContractTransferInfo(io.nuls.sdk.core.model.transaction.Transaction tx) {
+    private static ContractTransferInfo toContractTransferInfo(Transaction tx) {
         ContractTransferTransaction contractTransferTx = (ContractTransferTransaction) tx;
         ContractTransferData model = contractTransferTx.getTxData();
         ContractTransferInfo info = new ContractTransferInfo();
@@ -355,7 +372,7 @@ public class AnalysisHandler {
      * @param coinBaseTx coinbase交易
      * @return
      */
-    private static Long calcCoinBaseReward(Transaction coinBaseTx) {
+    private static Long calcCoinBaseReward(TransactionInfo coinBaseTx) {
         long reward = 0;
         if (coinBaseTx.getTos() == null) {
             return 0L;
@@ -369,7 +386,7 @@ public class AnalysisHandler {
     }
 
 
-    private static Long calcFee(List<Transaction> txs) {
+    private static Long calcFee(List<TransactionInfo> txs) {
         long fee = 0;
         for (int i = 1; i < txs.size(); i++) {
             fee += txs.get(i).getFee();
