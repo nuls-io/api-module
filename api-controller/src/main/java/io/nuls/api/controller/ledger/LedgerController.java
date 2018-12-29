@@ -18,16 +18,11 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.controller.tx;
+package io.nuls.api.controller.ledger;
 
-import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
-import io.nuls.api.bridge.WalletRPCHandler;
-import io.nuls.api.controller.constant.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
-import io.nuls.api.controller.utils.VerifyUtils;
-import io.nuls.api.utils.JsonRpcException;
 
 import java.util.List;
 
@@ -35,33 +30,35 @@ import java.util.List;
  * @author Niels
  */
 @Controller
-public class TxController {
+public class LedgerController {
 
-    @Autowired
-    private WalletRPCHandler rpcHandler;
-
-    @RpcMethod("getTx")
-    public RpcResult getTx(List<Object> params) {
-        VerifyUtils.verifyParams(params, 1);
-        long height = Long.parseLong("" + params.get(0));
-        if (height < 0) {
-            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
-        }
-
-        return null;
-    }
-
-    @RpcMethod("getTxList")
-    public RpcResult getTxList(List<Object> params) {
+    @RpcMethod("getCoinInfo")
+    public RpcResult getCoinInfo(List<Object> params) {
         //todo
         return null;
     }
 
-    @RpcMethod("getTxStatistical")
-    public RpcResult getTxStatistical(List<Object> params) {
+    @RpcMethod("getCoinRanking")
+    public RpcResult getCoinRanking(List<Object> params) {
         //todo
         return null;
     }
 
+    @RpcMethod("getAccountTxs")
+    public RpcResult getAccountTxs(List<Object> params) {
+        //todo
+        return null;
+    }
 
+    @RpcMethod("getAccountAssets")
+    public RpcResult getAccountAssets(List<Object> params) {
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getAccountsTokenTxs")
+    public RpcResult getAccountsTokenTxs(List<Object> params) {
+        //todo
+        return null;
+    }
 }

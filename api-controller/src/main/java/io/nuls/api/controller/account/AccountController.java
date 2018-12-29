@@ -21,10 +21,22 @@
 package io.nuls.api.controller.account;
 
 import io.nuls.api.bean.annotation.Controller;
+import io.nuls.api.bean.annotation.RpcMethod;
+import io.nuls.api.controller.model.RpcResult;
 
 /**
  * @author Niels
  */
 @Controller
 public class AccountController {
+
+    @RpcMethod("getAcount")
+    public RpcResult getAccount() {
+        return null;
+    }
+
+    @RpcMethod("getAcountList")
+    public RpcResult getAccountList() {
+        return null;
+    }
 }

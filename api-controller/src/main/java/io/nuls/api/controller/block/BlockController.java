@@ -31,6 +31,7 @@ import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
+import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.StringUtils;
 
@@ -41,6 +42,10 @@ import java.util.List;
  */
 @Controller
 public class BlockController {
+
+    @Autowired
+    private MongoDBService dbService;
+
 
     @Autowired
     private WalletRPCHandler rpcHandler;
@@ -59,6 +64,7 @@ public class BlockController {
         }
         RpcResult rpcResult = new RpcResult();
         rpcResult.setResult(header);
+
         return rpcResult;
     }
 
@@ -113,5 +119,12 @@ public class BlockController {
         return rpcResult;
     }
 
+    @RpcMethod("getBlockList")
+    public RpcResult getBlockList(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+
+        //todo
+        return null;
+    }
 
 }

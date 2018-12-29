@@ -21,10 +21,97 @@
 package io.nuls.api.controller.consensus;
 
 import io.nuls.api.bean.annotation.Controller;
+import io.nuls.api.bean.annotation.RpcMethod;
+import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.controller.utils.VerifyUtils;
+
+import java.util.List;
 
 /**
  * @author Niels
  */
 @Controller
 public class POCConsensusController {
+
+
+    @RpcMethod("getBestRoundHeaderList")
+    public RpcResult getBestRoundHeaderList(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getConsensusNodeCount")
+    public RpcResult getConsensusNodeCount(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getConsensusStatistical")
+    public RpcResult getConsensusStatistical(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getConsensusNodes")
+    public RpcResult getConsensusNodes(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getConsensusNode")
+    public RpcResult getConsensusNode(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getConsensusNodeStatistical")
+    public RpcResult getConsensusNodeStatistical(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getConsensusPublish")
+    public RpcResult getConsensusPublish(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getConsensusDeposit")
+    public RpcResult getConsensusDeposit(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getBestRoundInfo")
+    public RpcResult getBestRoundInfo(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
+    @RpcMethod("getRoundList")
+    public RpcResult getRoundList(List<Object> params) {
+        VerifyUtils.verifyParams(params, 0);
+
+        //todo
+        return null;
+    }
+
 }
