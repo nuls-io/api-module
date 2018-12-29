@@ -18,36 +18,13 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.controller.block;
+package io.nuls.api.controller.contract;
 
-import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
-import io.nuls.api.bean.annotation.RpcMethod;
-import io.nuls.api.bridge.WalletRPCHandler;
-import io.nuls.api.controller.constant.RpcErrorCode;
-import io.nuls.api.controller.model.RpcResult;
-import io.nuls.api.controller.utils.VerifyUtils;
-import io.nuls.api.utils.JsonRpcException;
-
-import java.util.List;
 
 /**
  * @author Niels
  */
 @Controller
-public class TxController {
-
-    @Autowired
-    private WalletRPCHandler rpcHandler;
-
-    @RpcMethod("getTx")
-    public RpcResult getTx(List<Object> params) {
-        VerifyUtils.verifyParams(params, 1);
-        long height = Long.parseLong("" + params.get(0));
-        if (height < 0) {
-            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
-        }
-
-        return null;
-    }
+public class ContractController {
 }
