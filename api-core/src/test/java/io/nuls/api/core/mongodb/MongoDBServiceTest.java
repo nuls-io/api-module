@@ -27,11 +27,13 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.IndexModel;
 import org.bson.Document;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -55,8 +57,25 @@ public class MongoDBServiceTest {
 //        ).first();
 //        System.out.println("==========" + document);
 
+
         //求最大值的第二种方式
-        Document doc = (Document) collection.aggregate(Arrays.asList(Aggregates.group("max", Accumulators.max("maxHeight", "$height")))).first();
+        long start = System.currentTimeMillis();
+        Document doc = (Document) collection.aggregate(Arrays.asList(Aggregates.group("max", Accumulators.max("maxHeight", "$time")))).first();
+
+        System.out.println("use:" + (System.currentTimeMillis() - start));
         System.out.println(doc);
+    }
+
+
+    @Test
+    public void createIndexes() {
+
+        MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
+        MongoDBService dbService = new MongoDBService(mongoDatabase);
+        List<IndexModel> indexes = new ArrayList<>();
+        IndexModel indexModel = new IndexModel(new Document().append("time", 1));
+        indexes.add(indexModel);
+        dbService.createIndexes("relations500", indexes);
     }
 }
