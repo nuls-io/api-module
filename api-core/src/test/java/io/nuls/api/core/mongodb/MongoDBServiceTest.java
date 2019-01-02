@@ -21,61 +21,110 @@
 package io.nuls.api.core.mongodb;
 
 import com.mongodb.MongoClient;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Accumulators;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.IndexModel;
 import org.bson.Document;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static com.mongodb.client.model.Filters.eq;
 
-/**
- * @author Niels
- */
 public class MongoDBServiceTest {
 
     @Test
-    public void getCollection() {
+    public void testInsert() {
 
-        MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
+        // 连接到 mongodb 服务
+        MongoClient mongoClient = new MongoClient("localhost", 27017);
+
+        // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService dbService = new MongoDBService(mongoDatabase);
+        MongoDBService service = new MongoDBService(mongoDatabase);
+//        service.createCollection("relations");
 
-        MongoCollection collection = dbService.getCollection("relations500");
-
-        //求最大值的第一种方式
-//        Object document = collection.aggregate(
-//                Arrays.asList(new Document("$group", new Document().append("_id", "max").append("maxValue", new Document("$max", "$height"))))
-//        ).first();
-//        System.out.println("==========" + document);
-
-
-        //求最大值的第二种方式
         long start = System.currentTimeMillis();
-        Document doc = (Document) collection.aggregate(Arrays.asList(Aggregates.group("max", Accumulators.max("maxHeight", "$time")))).first();
+        //插入1亿条数据
+        Map<String, Object> map = new HashMap<>();
+        for (int i = 0; i < 8200000; i++) {
+            map.put("address", UUID.randomUUID().toString());
+            map.put("type", i % 20);
+            map.put("height", i % 20000000);
+            map.put("hash", UUID.randomUUID().toString() + UUID.randomUUID().toString());
+            map.put("time", System.currentTimeMillis());
+            service.insertOne("relations", map);
+            if (i % 10000 == 0) {
+                System.out.println((1 + i) + "::::" + (System.currentTimeMillis() - start));
+            }
+        }
 
-        System.out.println("use:" + (System.currentTimeMillis() - start));
-        System.out.println(doc);
     }
-
 
     @Test
-    public void createIndexes() {
+    public void testCreateIndex() {
 
-        MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
+        // 连接到 mongodb 服务
+        MongoClient mongoClient = new MongoClient("localhost", 27017);
+
+        // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService dbService = new MongoDBService(mongoDatabase);
-        List<IndexModel> indexes = new ArrayList<>();
-        IndexModel indexModel = new IndexModel(new Document().append("time", 1));
-        indexes.add(indexModel);
-        dbService.createIndexes("relations500", indexes);
+        MongoDBService service = new MongoDBService(mongoDatabase);
+
+
+        String result = service.createIndex("relations", new Document("height", 1));
+        System.out.println(result);
+
     }
+
+    @Test
+    public void testCount() {
+
+        MongoClient mongoClient = new MongoClient("localhost", 27017);
+
+        // 连接到数据库
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
+        MongoDBService service = new MongoDBService(mongoDatabase);
+        MongoCollection<Document> collection = service.getCollection("relations");
+        System.out.println(collection.estimatedDocumentCount());
+    }
+
+    @Test
+    public void testQuery() {
+
+        MongoClient mongoClient = new MongoClient("localhost", 27017);
+
+        // 连接到数据库
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
+        MongoDBService service = new MongoDBService(mongoDatabase);
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 100000000; i++) {
+            List<Document> list = service.query("relations", eq("height", i % 20000000));
+            if (i % 100000 == 0) {
+                System.out.println((1 + i) + "::::" + (System.currentTimeMillis() - start));
+            }
+        }
+
+    }
+
+    @Test
+    public void testFindOne() {
+
+        MongoClient mongoClient = new MongoClient("localhost", 27017);
+
+        // 连接到数据库
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
+        MongoDBService service = new MongoDBService(mongoDatabase);
+
+        service.findOne("relations", eq("height", 1000));
+    }
+
+    @Test
+    public void testPageQuery() {
+
+    }
+
 }
