@@ -21,8 +21,10 @@
 package io.nuls.api.core.mongodb;
 
 import com.mongodb.QueryOperators;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.*;
 import com.mongodb.client.model.IndexModel;
+import com.mongodb.client.model.WriteModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -209,6 +211,14 @@ public class MongoDBService {
             list.add(documentMongoCursor.next());
         }
         return list;
+    }
+
+    public BulkWriteResult bulkWrite(String collName, List<? extends WriteModel<? extends Document>> modelList) {
+        MongoCollection<Document> collection = getCollection(collName);
+        if (null == collection) {
+            throw new RuntimeException();
+        }
+        return collection.bulkWrite(modelList);
     }
 
 }
