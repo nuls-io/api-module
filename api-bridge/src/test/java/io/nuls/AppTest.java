@@ -32,4 +32,10 @@ public class AppTest {
         RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock("0020302f3246db55094dd01cd7b12f0ec6120fcfd51d7a8b8f518b99348455333f9a");
         System.out.println(clientResult.isSuccess());
     }
+
+    @Test
+    public void testGetBlock2() {
+        RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock(481602);
+        System.out.println(clientResult.isSuccess());
+    }
 }

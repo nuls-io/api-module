@@ -1,22 +1,23 @@
 package io.nuls.api.task;
 
+import io.nuls.api.bean.annotation.Autowired;
+import io.nuls.api.bean.annotation.Component;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+@Component
 public class ScheduleManager {
 
-    private ScheduledThreadPoolExecutor executorService;
+    private ScheduledExecutorService executorService;
 
-    private static ScheduleManager instance = new ScheduleManager();
-
-    private ScheduleManager() {
-    }
-
-    public static ScheduleManager getInstance() {
-        return instance;
-    }
+    @Autowired
+    private SyncBlockTask syncBlockTask;
 
     public void start() {
-        executorService.scheduleAtFixedRate(new SyncBlockTask(),1,10, TimeUnit.SECONDS);
+        executorService = Executors.newScheduledThreadPool(1);
+        executorService.scheduleAtFixedRate(syncBlockTask,1,10, TimeUnit.SECONDS);
     }
 }

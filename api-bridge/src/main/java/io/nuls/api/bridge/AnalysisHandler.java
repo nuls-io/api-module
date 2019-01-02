@@ -36,10 +36,13 @@ import io.nuls.api.core.model.*;
 import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.crypto.Hex;
+import io.nuls.sdk.core.exception.NulsException;
 import io.nuls.sdk.core.model.*;
 import io.nuls.sdk.core.model.transaction.*;
+import io.nuls.sdk.core.script.TransactionSignature;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.JSONUtils;
+import io.nuls.sdk.core.utils.NulsByteBuffer;
 import io.nuls.sdk.core.utils.VarInt;
 import org.spongycastle.util.Arrays;
 
@@ -128,7 +131,7 @@ public class AnalysisHandler {
         if (tx.getRemark() != null) {
             info.setRemark(Hex.encode(tx.getRemark()));
         }
-        info.setFroms(toInputs(tx.getCoinData()));
+        info.setFroms(toInputs(tx.getCoinData(), tx));
         info.setTos(toOutputs(tx.getCoinData(), info.getHash()));
 
         if (info.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
@@ -139,15 +142,24 @@ public class AnalysisHandler {
         return info;
     }
 
-    private static List<Input> toInputs(CoinData coinData) {
+    private static List<Input> toInputs(CoinData coinData, Transaction tx) throws NulsException {
         if (coinData.getFrom() == null || coinData.getFrom().isEmpty()) {
             return null;
+        }
+        TransactionSignature signature = new TransactionSignature();
+        signature.parse(new NulsByteBuffer(tx.getTransactionSignature()));
+        String address = null;
+        if (signature.getP2PHKSignatures().size() == 0) {
+            byte[] addressBytes = AddressTool.getAddress(signature.getP2PHKSignatures().get(0).getPublicKey());
+            address = AddressTool.getStringAddressByBytes(addressBytes);
         }
         List<Input> inputs = new ArrayList<>();
         Input input;
         for (Coin coin : coinData.getFrom()) {
             input = new Input();
             input.setKey(Hex.encode(coin.getOwner()));
+            input.setValue(coin.getNa().getValue());
+            input.setAddress(address);
             inputs.add(input);
         }
         return inputs;

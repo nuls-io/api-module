@@ -20,6 +20,7 @@
 
 package io.nuls.api.core.mongodb;
 
+import com.mongodb.QueryOperators;
 import com.mongodb.client.*;
 import com.mongodb.client.model.IndexModel;
 import org.bson.Document;
@@ -209,6 +210,5 @@ public class MongoDBService {
         }
         return list;
     }
-
 
 }

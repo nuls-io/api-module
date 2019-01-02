@@ -63,7 +63,6 @@ public class WalletRPCHandler {
         RpcClientResult clientResult = RpcClientResult.getSuccess();
         try {
             BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
-            clientResult.setSuccess(true);
             clientResult.setData(blockHeader);
         } catch (Exception e) {
             Log.error(e);
@@ -87,7 +86,6 @@ public class WalletRPCHandler {
         try {
             BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
             clientResult.setData(blockHeader);
-            clientResult.setSuccess(true);
         } catch (Exception e) {
             Log.error(e);
             clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
@@ -123,11 +121,10 @@ public class WalletRPCHandler {
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
-        RpcClientResult clientResult = new RpcClientResult();
+        RpcClientResult clientResult = RpcClientResult.getSuccess();
         try {
             Block block = (Block) result.getData();
             BlockInfo blockInfo = AnalysisHandler.toBlock(block);
-            clientResult.setSuccess(true);
             clientResult.setData(blockInfo);
         } catch (Exception e) {
             Log.error(e);
@@ -143,20 +140,19 @@ public class WalletRPCHandler {
      * @return 区块信息
      */
     public RpcClientResult<BlockInfo> getBlock(long height) {
-//        Result result = NulsSDKTool.getBlockWithBytes(height);
-//        if (result.isFailed()) {
-//            return RpcClientResult.errorResult(result);
-//        }
-        RpcClientResult clientResult = new RpcClientResult();
-//        try {
-//            io.nuls.sdk.core.model.Block nulsBlock = (io.nuls.sdk.core.model.Block) result.getData();
-//            BlockInfo block = AnalysisHandler.toBlock(nulsBlock);
-//            clientResult.setSuccess(true);
-//            clientResult.setData(block);
-//        } catch (Exception e) {
-//            Log.error(e);
-//            clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
-//        }
+        Result result = NulsSDKTool.getBlockWithBytes(height);
+        if (result.isFailed()) {
+            return RpcClientResult.errorResult(result);
+        }
+        RpcClientResult clientResult = RpcClientResult.getSuccess();
+        try {
+            Block block = (Block) result.getData();
+            BlockInfo blockInfo = AnalysisHandler.toBlock(block);
+            clientResult.setData(blockInfo);
+        } catch (Exception e) {
+            Log.error(e);
+            clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
+        }
         return clientResult;
     }
 }
