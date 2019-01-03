@@ -107,6 +107,10 @@ public class AnalysisHandler {
         info.setPackingIndexOfRound(extendsData.getPackingIndexOfRound());
         info.setCreateTime(blockHeader.getTime());
         info.setPackingAddress(AddressTool.getStringAddressByBytes(blockHeader.getPackingAddress()));
+        //是否是种子节点
+        if (NulsConstant.SEED_NODE_ADDRESS.contains(info.getPackingAddress())) {
+            info.setSeed(true);
+        }
         return info;
     }
 

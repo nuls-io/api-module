@@ -27,6 +27,7 @@ import com.mongodb.client.model.Filters;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.junit.Test;
 
 import java.util.*;
@@ -136,8 +137,25 @@ public class MongoDBServiceTest {
 //        Document document = new Document();
 ////        document.append("_id", "bestHeight").append("height", 6);
 ////        service.insertOne("newInfo", document);
-        Document document1 = service.findOne("newInfo", Filters.eq("_id", "bestHeight1"));
+        Bson bson = Filters.eq("_id", "bestHeight");
+        Document document1 = service.findOne("newInfo", bson);
+        document1.put("height", 19);
+        service.update("newInfo", bson, document1);
         System.out.println(document1);
+    }
+
+
+    @Test
+    public void testUpdate() {
+
+        MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
+
+        // 连接到数据库
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
+        MongoDBService service = new MongoDBService(mongoDatabase);
+
+        Document document = service.findOne("newInfo", Filters.eq("_id", "bestHeight"));
+        System.out.println(document);
     }
 
     @Test

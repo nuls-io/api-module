@@ -2,13 +2,22 @@ package io.nuls.api.core.model;
 
 public class TxRelationInfo {
 
+    private String txHash;
+
+    private String address;
+
+    private Integer type;
+
+    private Long createTime;
+
+    private Long height;
+
+    private Long values;
+
+    private Long fee;
+
     public TxRelationInfo() {
 
-    }
-
-    public TxRelationInfo(String address, String txHash) {
-        this.address = address;
-        this.txHash = txHash;
     }
 
     public TxRelationInfo(String address, TransactionInfo info) {
@@ -16,24 +25,8 @@ public class TxRelationInfo {
         this.txHash = info.getHash();
         this.type = info.getType();
         this.createTime = info.getCreateTime();
-    }
-
-    private Long id;
-
-    private String address;
-
-    private String txHash;
-
-    private Integer type;
-
-    private Long createTime;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+        this.fee = info.getFee();
+        this.height = info.getHeight();
     }
 
     public String getAddress() {
@@ -77,5 +70,29 @@ public class TxRelationInfo {
             }
         }
         return false;
+    }
+
+    public Long getHeight() {
+        return height;
+    }
+
+    public void setHeight(Long height) {
+        this.height = height;
+    }
+
+    public Long getValues() {
+        return values;
+    }
+
+    public void setValues(Long values) {
+        this.values = values;
+    }
+
+    public Long getFee() {
+        return fee;
+    }
+
+    public void setFee(Long fee) {
+        this.fee = fee;
     }
 }

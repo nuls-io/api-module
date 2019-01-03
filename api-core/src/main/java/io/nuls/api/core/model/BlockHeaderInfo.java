@@ -1,19 +1,19 @@
 /*
  *
  * MIT License
- * 
+ *
  * Copyright (c) 2017-2019 nuls.io
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,7 +21,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  *
  */
 package io.nuls.api.core.model;
@@ -40,9 +40,11 @@ public class BlockHeaderInfo {
 
     private Long createTime;
 
-    private String consensusAddress;
+    private String agentAddress;
 
     private String packingAddress;
+
+    private String agentAlias;
 
     private Integer txCount;
 
@@ -59,6 +61,8 @@ public class BlockHeaderInfo {
     private String scriptSign;
 
     private List<String> txHashList;
+
+    private boolean isSeed;
 
     public String getHash() {
         return hash;
@@ -98,14 +102,6 @@ public class BlockHeaderInfo {
 
     public void setCreateTime(Long createTime) {
         this.createTime = createTime;
-    }
-
-    public String getConsensusAddress() {
-        return consensusAddress;
-    }
-
-    public void setConsensusAddress(String consensusAddress) {
-        this.consensusAddress = consensusAddress;
     }
 
     public Integer getTxCount() {
@@ -178,5 +174,34 @@ public class BlockHeaderInfo {
 
     public void setTxHashList(List<String> txHashList) {
         this.txHashList = txHashList;
+    }
+
+    public boolean isSeed() {
+        return isSeed;
+    }
+
+    public void setSeed(boolean seed) {
+        isSeed = seed;
+    }
+
+    public void setByAgentInfo(AgentInfo agentInfo) {
+        this.agentAddress = agentInfo.getAgentAddress();
+        this.agentAlias = agentInfo.getAgentAlias();
+    }
+
+    public String getAgentAddress() {
+        return agentAddress;
+    }
+
+    public void setAgentAddress(String agentAddress) {
+        this.agentAddress = agentAddress;
+    }
+
+    public String getAgentAlias() {
+        return agentAlias;
+    }
+
+    public void setAgentAlias(String agentAlias) {
+        this.agentAlias = agentAlias;
     }
 }

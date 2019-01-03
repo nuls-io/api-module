@@ -114,7 +114,7 @@ public class MongoDBService {
         if (null == collection) {
             throw new RuntimeException();
         }
-
+//        collection.up
         return collection.find(var1).first();
     }
 
