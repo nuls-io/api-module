@@ -93,7 +93,6 @@ public class BlockService {
         return false;
     }
 
-
     private void processTransactions(List<TransactionInfo> txs) {
         //记录交易和账户地址的关系
         Set<TxRelationInfo> txRelationInfoList = new HashSet<>();
@@ -106,7 +105,6 @@ public class BlockService {
             }
         }
     }
-
 
     /**
      * 保存最新的高度信息
@@ -125,5 +123,13 @@ public class BlockService {
             document.put("finish", false);
             mongoDBService.update(MongoTableName.NEW_INFO, query, document);
         }
+    }
+
+    /**
+     * 回滚都是从最后保存的一个区块开始
+     * @return boolean
+     */
+    public boolean rollbackBlock() {
+        return false;
     }
 }
