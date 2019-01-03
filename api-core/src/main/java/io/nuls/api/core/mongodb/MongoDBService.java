@@ -20,8 +20,11 @@
 
 package io.nuls.api.core.mongodb;
 
+import com.mongodb.QueryOperators;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.*;
 import com.mongodb.client.model.IndexModel;
+import com.mongodb.client.model.WriteModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -111,9 +114,9 @@ public class MongoDBService {
         if (null == collection) {
             throw new RuntimeException();
         }
+
         return collection.find(var1).first();
     }
-
 
     public List<Document> query(String collName, Bson var1) {
         MongoCollection<Document> collection = getCollection(collName);
@@ -153,14 +156,6 @@ public class MongoDBService {
             throw new RuntimeException();
         }
         return collection.updateMany(var1, new Document(op, docs)).getModifiedCount();
-    }
-
-    public void drop(String collName) {
-        MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
-        collection.drop();
     }
 
     public long delete(String collName, Bson var1) {
@@ -216,6 +211,14 @@ public class MongoDBService {
             list.add(documentMongoCursor.next());
         }
         return list;
+    }
+
+    public BulkWriteResult bulkWrite(String collName, List<? extends WriteModel<? extends Document>> modelList) {
+        MongoCollection<Document> collection = getCollection(collName);
+        if (null == collection) {
+            throw new RuntimeException();
+        }
+        return collection.bulkWrite(modelList);
     }
 
 }
