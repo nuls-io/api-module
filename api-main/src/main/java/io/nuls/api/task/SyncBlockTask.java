@@ -26,7 +26,11 @@ public class SyncBlockTask implements Runnable {
     public void run() {
         boolean running = true;
         while (running) {
-            running = syncBlock();
+            try {
+                running = syncBlock();
+            } catch (Exception e) {
+                Log.error(e);
+            }
         }
     }
 

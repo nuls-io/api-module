@@ -18,21 +18,24 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.controller.constant;
-
-import io.nuls.api.controller.model.RpcResultError;
+package io.nuls.api.entity;
 
 /**
  * @author Niels
  */
-public interface RpcErrorCode {
+public class PocRoundItem {
 
-    // 参数不对
-    RpcResultError PARAMS_ERROR = new RpcResultError(1000, "Parameters is wrong!", null);
+    private long roundIndex;
 
-    //数据未找到
-    RpcResultError DATA_NOT_EXISTS = new RpcResultError(404, "Data is not exists!", null);
-    
-    //交易解析错误
-    RpcResultError TX_PARSE_ERROR = new RpcResultError(999, "Transaction parse error!", null);
+    private int order;
+
+    private String producer;//出块人（节点）
+
+    private int resule;
+
+    private long blockHeight;
+
+    private int txCount;
+
+    private long reward;
 }

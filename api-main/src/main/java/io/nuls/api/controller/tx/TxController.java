@@ -26,8 +26,12 @@ import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.controller.constant.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
+import io.nuls.api.core.model.RpcClientResult;
+import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.api.utils.JsonRpcException;
+import io.nuls.sdk.core.utils.StringUtils;
 
 import java.util.List;
 
@@ -43,12 +47,23 @@ public class TxController {
     @RpcMethod("getTx")
     public RpcResult getTx(List<Object> params) {
         VerifyUtils.verifyParams(params, 1);
-        long height = Long.parseLong("" + params.get(0));
-        if (height < 0) {
+        String hash = "" + params.get(0);
+        if (StringUtils.isBlank(hash)) {
             throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
         }
-
-        return null;
+        RpcClientResult<TransactionInfo> rpcClientResult = rpcHandler.getTx(hash);
+        if (rpcClientResult.isFailed()) {
+            RpcResult result = new RpcResult();
+            if (null == rpcClientResult.getData()) {
+                result.setError(RpcErrorCode.DATA_NOT_EXISTS);
+            } else {
+                result.setError(new RpcResultError(rpcClientResult.getCode(), rpcClientResult.getMsg(), null));
+            }
+            return result;
+        }
+        RpcResult rpcResult = new RpcResult();
+        rpcResult.setResult(rpcClientResult.getData());
+        return rpcResult;
     }
 
     @RpcMethod("getTxList")

@@ -18,21 +18,20 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.controller.constant;
-
-import io.nuls.api.controller.model.RpcResultError;
+package io.nuls.api.entity;
 
 /**
  * @author Niels
  */
-public interface RpcErrorCode {
+public class TxCount {
 
-    // 参数不对
-    RpcResultError PARAMS_ERROR = new RpcResultError(1000, "Parameters is wrong!", null);
+    private int date;
 
-    //数据未找到
-    RpcResultError DATA_NOT_EXISTS = new RpcResultError(404, "Data is not exists!", null);
-    
-    //交易解析错误
-    RpcResultError TX_PARSE_ERROR = new RpcResultError(999, "Transaction parse error!", null);
+    private int month;
+
+    private int year;
+
+    private int count;
+
+
 }
