@@ -21,29 +21,29 @@ public class BlockService {
     private AgentService agentService;
 
     /**
-     * 获取本地存储的最新区块关系表
+     * 获取本地存储的最新区块头
      *
      * @return BlockRelationInfo 最新的区块关系记录
      */
-    public BlockRelationInfo getBestBlockRelation() {
+    public BlockHeaderInfo getBestBlockHeader() {
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT));
         if (document == null) {
             return null;
         }
-        return getBlockRelationInfoByHeight(document.getLong(MongoTableName.BEST_BLOCK_HEIGHT));
+        return getBlockHeaderInfoByHeight(document.getLong(MongoTableName.BEST_BLOCK_HEIGHT));
     }
 
-    public BlockRelationInfo getBlockRelationInfoByHeight(long height) {
-        Document document = mongoDBService.findOne(MongoTableName.BLOCK_RELATION, Filters.eq("_id", height));
+    public BlockHeaderInfo getBlockHeaderInfoByHeight(long height) {
+        Document document = mongoDBService.findOne(MongoTableName.BLOCK_HEADER, Filters.eq("_id", height));
         if (document == null) {
             return null;
         }
-        return new BlockRelationInfo(document);
+        return DocumentTransferTool.toInfo(document, "height", BlockHeaderInfo.class);
     }
 
-    public void saveBLockRelationInfo(BlockRelationInfo blockRelationInfo) {
-        Document document = DocumentTransferTool.toDocument(blockRelationInfo, "height");
-        mongoDBService.insertOne(MongoTableName.BLOCK_RELATION, document);
+    public void saveBLockHeaderInfo(BlockHeaderInfo blockHeaderInfo) {
+        Document document = DocumentTransferTool.toDocument(blockHeaderInfo, "height");
+        mongoDBService.insertOne(MongoTableName.BLOCK_HEADER, document);
     }
 
     /**
@@ -52,6 +52,7 @@ public class BlockService {
      * 2. 存储交易和地址的关系信息
      * 3. 存储交易
      * 4. 根据交易更新各个地址的余额
+     *
      * @param blockInfo 完整的区块信息
      * @return boolean 是否保存成功
      */
@@ -60,7 +61,7 @@ public class BlockService {
         document.put("bestBlockHeight", blockInfo.getBlockHeader().getHeight());
         mongoDBService.insertOne("bestBlockHeight", document);
 
-        BlockRelationInfo blockRelationInfo = new BlockRelationInfo(blockInfo.getBlockHeader());
+        BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
         //根据区块头的打包地址，查询打包节点的节点信息，做关联存储使用
         AgentInfo agentInfo = agentService.getAgentByPackingAddress(blockInfo.getBlockHeader().getPackingAddress());
         if (agentInfo != null) {
@@ -69,8 +70,8 @@ public class BlockService {
             agentInfo = new AgentInfo();
             agentInfo.setPackingAddress(blockInfo.getBlockHeader().getPackingAddress());
         }
-        blockRelationInfo.setAgentInfo(agentInfo);
-        saveBLockRelationInfo(blockRelationInfo);
+//        blockRelationInfo.setAgentInfo(agentInfo);
+//        saveBLockRelationInfo(blockRelationInfo);
 
 
         //处理交易

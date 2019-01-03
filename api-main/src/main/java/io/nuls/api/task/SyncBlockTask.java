@@ -4,7 +4,6 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.core.model.BlockHeaderInfo;
-import io.nuls.api.core.model.BlockRelationInfo;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.service.BlockService;
 import io.nuls.sdk.core.utils.Log;
@@ -40,11 +39,11 @@ public class SyncBlockTask implements Runnable {
     private boolean syncBlock() {
         long localBestHeight;
         //取出本地已经同步到最新块，然后根据高度同步下一块
-        BlockRelationInfo bestBlockRelation = blockService.getBestBlockRelation();
-        if (bestBlockRelation == null) {
+        BlockHeaderInfo localBestBlockHeader = blockService.getBestBlockHeader();
+        if (localBestBlockHeader == null) {
             localBestHeight = -1;
         } else {
-            localBestHeight = bestBlockRelation.getHeight();
+            localBestHeight = localBestBlockHeader.getHeight();
         }
         //调用RPC接口获取节点钱包下一区块
         RpcClientResult<BlockHeaderInfo> result = null;
@@ -57,17 +56,17 @@ public class SyncBlockTask implements Runnable {
 
         //根据返回结果，做相应的处理
         if (result.isSuccess()) {
-            return processWithSuccessResult(result, bestBlockRelation);
+            return processWithSuccessResult(result, localBestBlockHeader);
         } else {
-            return processWithFailResult(result, bestBlockRelation);
+            return processWithFailResult(result, localBestBlockHeader);
         }
     }
 
-    private boolean processWithSuccessResult(RpcClientResult<BlockHeaderInfo> result, BlockRelationInfo bestBlockRelation) {
+    private boolean processWithSuccessResult(RpcClientResult<BlockHeaderInfo> result, BlockHeaderInfo localBestBlockHeader) {
         return false;
     }
 
-    private boolean processWithFailResult(RpcClientResult<BlockHeaderInfo> result, BlockRelationInfo bestBlockRelation) {
+    private boolean processWithFailResult(RpcClientResult<BlockHeaderInfo> result, BlockHeaderInfo localBestBlockHeader) {
         return true;
     }
 }

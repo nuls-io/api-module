@@ -25,7 +25,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import io.nuls.api.core.constant.MongoTableName;
-import io.nuls.api.core.model.BlockRelationInfo;
 import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
 import org.junit.Test;
@@ -160,9 +159,9 @@ public class MongoDBServiceTest {
         MongoDBService service = new MongoDBService(mongoDatabase);
 
 //        service.insertOne(MongoTableName.BLOCK_RELATION, document);
-        Document document1 = service.findOne(MongoTableName.BLOCK_RELATION, Filters.eq("preHash", "bbbbb"));
-        BlockRelationInfo relationInfo1 = DocumentTransferTool.toInfo(document1, BlockRelationInfo.class);
-        System.out.println(relationInfo1);
+        Document document1 = service.findOne(MongoTableName.BLOCK_HEADER, Filters.eq("preHash", "bbbbb"));
+//        BlockRelationInfo relationInfo1 = DocumentTransferTool.toInfo(document1, BlockRelationInfo.class);
+//        System.out.println(relationInfo1);
     }
 
     @Test
