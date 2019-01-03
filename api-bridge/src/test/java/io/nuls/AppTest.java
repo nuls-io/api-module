@@ -4,6 +4,7 @@ import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
+import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.sdk.core.SDKBootstrap;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +36,14 @@ public class AppTest {
 
     @Test
     public void testGetBlock2() {
-        RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock(481602);
+        RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock(1422757);
+        System.out.println(clientResult.isSuccess());
+    }
+
+    @Test
+    public void testGetTx() {
+        String hash = "0020e2290658793047601b0fe73af83a01bdf612ae26d53567385377d709600dc272";
+        RpcClientResult<TransactionInfo> clientResult = walletRPCHandler.getTx(hash);
         System.out.println(clientResult.isSuccess());
     }
 }

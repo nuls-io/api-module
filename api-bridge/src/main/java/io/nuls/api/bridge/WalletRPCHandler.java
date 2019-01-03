@@ -29,12 +29,15 @@ package io.nuls.api.bridge;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
+import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.sdk.core.contast.KernelErrorCode;
+import io.nuls.sdk.core.model.Address;
 import io.nuls.sdk.core.model.Block;
 import io.nuls.sdk.core.model.Result;
 import io.nuls.sdk.core.model.transaction.Transaction;
+import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.tool.NulsSDKTool;
 
@@ -60,7 +63,7 @@ public class WalletRPCHandler {
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
-        RpcClientResult clientResult = RpcClientResult.getSuccess();
+        RpcClientResult<BlockHeaderInfo> clientResult = RpcClientResult.getSuccess();
         try {
             BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
             clientResult.setData(blockHeader);
@@ -82,7 +85,7 @@ public class WalletRPCHandler {
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
-        RpcClientResult clientResult = RpcClientResult.getSuccess();
+        RpcClientResult<BlockHeaderInfo> clientResult = RpcClientResult.getSuccess();
         try {
             BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
             clientResult.setData(blockHeader);
@@ -93,16 +96,18 @@ public class WalletRPCHandler {
         return clientResult;
     }
 
-    public RpcClientResult<Transaction> getTx(String hash) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("hash", hash);
-        Result result = restFulUtils.get("/tx/bytes", params);
+    public RpcClientResult<TransactionInfo> getTx(String hash) {
+//        Map<String, Object> params = new HashMap<>();
+//        params.put("hash", hash);
+        Result result = NulsSDKTool.getTxWithBytes(hash);
+
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
-        RpcClientResult clientResult = RpcClientResult.getSuccess();
+        RpcClientResult<TransactionInfo> clientResult = RpcClientResult.getSuccess();
         try {
-
+            TransactionInfo transactionInfo = AnalysisHandler.toTransaction((Transaction) result.getData());
+            clientResult.setData(transactionInfo);
         } catch (Exception e) {
             Log.error(e);
             clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);

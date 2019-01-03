@@ -122,7 +122,7 @@ public class AnalysisHandler {
         return txs;
     }
 
-    private static TransactionInfo toTransaction(Transaction tx) throws Exception {
+    public static TransactionInfo toTransaction(Transaction tx) throws Exception {
         TransactionInfo info = new TransactionInfo();
         info.setHash(tx.getHash().getDigestHex());
         info.setHeight(tx.getBlockHeight());
@@ -154,7 +154,7 @@ public class AnalysisHandler {
         TransactionSignature signature = new TransactionSignature();
         signature.parse(new NulsByteBuffer(tx.getTransactionSignature()));
         String address = null;
-        if (signature.getP2PHKSignatures().size() == 0) {
+        if (signature.getP2PHKSignatures().size() == 1) {
             byte[] addressBytes = AddressTool.getAddress(signature.getP2PHKSignatures().get(0).getPublicKey());
             address = AddressTool.getStringAddressByBytes(addressBytes);
         }
@@ -164,10 +164,18 @@ public class AnalysisHandler {
             input = new Input();
             input.setKey(Hex.encode(coin.getOwner()));
             input.setValue(coin.getNa().getValue());
-            input.setAddress(address);
+            if (null == address) {
+                queryAddressByKey(input.getKey());
+            } else {
+                input.setAddress(address);
+            }
             inputs.add(input);
         }
         return inputs;
+    }
+
+    private static void queryAddressByKey(String key) {
+
     }
 
     private static List<OutPut> toOutputs(CoinData coinData, String txHash) {

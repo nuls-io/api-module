@@ -85,7 +85,6 @@ public class BlockService {
         headerInfo.setByAgentInfo(agentInfo);
         saveBLockHeaderInfo(headerInfo);
 
-
         //处理交易
         processTransactions(blockInfo.getTxs());
 
@@ -95,13 +94,14 @@ public class BlockService {
 
     private void processTransactions(List<TransactionInfo> txs) {
         //记录交易和账户地址的关系
-        Set<TxRelationInfo> txRelationInfoList = new HashSet<>();
+        Set<TxRelationInfo> txRelationInfoSet = new HashSet<>();
         TxRelationInfo txRelationInfo;
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
             if (tx.getFroms() != null) {
-//                for()
-//                txRelationInfoList.add(new TxRelationInfo())
+                for(Input input : tx.getFroms()) {
+                    txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
+                }
             }
         }
     }
@@ -127,6 +127,7 @@ public class BlockService {
 
     /**
      * 回滚都是从最后保存的一个区块开始
+     *
      * @return boolean
      */
     public boolean rollbackBlock() {
