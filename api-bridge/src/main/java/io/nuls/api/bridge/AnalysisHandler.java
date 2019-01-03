@@ -125,6 +125,7 @@ public class AnalysisHandler {
         info.setFee(tx.getFee().getValue());
         info.setType(tx.getType());
         info.setSize(tx.getSize());
+        info.setCreateTime(tx.getTime());
         if (tx.getTxData() != null) {
             info.setTxDataHex(Hex.encode(tx.getTxData().serialize()));
         }

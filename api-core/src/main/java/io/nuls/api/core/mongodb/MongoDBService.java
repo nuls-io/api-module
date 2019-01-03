@@ -20,7 +20,6 @@
 
 package io.nuls.api.core.mongodb;
 
-import com.mongodb.QueryOperators;
 import com.mongodb.client.*;
 import com.mongodb.client.model.IndexModel;
 import org.bson.Document;
@@ -112,9 +111,9 @@ public class MongoDBService {
         if (null == collection) {
             throw new RuntimeException();
         }
-
         return collection.find(var1).first();
     }
+
 
     public List<Document> query(String collName, Bson var1) {
         MongoCollection<Document> collection = getCollection(collName);
@@ -154,6 +153,14 @@ public class MongoDBService {
             throw new RuntimeException();
         }
         return collection.updateMany(var1, new Document(op, docs)).getModifiedCount();
+    }
+
+    public void drop(String collName) {
+        MongoCollection<Document> collection = getCollection(collName);
+        if (null == collection) {
+            throw new RuntimeException();
+        }
+        collection.drop();
     }
 
     public long delete(String collName, Bson var1) {

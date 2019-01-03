@@ -2,9 +2,11 @@ package io.nuls.api.core.model;
 
 import java.math.BigDecimal;
 
-public class AgentInfo extends TxData{
+public class AgentInfo extends TxData {
 
     private String txHash;
+
+    private String agentId;
 
     private String agentAddress;
 
@@ -172,5 +174,13 @@ public class AgentInfo extends TxData{
 
     public void setTotalReward(Long totalReward) {
         this.totalReward = totalReward;
+    }
+
+    public String getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
     }
 }

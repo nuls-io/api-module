@@ -23,13 +23,14 @@ package io.nuls.api.core.mongodb;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import io.nuls.api.core.constant.MongoTableName;
+import io.nuls.api.core.model.BlockRelationInfo;
+import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -91,6 +92,7 @@ public class MongoDBServiceTest {
         System.out.println(collection.estimatedDocumentCount());
     }
 
+
     @Test
     public void testQuery() {
 
@@ -120,6 +122,47 @@ public class MongoDBServiceTest {
         MongoDBService service = new MongoDBService(mongoDatabase);
 
         service.findOne("relations", eq("height", 1000));
+    }
+
+
+    @Test
+    public void testFind() {
+
+        MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
+
+        // 连接到数据库
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
+        MongoDBService service = new MongoDBService(mongoDatabase);
+
+//        Document document = new Document();
+////        document.append("_id", "bestHeight").append("height", 6);
+////        service.insertOne("newInfo", document);
+        Document document1 = service.findOne("newInfo", Filters.eq("_id", "bestHeight1"));
+        System.out.println(document1);
+    }
+
+    @Test
+    public void testBlockRelationInfo() {
+//        BlockRelationInfo relationInfo = new BlockRelationInfo();
+//        relationInfo.setHash("cccccc");
+//        relationInfo.setPreHash("bbbbb");
+//        relationInfo.setHeight(1L);
+//        List<String> txHashList = new ArrayList<>();
+//        txHashList.add("a123");
+//        txHashList.add("b123");
+//        txHashList.add("c123");
+//        relationInfo.setTxHashList(txHashList);
+//
+//        Document document = DocumentTransferTool.toDocument(relationInfo, "hash");
+        // 连接到数据库
+        MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
+        MongoDBService service = new MongoDBService(mongoDatabase);
+
+//        service.insertOne(MongoTableName.BLOCK_RELATION, document);
+        Document document1 = service.findOne(MongoTableName.BLOCK_RELATION, Filters.eq("preHash", "bbbbb"));
+        BlockRelationInfo relationInfo1 = DocumentTransferTool.toInfo(document1, BlockRelationInfo.class);
+        System.out.println(relationInfo1);
     }
 
     @Test

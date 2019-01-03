@@ -18,6 +18,8 @@ public class TransactionInfo {
 
     private Long fee;
 
+    private Long createTime;
+
     private String remark;
 
     private String txDataHex;
@@ -132,5 +134,13 @@ public class TransactionInfo {
 
     public void setTxDataList(List<TxData> txDataList) {
         this.txDataList = txDataList;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
     }
 }

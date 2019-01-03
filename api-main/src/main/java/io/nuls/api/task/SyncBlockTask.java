@@ -1,6 +1,7 @@
 package io.nuls.api.task;
 
 import io.nuls.api.bean.annotation.Autowired;
+import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockRelationInfo;
@@ -12,6 +13,7 @@ import io.nuls.sdk.core.utils.Log;
  * 区块同步定时任务
  * 同步钱包的区块，同步到最新块后，再定时执行检查是否有最新区块
  */
+@Component
 public class SyncBlockTask implements Runnable {
 
     @Autowired
