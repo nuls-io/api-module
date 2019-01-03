@@ -71,5 +71,7 @@ public class ApiModuleBootstrap {
         JsonRpcServer server = new JsonRpcServer();
 
         server.startServer(ip, port);
+
+        Log.info("api module is started!");
     }
 }
