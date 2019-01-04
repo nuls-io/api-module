@@ -1,6 +1,6 @@
 package io.nuls.api.core.model;
 
-public class OutPut {
+public class Output {
 
     private String key;
 

@@ -12,7 +12,7 @@ public class TransactionInfo {
 
     private String agentId;
 
-    private String agentAddress;
+    private String agentInfo;
 
     private Integer size;
 
@@ -26,7 +26,7 @@ public class TransactionInfo {
 
     private List<Input> froms;
 
-    private List<OutPut> tos;
+    private List<Output> tos;
 
     private TxData txData;
 
@@ -62,14 +62,6 @@ public class TransactionInfo {
 
     public void setAgentId(String agentId) {
         this.agentId = agentId;
-    }
-
-    public String getAgentAddress() {
-        return agentAddress;
-    }
-
-    public void setAgentAddress(String agentAddress) {
-        this.agentAddress = agentAddress;
     }
 
     public Integer getSize() {
@@ -120,11 +112,11 @@ public class TransactionInfo {
         this.froms = froms;
     }
 
-    public List<OutPut> getTos() {
+    public List<Output> getTos() {
         return tos;
     }
 
-    public void setTos(List<OutPut> tos) {
+    public void setTos(List<Output> tos) {
         this.tos = tos;
     }
 
@@ -142,5 +134,22 @@ public class TransactionInfo {
 
     public void setCreateTime(Long createTime) {
         this.createTime = createTime;
+    }
+
+    public String getAgentInfo() {
+        return agentInfo;
+    }
+
+    public void setAgentInfo(String agentInfo) {
+        this.agentInfo = agentInfo;
+    }
+
+    public void setByAgentInfo(AgentInfo agentInfo) {
+        this.agentId = agentInfo.getAgentId();
+        if (agentInfo.getAgentAlias() != null) {
+            this.agentInfo = agentInfo.getAgentAlias();
+        } else {
+            this.agentInfo = agentInfo.getAgentId();
+        }
     }
 }

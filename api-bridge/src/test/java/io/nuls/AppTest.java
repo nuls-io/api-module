@@ -42,8 +42,14 @@ public class AppTest {
 
     @Test
     public void testGetTx() {
-        String hash = "0020e2290658793047601b0fe73af83a01bdf612ae26d53567385377d709600dc272";
+        String hash = "0020e0e63e090e1b5c068f8230708f3928fe4ca026b7cbd72595651ef25800fe1eee";
         RpcClientResult<TransactionInfo> clientResult = walletRPCHandler.getTx(hash);
         System.out.println(clientResult.isSuccess());
+    }
+
+    @Test
+    public void gestGettx() {
+        String hash = "0020e0e63e090e1b5c068f8230708f3928fe4ca026b7cbd72595651ef25800fe1eee";
+        walletRPCHandler.queryTxInput(hash);
     }
 }

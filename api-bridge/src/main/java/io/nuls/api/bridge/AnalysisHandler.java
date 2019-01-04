@@ -154,7 +154,7 @@ public class AnalysisHandler {
         TransactionSignature signature = new TransactionSignature();
         signature.parse(new NulsByteBuffer(tx.getTransactionSignature()));
         String address = null;
-        if (signature.getP2PHKSignatures().size() == 1) {
+        if (signature.getP2PHKSignatures() != null && signature.getP2PHKSignatures().size() == 1) {
             byte[] addressBytes = AddressTool.getAddress(signature.getP2PHKSignatures().get(0).getPublicKey());
             address = AddressTool.getStringAddressByBytes(addressBytes);
         }
@@ -164,31 +164,24 @@ public class AnalysisHandler {
             input = new Input();
             input.setKey(Hex.encode(coin.getOwner()));
             input.setValue(coin.getNa().getValue());
-            if (null == address) {
-                queryAddressByKey(input.getKey());
-            } else {
-                input.setAddress(address);
-            }
+            input.setAddress(address);
             inputs.add(input);
         }
         return inputs;
     }
 
-    private static void queryAddressByKey(String key) {
 
-    }
-
-    private static List<OutPut> toOutputs(CoinData coinData, String txHash) {
+    private static List<Output> toOutputs(CoinData coinData, String txHash) {
         if (coinData.getTo() == null || coinData.getTo().isEmpty()) {
             return null;
         }
-        List<OutPut> outPuts = new ArrayList<>();
-        OutPut outPut;
+        List<Output> outPuts = new ArrayList<>();
+        Output outPut;
         byte[] txHashBytes = Hex.decode(txHash);
         Coin coin;
         for (int i = 0; i < coinData.getTo().size(); i++) {
             coin = coinData.getTo().get(i);
-            outPut = new OutPut();
+            outPut = new Output();
             outPut.setKey(Hex.encode(Arrays.concatenate(txHashBytes, new VarInt(i).encode())));
             outPut.setAddress(AddressTool.getStringAddressByBytes(coin.getAddress()));
             outPut.setLockTime(coin.getLockTime());
@@ -404,7 +397,7 @@ public class AnalysisHandler {
             return 0L;
         }
 
-        for (OutPut outPut : coinBaseTx.getTos()) {
+        for (Output outPut : coinBaseTx.getTos()) {
             reward += outPut.getValue();
         }
 

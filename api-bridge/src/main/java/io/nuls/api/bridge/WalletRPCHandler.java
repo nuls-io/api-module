@@ -26,22 +26,24 @@
  */
 package io.nuls.api.bridge;
 
-import io.nuls.api.core.model.BlockHeaderInfo;
-import io.nuls.api.core.model.BlockInfo;
-import io.nuls.api.core.model.RpcClientResult;
-import io.nuls.api.core.model.TransactionInfo;
+import io.nuls.api.core.model.*;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.sdk.core.contast.KernelErrorCode;
+import io.nuls.sdk.core.crypto.Hex;
 import io.nuls.sdk.core.model.Address;
 import io.nuls.sdk.core.model.Block;
 import io.nuls.sdk.core.model.Result;
 import io.nuls.sdk.core.model.transaction.Transaction;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.RestFulUtils;
+import io.nuls.sdk.core.utils.VarInt;
 import io.nuls.sdk.tool.NulsSDKTool;
+import org.spongycastle.util.Arrays;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -97,22 +99,45 @@ public class WalletRPCHandler {
     }
 
     public RpcClientResult<TransactionInfo> getTx(String hash) {
-//        Map<String, Object> params = new HashMap<>();
-//        params.put("hash", hash);
-        Result result = NulsSDKTool.getTxWithBytes(hash);
 
+        Result result = NulsSDKTool.getTxWithBytes(hash);
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
         RpcClientResult<TransactionInfo> clientResult = RpcClientResult.getSuccess();
         try {
             TransactionInfo transactionInfo = AnalysisHandler.toTransaction((Transaction) result.getData());
+            if (transactionInfo.getFroms() != null && !transactionInfo.getFroms().isEmpty()) {
+                if (transactionInfo.getFroms().get(0).getAddress() == null) {
+                    transactionInfo.setFroms(queryTxInput(hash));
+                }
+            }
             clientResult.setData(transactionInfo);
         } catch (Exception e) {
             Log.error(e);
             clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
         }
         return clientResult;
+    }
+
+    public List<Input> queryTxInput(String hash) {
+        Result result = restFulUtils.get("/tx/hash/" + hash, null);
+        List<Input> inputList = new ArrayList<>();
+
+        Map<String, Object> map = (HashMap<String, Object>) result.getData();
+        List<Map<String, Object>> inputs = (ArrayList<Map<String, Object>>) map.get("inputs");
+        for (Map<String, Object> valueMap : inputs) {
+            Input input = new Input();
+            input.setAddress((String) valueMap.get("address"));
+            input.setValue((Long) valueMap.get("value"));
+
+            byte[] fromHashBytes = Hex.decode((String) valueMap.get("fromHash"));
+            int fromIndex = (Integer) valueMap.get("fromIndex");
+            byte[] key = Arrays.concatenate(fromHashBytes, new VarInt(fromIndex).encode());
+            input.setKey(Hex.encode(key));
+            inputList.add(input);
+        }
+        return inputList;
     }
 
     /**
@@ -160,4 +185,5 @@ public class WalletRPCHandler {
         }
         return clientResult;
     }
+
 }

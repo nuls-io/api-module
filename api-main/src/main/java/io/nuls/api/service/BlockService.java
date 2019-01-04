@@ -4,15 +4,15 @@ import com.mongodb.client.model.Filters;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
+import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.sdk.core.contast.TransactionConstant;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class BlockService {
@@ -86,24 +86,93 @@ public class BlockService {
         saveBLockHeaderInfo(headerInfo);
 
         //处理交易
-        processTransactions(blockInfo.getTxs());
+        processTransactions(blockInfo.getTxs(), agentInfo);
 
 
         return false;
     }
 
-    private void processTransactions(List<TransactionInfo> txs) {
-        //记录交易和账户地址的关系
-        Set<TxRelationInfo> txRelationInfoSet = new HashSet<>();
-        TxRelationInfo txRelationInfo;
+    //记录每个区块打包交易的所有已花费(input)
+    List<Input> inputList = new ArrayList<>();
+    //记录每个区块打包交易的所有新增未花费(output)
+    Map<String, Output> outputMap = new HashMap<>();
+    //记录每个区块交易和账户地址的关系
+    Set<TxRelationInfo> txRelationInfoSet = new HashSet<>();
+    //记录每个区块打包交易涉及到的账户的余额变动
+    Map<String, AccountInfo> accountInfoMap = new HashMap<>();
+
+    private void processTransactions(List<TransactionInfo> txs, AgentInfo agentInfo) {
+        clear();
+
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
-            if (tx.getFroms() != null) {
-                for(Input input : tx.getFroms()) {
-                    txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
+            tx.setByAgentInfo(agentInfo);
+
+            processWithTxInputOutput(tx);
+
+            if (tx.getType() == TransactionConstant.TX_TYPE_COINBASE) {
+                processCoinBaseTx(tx);
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_TRANSFER) {
+
+            }
+        }
+    }
+
+    /**
+     * 处理交易的input和output
+     * 1. 首先根据每个input和output，添加交易和账户地址的关系，
+     * 因为考虑到可能有同一个地址分别在交易的froms和to里出现，因此用txRelationInfoSet集合，再添加关系记录的时候自动去重
+     * 2. 每个inputs都要加入到inputList集合里，在存储的时候，都要去删除数据库对应的utxo
+     * 每个output都要加入到outputList集合里，在存储的时候，都要作为新的utxo存储到数据库
+     *
+     * @param tx
+     */
+    private void processWithTxInputOutput(TransactionInfo tx) {
+        if (tx.getFroms() != null) {
+            for (Input input : tx.getFroms()) {
+                txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
+                //这里需要特殊处理，由于一个区块打包的多个交易中，可能存在下一个交易用到了上一个交易新生成的utxo
+                //因此在这里添加进入inputList之前提前判断是否outputMap里已有对应的output，有就直接删除
+                //没有才添加进入集合
+                if (outputMap.containsKey(input.getKey())) {
+                    outputMap.remove(input.getKey());
+                } else {
+                    inputList.add(input);
                 }
             }
         }
+        if (tx.getTos() != null) {
+            for (Output output : tx.getTos()) {
+                txRelationInfoSet.add(new TxRelationInfo(output.getAddress(), tx));
+                outputMap.put(output.getKey(), output);
+            }
+        }
+    }
+
+
+    private void processCoinBaseTx(TransactionInfo tx) {
+        for (Output output : tx.getTos()) {
+            AccountInfo accountInfo = queryAccountInfo(output.getAddress());
+        }
+    }
+
+
+    private AccountInfo queryAccountInfo(String address) {
+        AccountInfo accountInfo = accountInfoMap.get(address);
+        if(accountInfo == null) {
+            accountInfo = null;
+        }
+
+        return accountInfo;
+    }
+
+
+    private void clear() {
+        inputList.clear();
+        outputMap.clear();
+        txRelationInfoSet.clear();
+        accountInfoMap.clear();
+
     }
 
     /**
