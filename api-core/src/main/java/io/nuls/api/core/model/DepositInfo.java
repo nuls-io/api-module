@@ -1,13 +1,12 @@
 package io.nuls.api.core.model;
 
 public class DepositInfo extends TxData {
+
     private String txHash;
 
     private Long amount;
 
     private String agentHash;
-
-    private String agentName;
 
     private String address;
 
@@ -16,6 +15,12 @@ public class DepositInfo extends TxData {
     private Long blockHeight;
 
     private String deleteHash;
+
+    private Long fee;
+
+    private boolean isNew;
+    // 0 加入共识，1 退出共识
+    private int type;
 
     public String getTxHash() {
         return txHash;
@@ -39,14 +44,6 @@ public class DepositInfo extends TxData {
 
     public void setAgentHash(String agentHash) {
         this.agentHash = agentHash == null ? null : agentHash.trim();
-    }
-
-    public String getAgentName() {
-        return agentName;
-    }
-
-    public void setAgentName(String agentName) {
-        this.agentName = agentName == null ? null : agentName.trim();
     }
 
     public String getAddress() {
@@ -79,5 +76,35 @@ public class DepositInfo extends TxData {
 
     public void setDeleteHash(String deleteHash) {
         this.deleteHash = deleteHash == null ? null : deleteHash.trim();
+    }
+
+    public Long getFee() {
+        return fee;
+    }
+
+    public void setFee(Long fee) {
+        this.fee = fee;
+    }
+
+    public void copyInfoWithDeposit(DepositInfo depositInfo) {
+        this.amount = depositInfo.amount;
+        this.address = depositInfo.address;
+        this.agentHash = depositInfo.getAgentHash();
+    }
+
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setNew(boolean aNew) {
+        isNew = aNew;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 }

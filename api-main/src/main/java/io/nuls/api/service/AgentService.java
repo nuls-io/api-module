@@ -1,16 +1,20 @@
 package io.nuls.api.service;
 
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.UpdateManyModel;
+import com.mongodb.client.model.WriteModel;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.model.AgentInfo;
-import io.nuls.api.core.model.AliasInfo;
-import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class AgentService {
@@ -44,7 +48,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agent_id", AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
         return agentInfo;
     }
 
@@ -62,14 +66,21 @@ public class AgentService {
         return agentInfo;
     }
 
-    public void saveAgent(TransactionInfo txInfo) {
-        AgentInfo agentInfo = (AgentInfo) txInfo.getTxData();
-        //查询agent节点是否设置过别名
-        AliasInfo aliasInfo = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
-        if (aliasInfo != null) {
-            agentInfo.setAgentAlias(aliasInfo.getAlias());
+    public void saveAgentList(List<AgentInfo> agentInfoList) {
+        if (agentInfoList.isEmpty()) {
+            return;
         }
-        Document document = DocumentTransferTool.toDocument(agentInfo, "agentId");
-        mongoDBService.insertOne(MongoTableName.AGENT_INFO, document);
+        List<WriteModel<Document>> modelList = new ArrayList<>();
+        for (AgentInfo agentInfo : agentInfoList) {
+            Document document = DocumentTransferTool.toDocument(agentInfo, "agentId");
+            document.remove("isNew");
+
+            if (agentInfo.isNew()) {
+                modelList.add(new InsertOneModel(document));
+            } else {
+                modelList.add(new UpdateManyModel(Filters.eq("_id", agentInfo.getAgentId()), document));
+            }
+        }
+        mongoDBService.bulkWrite(MongoTableName.AGENT_INFO, modelList);
     }
 }

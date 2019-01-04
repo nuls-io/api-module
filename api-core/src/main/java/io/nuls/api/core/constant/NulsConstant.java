@@ -15,6 +15,10 @@ public class NulsConstant {
     public static final int DOUBLE_SPEND = 2;
     //太多黄牌惩罚
     public static final int TOO_MUCH_YELLOW_PUNISH = 3;
+    //委托共识
+    public static final int JOIN_CONSENSUS = 0;
+    //取消委托共识
+    public static final int CANCEL_CONSENSUS = 1;
 
     public static final Set<String> SEED_NODE_ADDRESS = new HashSet<>();
 

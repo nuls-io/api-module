@@ -2,7 +2,7 @@ package io.nuls.api.core.model;
 
 public class PunishLog extends TxData {
 
-    private Long id;
+    private String txHash;
 
     private Integer type;
 
@@ -15,15 +15,6 @@ public class PunishLog extends TxData {
     private Long roundIndex;
 
     private String reason;
-
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Integer getType() {
         return type;
@@ -73,4 +64,11 @@ public class PunishLog extends TxData {
         this.reason = reason == null ? null : reason.trim();
     }
 
+    public String getTxHash() {
+        return txHash;
+    }
+
+    public void setTxHash(String txHash) {
+        this.txHash = txHash;
+    }
 }

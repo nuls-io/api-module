@@ -40,6 +40,8 @@ public class AgentInfo extends TxData {
 
     private Long totalReward;
 
+    private boolean isNew;
+
     public String getTxHash() {
         return txHash;
     }
@@ -182,5 +184,13 @@ public class AgentInfo extends TxData {
 
     public void setAgentId(String agentId) {
         this.agentId = agentId;
+    }
+
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setNew(boolean aNew) {
+        isNew = aNew;
     }
 }

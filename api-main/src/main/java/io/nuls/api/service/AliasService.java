@@ -9,6 +9,9 @@ import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
 public class AliasService {
 
@@ -33,8 +36,16 @@ public class AliasService {
         return aliasInfo;
     }
 
-    public void saveAlias(AliasInfo aliasInfo) {
-        Document document = DocumentTransferTool.toDocument(aliasInfo, "address");
-        mongoDBService.insertOne(MongoTableName.ALIAS_INFO, document);
+    public void saveAliasList(List<AliasInfo> aliasInfoList) {
+        if (aliasInfoList.isEmpty()) {
+            return;
+        }
+        List<Document> documentList = new ArrayList<>();
+        for (AliasInfo aliasInfo : aliasInfoList) {
+            Document document = DocumentTransferTool.toDocument(aliasInfo, "address");
+            documentList.add(document);
+        }
+
+        mongoDBService.insertMany(MongoTableName.ALIAS_INFO, documentList);
     }
 }

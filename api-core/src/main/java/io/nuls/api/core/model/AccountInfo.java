@@ -1,5 +1,7 @@
 package io.nuls.api.core.model;
 
+import io.nuls.sdk.core.model.Address;
+
 public class AccountInfo {
 
     private String address;
@@ -19,6 +21,22 @@ public class AccountInfo {
     private long timeLock;
 
     private long balance;
+
+    //记录最新更改账户统计信息的高度
+    private long height;
+    //是否是根据最新区块的交易新创建的账户，只为业务使用，不存储该字段
+    private boolean isNew;
+
+    public AccountInfo() {
+        this.isNew = true;
+    }
+
+    public AccountInfo(String address) {
+        this.address = address;
+        Address address1 = new Address(address);
+        this.type = address1.getAddressType();
+        this.isNew = true;
+    }
 
     public String getAddress() {
         return address;
@@ -90,5 +108,21 @@ public class AccountInfo {
 
     public void setBalance(long balance) {
         this.balance = balance;
+    }
+
+    public long getHeight() {
+        return height;
+    }
+
+    public void setHeight(long height) {
+        this.height = height;
+    }
+
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setNew(boolean aNew) {
+        isNew = aNew;
     }
 }

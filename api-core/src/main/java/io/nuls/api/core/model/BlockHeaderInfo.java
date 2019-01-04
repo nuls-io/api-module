@@ -40,7 +40,7 @@ public class BlockHeaderInfo {
 
     private Long createTime;
 
-    private String agentAddress;
+    private String agentId;
 
     private String packingAddress;
 
@@ -62,7 +62,7 @@ public class BlockHeaderInfo {
 
     private List<String> txHashList;
 
-    private boolean isSeed;
+    private boolean isSeedPacked;
 
     public String getHash() {
         return hash;
@@ -176,25 +176,9 @@ public class BlockHeaderInfo {
         this.txHashList = txHashList;
     }
 
-    public boolean isSeed() {
-        return isSeed;
-    }
-
-    public void setSeed(boolean seed) {
-        isSeed = seed;
-    }
-
     public void setByAgentInfo(AgentInfo agentInfo) {
-        this.agentAddress = agentInfo.getAgentAddress();
+        this.agentId = agentInfo.getAgentId();
         this.agentAlias = agentInfo.getAgentAlias();
-    }
-
-    public String getAgentAddress() {
-        return agentAddress;
-    }
-
-    public void setAgentAddress(String agentAddress) {
-        this.agentAddress = agentAddress;
     }
 
     public String getAgentAlias() {
@@ -203,5 +187,21 @@ public class BlockHeaderInfo {
 
     public void setAgentAlias(String agentAlias) {
         this.agentAlias = agentAlias;
+    }
+
+    public boolean isSeedPacked() {
+        return isSeedPacked;
+    }
+
+    public void setSeedPacked(boolean seedPacked) {
+        isSeedPacked = seedPacked;
+    }
+
+    public String getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
     }
 }

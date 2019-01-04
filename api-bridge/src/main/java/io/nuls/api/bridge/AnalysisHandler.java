@@ -107,9 +107,9 @@ public class AnalysisHandler {
         info.setPackingIndexOfRound(extendsData.getPackingIndexOfRound());
         info.setCreateTime(blockHeader.getTime());
         info.setPackingAddress(AddressTool.getStringAddressByBytes(blockHeader.getPackingAddress()));
-        //是否是种子节点
+        //是否是种子节点打包的区块
         if (NulsConstant.SEED_NODE_ADDRESS.contains(info.getPackingAddress())) {
-            info.setSeed(true);
+            info.setSeedPacked(true);
         }
         return info;
     }
@@ -253,6 +253,7 @@ public class AnalysisHandler {
         info.setCreditValue(new BigDecimal(model.getCreditVal()));
         info.setCreateTime(tx.getTime());
         info.setTxHash(tx.getHash().getDigestHex());
+        info.setNew(true);
         return info;
     }
 
@@ -268,6 +269,7 @@ public class AnalysisHandler {
         info.setTxHash(tx.getHash().getDigestHex());
         info.setBlockHeight(tx.getBlockHeight());
         info.setCreateTime(tx.getTime());
+        info.setFee(tx.getFee().getValue());
         return info;
     }
 
@@ -276,6 +278,10 @@ public class AnalysisHandler {
         CancelDeposit cancelDeposit = cancelDepositTx.getTxData();
         DepositInfo deposit = new DepositInfo();
         deposit.setTxHash(cancelDeposit.getJoinTxHash().getDigestHex());
+        deposit.setFee(tx.getFee().getValue());
+        deposit.setBlockHeight(tx.getBlockHeight());
+        deposit.setCreateTime(tx.getTime());
+        deposit.setType(NulsConstant.CANCEL_CONSENSUS);
         return deposit;
     }
 
@@ -292,6 +298,7 @@ public class AnalysisHandler {
         List<TxData> logList = new ArrayList<>();
         for (byte[] address : model.getAddressList()) {
             PunishLog log = new PunishLog();
+            log.setTxHash(tx.getHash().getDigestHex());
             log.setAddress(AddressTool.getStringAddressByBytes(address));
             log.setBlockHeight(tx.getBlockHeight());
             log.setTime(tx.getTime());
@@ -307,6 +314,7 @@ public class AnalysisHandler {
         RedPunishData model = redPunishTx.getTxData();
 
         PunishLog punishLog = new PunishLog();
+        punishLog.setTxHash(tx.getHash().getDigestHex());
         punishLog.setType(NulsConstant.PUTLISH_RED);
         punishLog.setAddress(AddressTool.getStringAddressByBytes(model.getAddress()));
         if (model.getReasonCode() == NulsConstant.TRY_FORK) {

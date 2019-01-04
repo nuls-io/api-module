@@ -6,6 +6,7 @@ import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
+import io.nuls.api.service.BlockHeaderService;
 import io.nuls.api.service.BlockService;
 import io.nuls.sdk.core.contast.KernelErrorCode;
 import io.nuls.sdk.core.utils.Log;
@@ -21,6 +22,8 @@ public class SyncBlockTask implements Runnable {
     private WalletRPCHandler walletRPCHandler;
     @Autowired
     private BlockService blockService;
+    @Autowired
+    private BlockHeaderService blockHeaderService;
 
     @Override
     public void run() {
@@ -46,7 +49,7 @@ public class SyncBlockTask implements Runnable {
     private boolean syncBlock() {
         long localBestHeight;
         //取出本地已经同步到最新块，然后根据高度同步下一块
-        BlockHeaderInfo localBestBlockHeader = blockService.getBestBlockHeader();
+        BlockHeaderInfo localBestBlockHeader = blockHeaderService.getBestBlockHeader();
         if (localBestBlockHeader == null) {
             localBestHeight = -1;
         } else {
