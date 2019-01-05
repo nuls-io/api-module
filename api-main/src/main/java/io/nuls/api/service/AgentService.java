@@ -73,7 +73,6 @@ public class AgentService {
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (AgentInfo agentInfo : agentInfoList) {
             Document document = DocumentTransferTool.toDocument(agentInfo, "agentId");
-            document.remove("isNew");
 
             if (agentInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));

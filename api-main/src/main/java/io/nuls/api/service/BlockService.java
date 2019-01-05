@@ -154,6 +154,9 @@ public class BlockService {
     }
 
     private void processCoinBaseTx(TransactionInfo tx, long blockHeight) {
+        if (tx.getTos() == null || tx.getTos().isEmpty()) {
+            return;
+        }
         for (Output output : tx.getTos()) {
             AccountInfo accountInfo = queryAccountInfo(output.getAddress());
             accountInfo.setTotalIn(accountInfo.getTotalIn() + output.getValue());

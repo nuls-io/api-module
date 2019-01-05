@@ -56,7 +56,6 @@ public class DepositService {
 
         for (DepositInfo depositInfo : depositInfoList) {
             Document document = DocumentTransferTool.toDocument(depositInfo, "txHash");
-            document.remove("isNew");
             if (depositInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
             } else {

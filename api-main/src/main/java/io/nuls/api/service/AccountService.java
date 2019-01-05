@@ -29,7 +29,6 @@ public class AccountService {
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (AccountInfo accountInfo : accountInfoMap.values()) {
             Document document = DocumentTransferTool.toDocument(accountInfo, "address");
-            document.remove("isNew");
             if (accountInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
             } else {

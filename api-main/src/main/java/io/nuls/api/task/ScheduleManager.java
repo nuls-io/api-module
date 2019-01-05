@@ -21,7 +21,14 @@ public class ScheduleManager {
 
     public void start() {
 
-        mongoDBService.dropTable(MongoTableName.BLOCK_HEADER);
+//        mongoDBService.dropTable(MongoTableName.BLOCK_HEADER);
+//        mongoDBService.dropTable(MongoTableName.NEW_INFO);
+//        mongoDBService.dropTable(MongoTableName.AGENT_INFO);
+//        mongoDBService.dropTable(MongoTableName.ALIAS_INFO);
+//        mongoDBService.dropTable(MongoTableName.ACCOUNT_INFO);
+//        mongoDBService.dropTable(MongoTableName.DEPOSIT_INFO);
+//        mongoDBService.dropTable(MongoTableName.TX_RELATION_INFO);
+//        mongoDBService.dropTable(MongoTableName.PUNISH_INFO);
         executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(syncBlockTask,1,10, TimeUnit.SECONDS);
     }

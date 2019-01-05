@@ -32,5 +32,6 @@ public class NulsConstant {
         SEED_NODE_ADDRESS.add("TTakkAtUaBCY6XLLbEt7vWLqP4SuNULS");
         SEED_NODE_ADDRESS.add("TTak8TVrVWwG42RXAD1g4AAnYqNrNULS");
         SEED_NODE_ADDRESS.add("TTavq5rDMcnU4FRRRBJdPFMXfYfuNULS");
+        SEED_NODE_ADDRESS.add("TTaqyWKAbTSJp1PvBeiEnM1MWTytTfnm");
     }
 }

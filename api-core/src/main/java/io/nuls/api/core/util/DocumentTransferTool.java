@@ -15,6 +15,9 @@ public class DocumentTransferTool {
         for (Field field : fields) {
             try {
                 field.setAccessible(true);
+                if (field.getName().equals("isNew")) {
+                    continue;
+                }
                 document.append(field.getName(), field.get(obj));
             } catch (IllegalAccessException e) {
                 throw new NulsRuntimeException(AccountErrorCode.DATA_PARSE_ERROR, "class to Document fail");
@@ -30,6 +33,9 @@ public class DocumentTransferTool {
         for (Field field : fields) {
             try {
                 field.setAccessible(true);
+                if (field.getName().equals("isNew")) {
+                    continue;
+                }
                 if (field.getName().equals(_id)) {
                     document.append("_id", field.get(obj));
                 } else {
@@ -48,6 +54,9 @@ public class DocumentTransferTool {
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
                 field.setAccessible(true);
+                if (field.getName().equals("isNew")) {
+                    continue;
+                }
                 field.set(instance, document.get(field.getName()));
             }
             return instance;
@@ -63,6 +72,9 @@ public class DocumentTransferTool {
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
                 field.setAccessible(true);
+                if (field.getName().equals("isNew")) {
+                    continue;
+                }
                 if (_id.equals(field.getName())) {
                     field.set(instance, document.get("_id"));
                 } else {
