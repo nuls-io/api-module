@@ -28,6 +28,7 @@ import io.nuls.api.core.util.Log;
 import io.nuls.api.jsonrpc.JsonRpcServer;
 import io.nuls.api.task.ScheduleManager;
 import io.nuls.api.utils.ConfigLoader;
+import io.nuls.sdk.core.SDKBootstrap;
 import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.core.utils.StringUtils;
 
@@ -42,6 +43,9 @@ public class ApiModuleBootstrap {
         String ip = "0.0.0.0";
         int port = 8080;
         String walletUrl = "";
+        String walletIp = "";
+        String walletPort = "";
+        String walletChainId = "";
         String dbIp = "127.0.0.1";
         int dbPort = 27017;
         String dbName = "nuls";
@@ -56,11 +60,14 @@ public class ApiModuleBootstrap {
                 port = Integer.parseInt(portOfCfg);
             }
             walletUrl = prop.getProperty("wallet.url");
+            walletIp = prop.getProperty("wallet.ip");
+            walletPort = prop.getProperty("wallet.port");
+            walletChainId = prop.getProperty("wallet.chain.id");
         } catch (Exception e) {
             Log.error(e);
         }
-        RestFulUtils.getInstance().setServerUri(walletUrl);
-
+        RestFulUtils.getInstance().setServerUri("http://" + walletIp + ":" + walletPort + "/" + walletUrl);
+        SDKBootstrap.init(walletIp, walletPort, Integer.parseInt(walletChainId));
         MongoClient mongoClient = new MongoClient(dbIp, dbPort);
         MongoDatabase mongoDatabase = mongoClient.getDatabase(dbName);
         MongoDBService dbService = new MongoDBService(mongoDatabase);
