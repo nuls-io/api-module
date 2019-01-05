@@ -22,13 +22,14 @@ package io.nuls.api;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import io.nuls.api.bean.SpringLiteContext;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.Log;
-import io.nuls.api.bean.SpringLiteContext;
 import io.nuls.api.jsonrpc.JsonRpcServer;
+import io.nuls.api.task.ScheduleManager;
+import io.nuls.api.utils.ConfigLoader;
 import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.core.utils.StringUtils;
-import io.nuls.api.utils.ConfigLoader;
 
 import java.util.Properties;
 
@@ -66,6 +67,9 @@ public class ApiModuleBootstrap {
         SpringLiteContext.putBean("dbService", dbService);
 
         SpringLiteContext.init("io.nuls");
+
+        ScheduleManager scheduleManager = SpringLiteContext.getBean(ScheduleManager.class);
+        scheduleManager.start();
 
 
         JsonRpcServer server = new JsonRpcServer();

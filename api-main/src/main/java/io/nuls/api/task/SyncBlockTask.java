@@ -60,7 +60,7 @@ public class SyncBlockTask implements Runnable {
         try {
             result = walletRPCHandler.getBlockHeader(localBestHeight + 1);
         } catch (Exception e) {
-            Log.error("--------获取下一区块头信息异常:" + e);
+            Log.error("--------获取下一区块头信息异常:" , e);
             return false;
         }
 
