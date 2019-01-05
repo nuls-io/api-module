@@ -190,6 +190,14 @@ public class MongoDBService {
         collection.dropIndexes();
     }
 
+    public void dropTable(String collName) {
+        MongoCollection<Document> collection = getCollection(collName);
+        if (null == collection) {
+            throw new RuntimeException();
+        }
+        collection.drop();
+    }
+
     public ListIndexesIterable<Document> getIndexes(String collName) {
         MongoCollection<Document> collection = getCollection(collName);
         if (null == collection) {

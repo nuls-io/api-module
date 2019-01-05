@@ -80,6 +80,9 @@ public class BlockService {
             agentInfo = agentService.getAgentByPackingAddress(headerInfo.getPackingAddress());
         }
 
+        agentInfo.setTotalReward(agentInfo.getTotalReward() + headerInfo.getReward());
+        agentInfo.setTotalPackingCount(agentInfo.getTotalPackingCount() + 1);
+        agentInfo.setLastRewardHeight(headerInfo.getHeight());
         headerInfo.setByAgentInfo(agentInfo);
 
         //处理交易
@@ -111,7 +114,7 @@ public class BlockService {
             } else if (tx.getType() == TransactionConstant.TX_TYPE_STOP_AGENT) {
                 processStopAgentTx(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
-                processYellowPunishTx(tx);
+                processYellowPunishTx(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
                 processRedPunishTx(tx, blockHeight);
             }
@@ -131,7 +134,7 @@ public class BlockService {
     private void processWithTxInputOutput(TransactionInfo tx) {
         if (tx.getFroms() != null) {
             for (Input input : tx.getFroms()) {
-                txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
+                // txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
                 //这里需要特殊处理，由于一个区块打包的多个交易中，可能存在下一个交易用到了上一个交易新生成的utxo
                 //因此在这里添加进入inputList之前提前判断是否outputMap里已有对应的output，有就直接删除
                 //没有才添加进入集合
@@ -144,7 +147,7 @@ public class BlockService {
         }
         if (tx.getTos() != null) {
             for (Output output : tx.getTos()) {
-                txRelationInfoSet.add(new TxRelationInfo(output.getAddress(), tx));
+                //
                 outputMap.put(output.getKey(), output);
             }
         }
@@ -155,65 +158,107 @@ public class BlockService {
             AccountInfo accountInfo = queryAccountInfo(output.getAddress());
             accountInfo.setTotalIn(accountInfo.getTotalIn() + output.getValue());
             accountInfo.setTxCount(accountInfo.getTxCount() + 1);
+            accountInfo.setTotalBalance(accountInfo.getTotalBalance() + output.getValue());
             accountInfo.setHeight(blockHeight);
+            txRelationInfoSet.add(new TxRelationInfo(output.getAddress(), tx, output.getValue()));
         }
     }
 
+    /**
+     * 处理转账交易对应的账户信息，由于转账交易可能是多对多转账，也有可能一个地址有多条input记录，
+     * 因此需要先针对这个交易的每个地址记录总账，然后修改accountInfo的数据
+     *
+     * @param tx
+     * @param blockHeight
+     */
     private void processTransferTx(TransactionInfo tx, long blockHeight) {
-        Set<String> addressSet = new HashSet<>();
+        Map<String, Long> addressMap = new HashMap<>();
+        Long value;
         for (Input input : tx.getFroms()) {
-            AccountInfo accountInfo = queryAccountInfo(input.getAddress());
-            accountInfo.setTotalOut(accountInfo.getTotalOut() + input.getValue());
-            accountInfo.setHeight(blockHeight);
-            if (!addressSet.contains(input.getAddress())) {
-                addressSet.add(input.getAddress());
-                accountInfo.setTxCount(accountInfo.getTxCount() + 1);
-            }
+            value = addressMap.get(input.getAddress()) == null ? 0L : addressMap.get(input.getAddress());
+            value -= input.getValue();
+            addressMap.put(input.getAddress(), value);
         }
 
         for (Output output : tx.getTos()) {
-            AccountInfo accountInfo = queryAccountInfo(output.getAddress());
-            accountInfo.setTotalIn(accountInfo.getTotalIn() + output.getValue());
+            value = addressMap.get(output.getAddress()) == null ? 0L : addressMap.get(output.getAddress());
+            value += output.getValue();
+            addressMap.put(output.getAddress(), value);
+        }
+
+        for (Map.Entry<String, Long> entry : addressMap.entrySet()) {
+            AccountInfo accountInfo = queryAccountInfo(entry.getKey());
+            accountInfo.setTxCount(accountInfo.getTxCount() + 1);
             accountInfo.setHeight(blockHeight);
-            if (!addressSet.contains(output.getAddress())) {
-                addressSet.add(output.getAddress());
-                accountInfo.setTxCount(accountInfo.getTxCount() + 1);
+            value = entry.getValue();
+            if (value > 0) {
+                accountInfo.setTotalIn(accountInfo.getTotalIn() + value);
+                accountInfo.setTotalBalance(accountInfo.getTotalBalance() - value);
+            } else {
+                accountInfo.setTotalOut(accountInfo.getTotalOut() + value);
+                accountInfo.setTotalBalance(accountInfo.getTotalBalance() + value);
             }
+            txRelationInfoSet.add(new TxRelationInfo(entry.getKey(), tx, value));
         }
     }
 
+    /**
+     * 别名处理accountInfo和txRelationInfo与转账交易类似
+     *
+     * @param tx
+     * @param blockHeight
+     */
     private void processAliasTx(TransactionInfo tx, long blockHeight) {
-        Set<String> addressSet = new HashSet<>();
+        Map<String, Long> addressMap = new HashMap<>();
+        Long value;
         for (Input input : tx.getFroms()) {
-            AccountInfo accountInfo = queryAccountInfo(input.getAddress());
-            accountInfo.setTotalOut(accountInfo.getTotalOut() + input.getValue());
-            accountInfo.setHeight(blockHeight);
-            if (!addressSet.contains(input.getAddress())) {
-                addressSet.add(input.getAddress());
-                accountInfo.setTxCount(accountInfo.getTxCount() + 1);
-            }
+            value = addressMap.get(input.getAddress()) == null ? 0L : addressMap.get(input.getAddress());
+            value -= input.getValue();
+            addressMap.put(input.getAddress(), value);
         }
 
         for (Output output : tx.getTos()) {
-            AccountInfo accountInfo = queryAccountInfo(output.getAddress());
-            accountInfo.setTotalIn(accountInfo.getTotalIn() + output.getValue());
-            accountInfo.setHeight(blockHeight);
-            if (!addressSet.contains(output.getAddress())) {
-                addressSet.add(output.getAddress());
-                accountInfo.setTxCount(accountInfo.getTxCount() + 1);
-            }
+            value = addressMap.get(output.getAddress()) == null ? 0L : addressMap.get(output.getAddress());
+            value += output.getValue();
+            addressMap.put(output.getAddress(), value);
         }
 
+        for (Map.Entry<String, Long> entry : addressMap.entrySet()) {
+            AccountInfo accountInfo = queryAccountInfo(entry.getKey());
+            accountInfo.setTxCount(accountInfo.getTxCount() + 1);
+            accountInfo.setHeight(blockHeight);
+            value = entry.getValue();
+            if (value > 0) {
+                accountInfo.setTotalIn(accountInfo.getTotalIn() + value);
+                accountInfo.setTotalBalance(accountInfo.getTotalBalance() - value);
+            } else {
+                accountInfo.setTotalOut(accountInfo.getTotalOut() + value);
+                accountInfo.setTotalBalance(accountInfo.getTotalBalance() + value);
+            }
+            txRelationInfoSet.add(new TxRelationInfo(entry.getKey(), tx, value));
+        }
         aliasInfoList.add((AliasInfo) tx.getTxData());
     }
 
+    /**
+     * 共识交易因为是单个账户锁定金额，因此处理方式要改为锁定金额的处理
+     *
+     * @param tx
+     * @param blockHeight
+     */
     private void processCreateAgentTx(TransactionInfo tx, long blockHeight) {
         AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
         accountInfo.setTxCount(accountInfo.getTxCount() + 1);
         accountInfo.setTotalOut(accountInfo.getTotalOut() + tx.getFee());
+        accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
         accountInfo.setHeight(blockHeight);
 
+        //记录交易的锁定金额
+        long lockValue = tx.getTos().get(0).getValue();
+        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, lockValue));
+
         AgentInfo agentInfo = (AgentInfo) tx.getTxData();
+        agentInfo.setNew(true);
         agentInfo.setBlockHeight(blockHeight);
         //查询agent节点是否设置过别名
         AliasInfo aliasInfo = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
@@ -223,11 +268,22 @@ public class BlockService {
         agentInfoList.add((AgentInfo) tx.getTxData());
     }
 
+    /**
+     * 参与共识与创建节点交易类似
+     *
+     * @param tx
+     * @param blockHeight
+     */
     private void processDepositTx(TransactionInfo tx, long blockHeight) {
         AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
         accountInfo.setTxCount(accountInfo.getTxCount() + 1);
         accountInfo.setTotalOut(accountInfo.getTotalOut() + tx.getFee());
+        accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
         accountInfo.setHeight(blockHeight);
+
+        //记录交易的锁定金额
+        long lockValue = tx.getTos().get(0).getValue();
+        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, lockValue));
 
         DepositInfo depositInfo = (DepositInfo) tx.getTxData();
         depositInfo.setNew(true);
@@ -238,7 +294,12 @@ public class BlockService {
         AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
         accountInfo.setTxCount(accountInfo.getTxCount() + 1);
         accountInfo.setTotalOut(accountInfo.getTotalOut() + tx.getFee());
+        accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
         accountInfo.setHeight(blockHeight);
+
+        //记录交易的解锁金额
+        long lockValue = tx.getTos().get(0).getValue();
+        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, lockValue));
 
         //查询委托记录，生成对应的取消委托信息
         DepositInfo cancelInfo = (DepositInfo) tx.getTxData();
@@ -252,10 +313,16 @@ public class BlockService {
     }
 
     private void processStopAgentTx(TransactionInfo tx, long blockHeight) {
-        AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
-        accountInfo.setTxCount(accountInfo.getTxCount() + 1);
-        accountInfo.setTotalOut(accountInfo.getTotalOut() + tx.getFee());
-        accountInfo.setHeight(blockHeight);
+        for (int i = 0; i < tx.getTos().size(); i++) {
+            Output output = tx.getTos().get(i);
+            AccountInfo accountInfo = queryAccountInfo(output.getAddress());
+            accountInfo.setTxCount(accountInfo.getTxCount() + 1);
+            accountInfo.setHeight(blockHeight);
+            if (i == 0) {
+                accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
+            }
+            txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, output.getValue()));
+        }
 
         //查询所有当前节点下的委托，生成取消委托记录
         AgentInfo agentInfo = (AgentInfo) tx.getTxData();
@@ -280,15 +347,29 @@ public class BlockService {
     }
 
 
-    public void processYellowPunishTx(TransactionInfo tx) {
+    public void processYellowPunishTx(TransactionInfo tx, long blockHeight) {
         for (TxData txData : tx.getTxDataList()) {
-            punishLogList.add((PunishLog) txData);
+            PunishLog punishLog = (PunishLog) txData;
+            punishLogList.add(punishLog);
+            AccountInfo accountInfo = queryAccountInfo(punishLog.getAddress());
+            accountInfo.setTxCount(accountInfo.getTxCount() + 1);
+            accountInfo.setHeight(blockHeight);
+            txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, 0));
         }
     }
 
     public void processRedPunishTx(TransactionInfo tx, long blockHeight) {
         PunishLog redPunish = (PunishLog) tx.getTxData();
         punishLogList.add(redPunish);
+
+        for (int i = 0; i < tx.getTos().size(); i++) {
+            Output output = tx.getTos().get(i);
+            AccountInfo accountInfo = queryAccountInfo(output.getAddress());
+            accountInfo.setTxCount(accountInfo.getTxCount() + 1);
+            accountInfo.setHeight(blockHeight);
+            txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, output.getValue()));
+        }
+
         //根据红牌找到被惩罚的节点
         AgentInfo agentInfo = agentService.getAgentByAgentAddress(redPunish.getAddress());
         //根据节点找到委托列表

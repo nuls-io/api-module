@@ -20,13 +20,14 @@ public class TxRelationInfo {
 
     }
 
-    public TxRelationInfo(String address, TransactionInfo info) {
+    public TxRelationInfo(String address, TransactionInfo info, long values) {
         this.address = address;
         this.txHash = info.getHash();
         this.type = info.getType();
         this.createTime = info.getCreateTime();
         this.fee = info.getFee();
         this.height = info.getHeight();
+        this.values = values;
     }
 
     public String getAddress() {

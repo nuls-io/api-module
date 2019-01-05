@@ -141,9 +141,9 @@ public class RpcClientResult<T> {
     public static RpcClientResult errorResult(Result result) {
         RpcClientResult clientResult = new RpcClientResult();
         clientResult.setSuccess(false);
-        ErrorData errorData = (ErrorData) result.getData();
-        clientResult.setCode(Integer.parseInt(errorData.getCode()));
-        clientResult.setMsg(errorData.getMsg());
+        Map<String,String> map = (Map<String, String>) result.getData();
+        clientResult.setCode(Integer.parseInt(map.get("code")));
+        clientResult.setMsg(map.get("msg"));
         return clientResult;
     }
 }

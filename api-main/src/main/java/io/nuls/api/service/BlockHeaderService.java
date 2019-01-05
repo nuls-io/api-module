@@ -25,7 +25,7 @@ public class BlockHeaderService {
         if (document == null) {
             return null;
         }
-        return getBlockHeaderInfoByHeight(document.getLong(MongoTableName.BEST_BLOCK_HEIGHT));
+        return getBlockHeaderInfoByHeight(document.getLong("height"));
     }
 
     /**

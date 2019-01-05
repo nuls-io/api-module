@@ -20,27 +20,32 @@ public class AgentInfo extends TxData {
 
     private BigDecimal commissionRate;
 
-    private Long createTime;
+    private long createTime;
 
-    private Long blockHeight;
+    private long blockHeight;
 
-    private Integer status;
+    private int status;
 
-    private Long totalDeposit;
+    private long totalDeposit;
 
-    private Integer depositCount;
+    private int depositCount;
 
     private BigDecimal creditValue;
 
-    private Long totalPackingCount;
+    private long totalPackingCount;
 
-    private Long lastRewardHeight;
+    private long lastRewardHeight;
 
     private String deleteHash;
 
-    private Long totalReward;
+    private long totalReward;
 
     private boolean isNew;
+
+    public AgentInfo() {
+        totalReward = 0L;
+        totalPackingCount = 0L;
+    }
 
     public String getTxHash() {
         return txHash;
@@ -48,6 +53,14 @@ public class AgentInfo extends TxData {
 
     public void setTxHash(String txHash) {
         this.txHash = txHash;
+    }
+
+    public String getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
     }
 
     public String getAgentAddress() {
@@ -98,43 +111,43 @@ public class AgentInfo extends TxData {
         this.commissionRate = commissionRate;
     }
 
-    public Long getCreateTime() {
+    public long getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Long createTime) {
+    public void setCreateTime(long createTime) {
         this.createTime = createTime;
     }
 
-    public Long getBlockHeight() {
+    public long getBlockHeight() {
         return blockHeight;
     }
 
-    public void setBlockHeight(Long blockHeight) {
+    public void setBlockHeight(long blockHeight) {
         this.blockHeight = blockHeight;
     }
 
-    public Integer getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(Integer status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 
-    public Long getTotalDeposit() {
+    public long getTotalDeposit() {
         return totalDeposit;
     }
 
-    public void setTotalDeposit(Long totalDeposit) {
+    public void setTotalDeposit(long totalDeposit) {
         this.totalDeposit = totalDeposit;
     }
 
-    public Integer getDepositCount() {
+    public int getDepositCount() {
         return depositCount;
     }
 
-    public void setDepositCount(Integer depositCount) {
+    public void setDepositCount(int depositCount) {
         this.depositCount = depositCount;
     }
 
@@ -146,19 +159,19 @@ public class AgentInfo extends TxData {
         this.creditValue = creditValue;
     }
 
-    public Long getTotalPackingCount() {
+    public long getTotalPackingCount() {
         return totalPackingCount;
     }
 
-    public void setTotalPackingCount(Long totalPackingCount) {
+    public void setTotalPackingCount(long totalPackingCount) {
         this.totalPackingCount = totalPackingCount;
     }
 
-    public Long getLastRewardHeight() {
+    public long getLastRewardHeight() {
         return lastRewardHeight;
     }
 
-    public void setLastRewardHeight(Long lastRewardHeight) {
+    public void setLastRewardHeight(long lastRewardHeight) {
         this.lastRewardHeight = lastRewardHeight;
     }
 
@@ -170,20 +183,12 @@ public class AgentInfo extends TxData {
         this.deleteHash = deleteHash;
     }
 
-    public Long getTotalReward() {
+    public long getTotalReward() {
         return totalReward;
     }
 
-    public void setTotalReward(Long totalReward) {
+    public void setTotalReward(long totalReward) {
         this.totalReward = totalReward;
-    }
-
-    public String getAgentId() {
-        return agentId;
-    }
-
-    public void setAgentId(String agentId) {
-        this.agentId = agentId;
     }
 
     public boolean isNew() {
