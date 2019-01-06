@@ -38,6 +38,8 @@ public class AgentInfo extends TxData {
 
     private String deleteHash;
 
+    private long deleteHeight;
+
     private long totalReward;
 
     private boolean isNew;
@@ -181,6 +183,14 @@ public class AgentInfo extends TxData {
 
     public void setDeleteHash(String deleteHash) {
         this.deleteHash = deleteHash;
+    }
+
+    public long getDeleteHeight() {
+        return deleteHeight;
+    }
+
+    public void setDeleteHeight(long deleteHeight) {
+        this.deleteHeight = deleteHeight;
     }
 
     public long getTotalReward() {

@@ -18,12 +18,14 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.entity;
+package io.nuls.api.core.model;
 
 /**
  * @author Niels
  */
 public class PocRoundItem {
+
+    private String id;
 
     private long roundIndex;
 
@@ -38,4 +40,68 @@ public class PocRoundItem {
     private int txCount;
 
     private long reward;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public long getRoundIndex() {
+        return roundIndex;
+    }
+
+    public void setRoundIndex(long roundIndex) {
+        this.roundIndex = roundIndex;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    public String getProducer() {
+        return producer;
+    }
+
+    public void setProducer(String producer) {
+        this.producer = producer;
+    }
+
+    public int getResule() {
+        return resule;
+    }
+
+    public void setResule(int resule) {
+        this.resule = resule;
+    }
+
+    public long getBlockHeight() {
+        return blockHeight;
+    }
+
+    public void setBlockHeight(long blockHeight) {
+        this.blockHeight = blockHeight;
+    }
+
+    public int getTxCount() {
+        return txCount;
+    }
+
+    public void setTxCount(int txCount) {
+        this.txCount = txCount;
+    }
+
+    public long getReward() {
+        return reward;
+    }
+
+    public void setReward(long reward) {
+        this.reward = reward;
+    }
 }

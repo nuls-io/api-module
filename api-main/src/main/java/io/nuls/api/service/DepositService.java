@@ -65,4 +65,9 @@ public class DepositService {
 
         mongoDBService.bulkWrite(MongoTableName.DEPOSIT_INFO, modelList);
     }
+
+    public List<DepositInfo> getDepositList(long startHeight) {
+        //todo 返回全部在此高度有效的委托列表 from cache.
+        return null;
+    }
 }

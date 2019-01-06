@@ -82,4 +82,9 @@ public class AgentService {
         }
         mongoDBService.bulkWrite(MongoTableName.AGENT_INFO, modelList);
     }
+
+    public List<AgentInfo> getAgentList(long startHeight) {
+        //todo 在startHeight之后创建的节点不返回，在startHeight之前停止的节点不返回,from cache.
+        return null;
+    }
 }

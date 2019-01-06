@@ -30,4 +30,5 @@ public class PunishService {
 
         mongoDBService.insertMany(MongoTableName.PUNISH_INFO, documentList);
     }
+
 }

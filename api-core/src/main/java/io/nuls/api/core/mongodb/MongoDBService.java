@@ -20,7 +20,6 @@
 
 package io.nuls.api.core.mongodb;
 
-import com.mongodb.QueryOperators;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.*;
 import com.mongodb.client.model.IndexModel;
@@ -45,7 +44,6 @@ public class MongoDBService {
             throw new RuntimeException();
         }
     }
-
 
     public void createCollection(String collName) {
         db.createCollection(collName);

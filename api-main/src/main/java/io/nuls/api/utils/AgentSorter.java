@@ -18,22 +18,36 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.entity;
+package io.nuls.api.utils;
 
 /**
- * 参与共识的金额
- *
  * @author Niels
  */
-public class ConsensusTotalNuls {
+public class AgentSorter implements Comparable<AgentSorter>{
 
-    private int date;
+    private String agentId;
 
-    private int month;
+    private String sorter;
 
-    private int year;
+    public String getAgentId() {
+        return agentId;
+    }
 
-    private long time;
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
+    }
 
-    private long totalNuls;
+    public String getSorter() {
+        return sorter;
+    }
+
+    public void setSorter(String sorter) {
+        this.sorter = sorter;
+    }
+
+
+    @Override
+    public int compareTo(AgentSorter o2) {
+        return this.getSorter().compareTo(o2.getSorter());
+    }
 }

@@ -18,18 +18,45 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.entity;
+package io.nuls.api.core.model;
+
+import java.util.List;
 
 /**
  * @author Niels
  */
-public class AgentInfo {
+public class CurrentRound extends PocRound {
 
-    private String agentId;
+    public CurrentRound() {
+        this.setIndex(-1);
+    }
 
-    private long blockCount;
+    private String packer;
+    private int packerOrder;
 
-    private double 丢块率;
+    private List<PocRoundItem> itemList;
 
+    public String getPacker() {
+        return packer;
+    }
 
+    public void setPacker(String packer) {
+        this.packer = packer;
+    }
+
+    public int getPackerOrder() {
+        return packerOrder;
+    }
+
+    public void setPackerOrder(int packerOrder) {
+        this.packerOrder = packerOrder;
+    }
+
+    public List<PocRoundItem> getItemList() {
+        return itemList;
+    }
+
+    public void setItemList(List<PocRoundItem> itemList) {
+        this.itemList = itemList;
+    }
 }

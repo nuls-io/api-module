@@ -56,7 +56,7 @@ public class MongoDBServiceTest {
             map.put("height", i % 20000000);
             map.put("hash", UUID.randomUUID().toString() + UUID.randomUUID().toString());
             map.put("time", System.currentTimeMillis());
-            service.insertOne("relations", map);
+            service.insertOne("relations-j", map);
             if (i % 10000 == 0) {
                 System.out.println((1 + i) + "::::" + (System.currentTimeMillis() - start));
             }

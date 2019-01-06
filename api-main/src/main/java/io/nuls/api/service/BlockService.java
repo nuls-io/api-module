@@ -7,6 +7,7 @@ import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.mongodb.MongoDBService;
+import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -88,8 +89,14 @@ public class BlockService {
         //处理交易
         processTransactions(blockInfo.getTxs(), agentInfo, headerInfo.getHeight());
 
+        processRoundData(blockInfo);
+
         save(headerInfo, agentInfo);
         return true;
+    }
+
+    private void processRoundData(BlockInfo blockInfo) {
+        RoundManager.process(blockInfo);
     }
 
 
@@ -308,6 +315,7 @@ public class BlockService {
         DepositInfo cancelInfo = (DepositInfo) tx.getTxData();
         DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelInfo.getTxHash());
         depositInfo.setDeleteHash(cancelInfo.getTxHash());
+        depositInfo.setDeleteHeight(cancelInfo.getDeleteHeight());
         depositInfo.setBlockHeight(blockHeight);
         cancelInfo.copyInfoWithDeposit(depositInfo);
         cancelInfo.setNew(true);
@@ -334,6 +342,7 @@ public class BlockService {
             for (DepositInfo depositInfo : depositInfos) {
                 depositInfo.setBlockHeight(blockHeight);
                 depositInfo.setDeleteHash(tx.getHash());
+                depositInfo.setDeleteHeight(tx.getHeight());
                 depositInfoList.add(depositInfo);
 
                 DepositInfo cancelDeposit = new DepositInfo();
@@ -347,6 +356,9 @@ public class BlockService {
                 depositInfoList.add(cancelDeposit);
             }
         }
+
+//todo 删除节点（设置delete高度和hash）       this.agentService.update
+
     }
 
 
@@ -381,6 +393,7 @@ public class BlockService {
             for (DepositInfo depositInfo : depositInfos) {
                 depositInfo.setBlockHeight(blockHeight);
                 depositInfo.setDeleteHash(tx.getHash());
+                depositInfo.setDeleteHeight(tx.getHeight());
                 depositInfoList.add(depositInfo);
 
                 DepositInfo cancelDeposit = new DepositInfo();
@@ -394,6 +407,8 @@ public class BlockService {
                 depositInfoList.add(cancelDeposit);
             }
         }
+
+        //todo 删除节点（设置delete高度和hash）       this.agentService.update
     }
 
 

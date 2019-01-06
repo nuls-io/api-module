@@ -64,6 +64,8 @@ public class BlockHeaderInfo {
 
     private boolean isSeedPacked;
 
+    private Long roundStartTime;
+
     public String getHash() {
         return hash;
     }
@@ -203,5 +205,13 @@ public class BlockHeaderInfo {
 
     public void setAgentId(String agentId) {
         this.agentId = agentId;
+    }
+
+    public Long getRoundStartTime() {
+        return roundStartTime;
+    }
+
+    public void setRoundStartTime(Long roundStartTime) {
+        this.roundStartTime = roundStartTime;
     }
 }

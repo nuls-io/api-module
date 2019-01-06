@@ -16,6 +16,8 @@ public class DepositInfo extends TxData {
 
     private String deleteHash;
 
+    private long deleteHeight;
+
     private Long fee;
 
     private boolean isNew;
@@ -76,6 +78,14 @@ public class DepositInfo extends TxData {
 
     public void setDeleteHash(String deleteHash) {
         this.deleteHash = deleteHash == null ? null : deleteHash.trim();
+    }
+
+    public long getDeleteHeight() {
+        return deleteHeight;
+    }
+
+    public void setDeleteHeight(long deleteHeight) {
+        this.deleteHeight = deleteHeight;
     }
 
     public Long getFee() {
