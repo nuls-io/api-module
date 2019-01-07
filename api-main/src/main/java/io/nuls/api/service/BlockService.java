@@ -69,6 +69,8 @@ public class BlockService {
      */
     public boolean saveNewBlock(BlockInfo blockInfo) {
         clear();
+        long time1, time2;
+        time1 = System.currentTimeMillis();
 
         BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
 
@@ -94,7 +96,8 @@ public class BlockService {
         processRoundData(blockInfo);
 
         save(blockInfo, agentInfo);
-        System.out.println("-----------------" + blockInfo.getBlockHeader().getHeight());
+        time2 = System.currentTimeMillis();
+        System.out.println("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (time2 - time1));
         return true;
     }
 
@@ -319,6 +322,7 @@ public class BlockService {
         depositInfo.setDeleteHeight(cancelInfo.getDeleteHeight());
         depositInfo.setBlockHeight(blockHeight);
         cancelInfo.copyInfoWithDeposit(depositInfo);
+        cancelInfo.setTxHash(tx.getHash());
         cancelInfo.setNew(true);
         depositInfoList.add(depositInfo);
         depositInfoList.add(cancelInfo);
@@ -338,6 +342,12 @@ public class BlockService {
 
         //查询所有当前节点下的委托，生成取消委托记录
         AgentInfo agentInfo = (AgentInfo) tx.getTxData();
+        agentInfo = agentService.getAgentByAgentId(agentInfo.getTxHash().substring(agentInfo.getTxHash().length() - 8));
+        agentInfo.setDeleteHash(tx.getHash());
+        agentInfo.setDeleteHeight(tx.getHeight());
+        agentInfoList.add(agentInfo);
+
+        //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo depositInfo : depositInfos) {
@@ -357,9 +367,6 @@ public class BlockService {
                 depositInfoList.add(cancelDeposit);
             }
         }
-
-//todo 删除节点（设置delete高度和hash）       this.agentService.update
-
     }
 
 
@@ -388,6 +395,9 @@ public class BlockService {
 
         //根据红牌找到被惩罚的节点
         AgentInfo agentInfo = agentService.getAgentByAgentAddress(redPunish.getAddress());
+        agentInfo.setDeleteHash(tx.getHash());
+        agentInfo.setDeleteHeight(tx.getHeight());
+        agentInfoList.add(agentInfo);
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
@@ -408,8 +418,6 @@ public class BlockService {
                 depositInfoList.add(cancelDeposit);
             }
         }
-
-        //todo 删除节点（设置delete高度和hash）       this.agentService.update
     }
 
 
@@ -448,7 +456,7 @@ public class BlockService {
         //存储共识节点列表
         agentService.saveAgentList(agentInfoList);
         //存储委托/取消委托记录
-        depositService.saveDepsoitList(depositInfoList);
+        depositService.saveDepositList(depositInfoList);
         //存储红黄牌惩罚记录
         punishService.savePunishList(punishLogList);
 
