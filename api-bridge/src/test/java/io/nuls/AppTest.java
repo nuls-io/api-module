@@ -18,7 +18,7 @@ public class AppTest {
 
     @Before
     public void init() {
-        SDKBootstrap.init("127.0.0.1", "6001");
+        SDKBootstrap.init("192.168.1.37", "8001");
         walletRPCHandler = new WalletRPCHandler();
     }
 
