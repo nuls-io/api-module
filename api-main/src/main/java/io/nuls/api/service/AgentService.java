@@ -1,5 +1,7 @@
 package io.nuls.api.service;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.client.model.*;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
@@ -81,7 +83,14 @@ public class AgentService {
     }
 
     public List<AgentInfo> getAgentList(long startHeight) {
-        //todo 在startHeight之后创建的节点不返回，在startHeight之前停止的节点不返回,from cache.
-        return null;
+        Bson bson = Filters.and(Filters.gte("blockHeight", startHeight), Filters.lte("deleteHeight", 0), Filters.gte("deleteHeight", startHeight));
+
+        List<Document> list = this.mongoDBService.query(MongoTableName.AGENT_INFO, bson);
+        List<AgentInfo> resultList = new ArrayList<>();
+        for (Document document : list) {
+            resultList.add(DocumentTransferTool.toInfo(document, AgentInfo.class));
+        }
+
+        return resultList;
     }
 }

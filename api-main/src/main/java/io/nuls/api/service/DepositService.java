@@ -65,6 +65,6 @@ public class DepositService {
 
     public List<DepositInfo> getDepositList(long startHeight) {
         //todo 返回全部在此高度有效的委托列表 from cache.
-        return null;
+        return new ArrayList<>();
     }
 }

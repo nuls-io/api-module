@@ -65,6 +65,7 @@ public class AnalysisHandler {
         info.setPreHash((String) map.get("preHash"));
         info.setHeight(Long.parseLong(map.get("height").toString()));
         info.setPackingIndexOfRound((Integer) map.get("packingIndexOfRound"));
+        info.setRoundStartTime((Long) map.get("roundStartTime"));
         info.setReward(Long.parseLong(map.get("reward").toString()));
         info.setRoundIndex(Long.parseLong(map.get("roundIndex").toString()));
         info.setTotalFee(Long.parseLong(map.get("fee").toString()));
@@ -107,6 +108,7 @@ public class AnalysisHandler {
         info.setPackingIndexOfRound(extendsData.getPackingIndexOfRound());
         info.setCreateTime(blockHeader.getTime());
         info.setPackingAddress(AddressTool.getStringAddressByBytes(blockHeader.getPackingAddress()));
+        info.setRoundStartTime(extendsData.getRoundStartTime());
         //是否是种子节点打包的区块
         if (NulsConstant.SEED_NODE_ADDRESS.contains(info.getPackingAddress())) {
             info.setSeedPacked(true);
@@ -154,7 +156,7 @@ public class AnalysisHandler {
 
         String address = null;
         //当交易的签名只有一个时，从签名里取出地址，赋值到每一个input上
-        if(tx.getTransactionSignature() != null) {
+        if (tx.getTransactionSignature() != null) {
             TransactionSignature signature = new TransactionSignature();
             signature.parse(new NulsByteBuffer(tx.getTransactionSignature()));
             if (signature.getP2PHKSignatures() != null && signature.getP2PHKSignatures().size() == 1) {
