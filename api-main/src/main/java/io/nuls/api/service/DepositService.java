@@ -1,9 +1,6 @@
 package io.nuls.api.service;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.InsertOneModel;
-import com.mongodb.client.model.UpdateManyModel;
-import com.mongodb.client.model.WriteModel;
+import com.mongodb.client.model.*;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
@@ -59,7 +56,7 @@ public class DepositService {
             if (depositInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
             } else {
-                modelList.add(new UpdateManyModel(Filters.eq("_id", depositInfo.getTxHash()), document));
+                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", depositInfo.getTxHash()), document));
             }
         }
 

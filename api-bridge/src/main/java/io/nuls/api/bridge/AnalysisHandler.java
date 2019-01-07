@@ -148,16 +148,21 @@ public class AnalysisHandler {
     }
 
     private static List<Input> toInputs(CoinData coinData, Transaction tx) throws NulsException {
-        if (coinData.getFrom() == null || coinData.getFrom().isEmpty()) {
+        if (coinData == null || coinData.getFrom() == null || coinData.getFrom().isEmpty()) {
             return null;
         }
-        TransactionSignature signature = new TransactionSignature();
-        signature.parse(new NulsByteBuffer(tx.getTransactionSignature()));
+
         String address = null;
-        if (signature.getP2PHKSignatures() != null && signature.getP2PHKSignatures().size() == 1) {
-            byte[] addressBytes = AddressTool.getAddress(signature.getP2PHKSignatures().get(0).getPublicKey());
-            address = AddressTool.getStringAddressByBytes(addressBytes);
+        //当交易的签名只有一个时，从签名里取出地址，赋值到每一个input上
+        if(tx.getTransactionSignature() != null) {
+            TransactionSignature signature = new TransactionSignature();
+            signature.parse(new NulsByteBuffer(tx.getTransactionSignature()));
+            if (signature.getP2PHKSignatures() != null && signature.getP2PHKSignatures().size() == 1) {
+                byte[] addressBytes = AddressTool.getAddress(signature.getP2PHKSignatures().get(0).getPublicKey());
+                address = AddressTool.getStringAddressByBytes(addressBytes);
+            }
         }
+
         List<Input> inputs = new ArrayList<>();
         Input input;
         for (Coin coin : coinData.getFrom()) {
@@ -172,7 +177,7 @@ public class AnalysisHandler {
 
 
     private static List<Output> toOutputs(CoinData coinData, String txHash) {
-        if (coinData.getTo() == null || coinData.getTo().isEmpty()) {
+        if (coinData == null || coinData.getTo() == null || coinData.getTo().isEmpty()) {
             return null;
         }
         List<Output> outPuts = new ArrayList<>();
@@ -241,16 +246,17 @@ public class AnalysisHandler {
 
         AgentInfo info = new AgentInfo();
         info.setTxHash(tx.getHash().getDigestHex());
+        info.setAgentId(info.getTxHash().substring(info.getTxHash().length() - 8));
         info.setAgentAddress(AddressTool.getStringAddressByBytes(model.getAgentAddress()));
         info.setPackingAddress(AddressTool.getStringAddressByBytes(model.getPackingAddress()));
         info.setRewardAddress(AddressTool.getStringAddressByBytes(model.getRewardAddress()));
         info.setDeposit(model.getDeposit().getValue());
-        info.setCommissionRate(new BigDecimal(model.getCommissionRate()));
+        info.setCommissionRate(Double.valueOf(model.getCommissionRate()).intValue());
         info.setBlockHeight(tx.getBlockHeight());
         info.setStatus(model.getStatus());
         info.setDepositCount(model.getMemberCount());
         info.setTotalDeposit(model.getTotalDeposit());
-        info.setCreditValue(new BigDecimal(model.getCreditVal()));
+        info.setCreditValue(model.getCreditVal());
         info.setCreateTime(tx.getTime());
         info.setTxHash(tx.getHash().getDigestHex());
         info.setNew(true);

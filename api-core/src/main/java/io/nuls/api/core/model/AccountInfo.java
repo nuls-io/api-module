@@ -30,7 +30,6 @@ public class AccountInfo {
     private boolean isNew;
 
     public AccountInfo() {
-        this.isNew = true;
     }
 
     public AccountInfo(String address) {

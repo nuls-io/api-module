@@ -18,7 +18,7 @@ public class AgentInfo extends TxData {
 
     private Long deposit;
 
-    private BigDecimal commissionRate;
+    private int commissionRate;
 
     private long createTime;
 
@@ -30,7 +30,7 @@ public class AgentInfo extends TxData {
 
     private int depositCount;
 
-    private BigDecimal creditValue;
+    private double creditValue;
 
     private long totalPackingCount;
 
@@ -105,11 +105,11 @@ public class AgentInfo extends TxData {
         this.deposit = deposit;
     }
 
-    public BigDecimal getCommissionRate() {
+    public int getCommissionRate() {
         return commissionRate;
     }
 
-    public void setCommissionRate(BigDecimal commissionRate) {
+    public void setCommissionRate(int commissionRate) {
         this.commissionRate = commissionRate;
     }
 
@@ -153,11 +153,11 @@ public class AgentInfo extends TxData {
         this.depositCount = depositCount;
     }
 
-    public BigDecimal getCreditValue() {
+    public double getCreditValue() {
         return creditValue;
     }
 
-    public void setCreditValue(BigDecimal creditValue) {
+    public void setCreditValue(double creditValue) {
         this.creditValue = creditValue;
     }
 

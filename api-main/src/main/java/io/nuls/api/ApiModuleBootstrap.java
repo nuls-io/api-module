@@ -49,6 +49,7 @@ public class ApiModuleBootstrap {
         String dbIp = "127.0.0.1";
         int dbPort = 27017;
         String dbName = "nuls";
+        Boolean clearDB = false;
         try {
             Properties prop = ConfigLoader.loadProperties("cfg.properties");
             String ipOfCfg = prop.getProperty("listener.ip");
@@ -63,6 +64,8 @@ public class ApiModuleBootstrap {
             walletIp = prop.getProperty("wallet.ip");
             walletPort = prop.getProperty("wallet.port");
             walletChainId = prop.getProperty("wallet.chain.id");
+            clearDB = Boolean.valueOf(prop.getProperty("db.clear"));
+
         } catch (Exception e) {
             Log.error(e);
         }
@@ -75,9 +78,9 @@ public class ApiModuleBootstrap {
 
         SpringLiteContext.init("io.nuls");
 
-        ScheduleManager scheduleManager = SpringLiteContext.getBean(ScheduleManager.class);
-//        scheduleManager.start();
 
+        ScheduleManager scheduleManager = SpringLiteContext.getBean(ScheduleManager.class);
+        scheduleManager.start(clearDB);
 
         JsonRpcServer server = new JsonRpcServer();
 

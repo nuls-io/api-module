@@ -52,4 +52,10 @@ public class AppTest {
         String hash = "0020e0e63e090e1b5c068f8230708f3928fe4ca026b7cbd72595651ef25800fe1eee";
         walletRPCHandler.queryTxInput(hash);
     }
+
+    @Test
+    public void test() {
+        String s = "aaaaaaaa,bbbbbbb,ccccccc,ddddd,eeeeee";
+        System.out.println(s.substring(s.length()-8));
+    }
 }

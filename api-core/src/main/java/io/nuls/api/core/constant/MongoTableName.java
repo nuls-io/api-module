@@ -1,5 +1,7 @@
 package io.nuls.api.core.constant;
 
+import io.nuls.sdk.core.utils.StringUtils;
+
 public class MongoTableName {
 
     //存储最新区块的各种相关信息
@@ -16,8 +18,12 @@ public class MongoTableName {
     public static final String DEPOSIT_INFO = "deposit_info";
     //交易关系记录表
     public static final String TX_RELATION_INFO = "tx_relation_info";
+    //交易表
+    public static final String TX_INFO = "tx_info";
     //红黄牌记录表
     public static final String PUNISH_INFO = "punish_info";
+    //UTXO记录
+    public static final String UTXO_INFO = "utxo_info";
 
 
     //new_info表，最新高度的_id字段名

@@ -1,9 +1,6 @@
 package io.nuls.api.service;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.InsertOneModel;
-import com.mongodb.client.model.UpdateManyModel;
-import com.mongodb.client.model.WriteModel;
+import com.mongodb.client.model.*;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
@@ -29,10 +26,10 @@ public class AccountService {
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (AccountInfo accountInfo : accountInfoMap.values()) {
             Document document = DocumentTransferTool.toDocument(accountInfo, "address");
-            if (accountInfo.isNew()) {
+             if (accountInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
             } else {
-                modelList.add(new UpdateManyModel(Filters.eq("_id", accountInfo.getAddress()), document));
+                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", accountInfo.getAddress()), document));
             }
         }
         mongoDBService.bulkWrite(MongoTableName.ACCOUNT_INFO, modelList);

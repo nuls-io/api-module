@@ -1,6 +1,11 @@
 package io.nuls.api.core.model;
 
+import io.nuls.sdk.core.contast.TransactionConstant;
+import org.bson.Document;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TransactionInfo {
 
@@ -31,6 +36,8 @@ public class TransactionInfo {
     private TxData txData;
 
     private List<TxData> txDataList;
+
+    private long value;
 
     public String getHash() {
         return hash;
@@ -151,5 +158,40 @@ public class TransactionInfo {
         } else {
             this.agentInfo = agentInfo.getAgentId();
         }
+    }
+
+
+    public void calcValue() {
+        long value = 0;
+        if (type == TransactionConstant.TX_TYPE_COINBASE || type == TransactionConstant.TX_TYPE_STOP_AGENT) {
+            if (tos != null) {
+                for (Output output : tos) {
+                    value += output.getValue();
+                }
+            }
+        } else if (type == TransactionConstant.TX_TYPE_TRANSFER || type == TransactionConstant.TX_TYPE_ALIAS) {
+            Set<String> addressSet = new HashSet<>();
+            for (Input input : froms) {
+                addressSet.add(input.getAddress());
+            }
+            for (Output output : tos) {
+                if (!addressSet.contains(output.getAddress())) {
+                    value += output.getValue();
+                }
+            }
+        } else if (type == TransactionConstant.TX_TYPE_REGISTER_AGENT ||
+                type == TransactionConstant.TX_TYPE_JOIN_CONSENSUS ||
+                type == TransactionConstant.TX_TYPE_CANCEL_DEPOSIT) {
+            for (Input input : froms) {
+                value += input.getValue();
+            }
+        }
+        this.value = value;
+    }
+
+    public Document toDocument() {
+        Document document = new Document();
+        document.append("_id", hash).append("height", height).append("createTime", createTime).append("type", type).append("value", value).append("fee", fee);
+        return document;
     }
 }

@@ -53,11 +53,11 @@ public class RoundManager {
     private DepositService depositService;
 
     public void process(BlockInfo blockInfo) {
-        if (blockInfo.getBlockHeader().getRoundIndex() == currentRound.getIndex()) {
-            processCurrentRound(blockInfo);
-        } else {
-            processNextRound(blockInfo);
-        }
+//        if (blockInfo.getBlockHeader().getRoundIndex() == currentRound.getIndex()) {
+//            processCurrentRound(blockInfo);
+//        } else {
+//            processNextRound(blockInfo);
+//        }
     }
 
     private void processNextRound(BlockInfo blockInfo) {

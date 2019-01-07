@@ -6,6 +6,7 @@ import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.WriteModel;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
+import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.model.Input;
 import io.nuls.api.core.model.Output;
 import io.nuls.api.core.mongodb.MongoDBService;
@@ -43,5 +44,6 @@ public class UTXOService {
             modelList.add(new InsertOneModel<>(DocumentTransferTool.toDocument(output, "key")));
         }
 
+        mongoDBService.bulkWrite(MongoTableName.UTXO_INFO, modelList);
     }
 }

@@ -36,6 +36,8 @@ public class BlockService {
     private UTXOService utxoService;
     @Autowired
     private PunishService punishService;
+    @Autowired
+    private RoundManager roundManager;
 
     //记录每个区块打包交易的所有已花费(input)
     private List<Input> inputList = new ArrayList<>();
@@ -91,12 +93,13 @@ public class BlockService {
 
         processRoundData(blockInfo);
 
-        save(headerInfo, agentInfo);
+        save(blockInfo, agentInfo);
+        System.out.println("-----------------" + blockInfo.getBlockHeader().getHeight());
         return true;
     }
 
     private void processRoundData(BlockInfo blockInfo) {
-        RoundManager.process(blockInfo);
+        roundManager.process(blockInfo);
     }
 
 
@@ -203,11 +206,10 @@ public class BlockService {
             value = entry.getValue();
             if (value > 0) {
                 accountInfo.setTotalIn(accountInfo.getTotalIn() + value);
-                accountInfo.setTotalBalance(accountInfo.getTotalBalance() - value);
             } else {
-                accountInfo.setTotalOut(accountInfo.getTotalOut() + value);
-                accountInfo.setTotalBalance(accountInfo.getTotalBalance() + value);
+                accountInfo.setTotalOut(accountInfo.getTotalOut() + Math.abs(value));
             }
+            accountInfo.setTotalBalance(accountInfo.getTotalBalance() + value);
             txRelationInfoSet.add(new TxRelationInfo(entry.getKey(), tx, value));
         }
     }
@@ -240,11 +242,10 @@ public class BlockService {
             value = entry.getValue();
             if (value > 0) {
                 accountInfo.setTotalIn(accountInfo.getTotalIn() + value);
-                accountInfo.setTotalBalance(accountInfo.getTotalBalance() - value);
             } else {
-                accountInfo.setTotalOut(accountInfo.getTotalOut() + value);
-                accountInfo.setTotalBalance(accountInfo.getTotalBalance() + value);
+                accountInfo.setTotalOut(accountInfo.getTotalOut() + Math.abs(value));
             }
+            accountInfo.setTotalBalance(accountInfo.getTotalBalance() + value);
             txRelationInfoSet.add(new TxRelationInfo(entry.getKey(), tx, value));
         }
         aliasInfoList.add((AliasInfo) tx.getTxData());
@@ -427,14 +428,15 @@ public class BlockService {
     /**
      * 解析区块和所有交易后，将数据存储到数据库中
      */
-    public void save(BlockHeaderInfo blockHeaderInfo, AgentInfo agentInfo) {
-        saveNewHeightInfo(blockHeaderInfo.getHeight());
-        blockHeaderService.saveBLockHeaderInfo(blockHeaderInfo);
+    public void save(BlockInfo blockInfo, AgentInfo agentInfo) {
+        saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
+        blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
         //如果区块非种子节点地址打包，则需要修改打包节点的奖励统计，放在agentInfoList里一并处理
-        if (!blockHeaderInfo.isSeedPacked()) {
+        if (!blockInfo.getBlockHeader().isSeedPacked()) {
             agentInfoList.add(agentInfo);
         }
-
+        //存储交易记录
+        transactionService.saveTxList(blockInfo.getTxs());
         //存储交易和地址关系记录
         transactionService.saveTxRelationList(txRelationInfoSet);
         //根据input和output更新utxo表

@@ -19,17 +19,21 @@ public class ScheduleManager {
     @Autowired
     private MongoDBService mongoDBService;
 
-    public void start() {
+    public void start(boolean clearDB) {
+        if (clearDB) {
+            mongoDBService.dropTable(MongoTableName.NEW_INFO);
+            mongoDBService.dropTable(MongoTableName.BLOCK_HEADER);
+            mongoDBService.dropTable(MongoTableName.AGENT_INFO);
+            mongoDBService.dropTable(MongoTableName.ALIAS_INFO);
+            mongoDBService.dropTable(MongoTableName.ACCOUNT_INFO);
+            mongoDBService.dropTable(MongoTableName.DEPOSIT_INFO);
+            mongoDBService.dropTable(MongoTableName.TX_RELATION_INFO);
+            mongoDBService.dropTable(MongoTableName.TX_INFO);
+            mongoDBService.dropTable(MongoTableName.PUNISH_INFO);
+            mongoDBService.dropTable(MongoTableName.UTXO_INFO);
+        }
 
-//        mongoDBService.dropTable(MongoTableName.BLOCK_HEADER);
-//        mongoDBService.dropTable(MongoTableName.NEW_INFO);
-//        mongoDBService.dropTable(MongoTableName.AGENT_INFO);
-//        mongoDBService.dropTable(MongoTableName.ALIAS_INFO);
-//        mongoDBService.dropTable(MongoTableName.ACCOUNT_INFO);
-//        mongoDBService.dropTable(MongoTableName.DEPOSIT_INFO);
-//        mongoDBService.dropTable(MongoTableName.TX_RELATION_INFO);
-//        mongoDBService.dropTable(MongoTableName.PUNISH_INFO);
         executorService = Executors.newScheduledThreadPool(1);
-        executorService.scheduleAtFixedRate(syncBlockTask,1,10, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(syncBlockTask, 1, 10, TimeUnit.SECONDS);
     }
 }
