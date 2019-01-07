@@ -32,6 +32,9 @@ public class AccountController {
 
     @RpcMethod("getAcount")
     public RpcResult getAccount() {
+
+
+
         return null;
     }
 

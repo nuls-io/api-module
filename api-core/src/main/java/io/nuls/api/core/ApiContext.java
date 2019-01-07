@@ -18,34 +18,14 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.bridge;
+package io.nuls.api.core;
 
-import io.nuls.sdk.core.model.Result;
-import io.nuls.sdk.core.utils.RestFulUtils;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
+import java.util.Properties;
 
 /**
  * @author Niels
  */
-public class RestFulTest {
+public class ApiContext {
 
-
-    public static void main(String[] args) {
-//        RestFulUtils utils = RestFulUtils.getInstance();
-//        utils.setServerUri("http://192.168.1.37:8001/api");
-//        Result result = utils.get("/block/header/height/1",null);
-//        System.out.println(result);
-
-
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target("http://192.168.1.37:8001").path("/api/block/header/height/1");
-        Response response = target.request(new String[]{"application/json"}).get();
-        System.out.println(response);
-    }
-
-
+    public static Properties config;
 }
