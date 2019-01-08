@@ -24,7 +24,9 @@ import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.controller.model.RpcResult;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Niels
@@ -34,8 +36,13 @@ public class LedgerController {
 
     @RpcMethod("getCoinInfo")
     public RpcResult getCoinInfo(List<Object> params) {
-        //todo
-        return null;
+        //todo 尚未实现
+        Map<String, Long> map = new HashMap<>();
+        map.put("total", 10000000000000000L);
+        map.put("circulation", 4000000000000000L);
+        map.put("consensusTotal", 3000000000000000L);
+
+        return new RpcResult().setResult(map);
     }
 
     @RpcMethod("getCoinRanking")

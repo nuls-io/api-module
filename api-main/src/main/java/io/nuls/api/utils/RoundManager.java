@@ -31,7 +31,6 @@ import io.nuls.sdk.core.crypto.Sha256Hash;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.ArraysTool;
 import io.nuls.sdk.core.utils.SerializeUtils;
-import io.nuls.sdk.core.utils.TimeService;
 
 import java.util.*;
 
@@ -136,7 +135,6 @@ public class RoundManager {
         newCurrentRound.setMemberCount(itemList.size());
         newCurrentRound.setPacker(packer);
         newCurrentRound.setPackerOrder(header.getPackingIndexOfRound() + 1);
-
         //todo 存储
         System.out.println("轮次尚未存储");
 

@@ -56,6 +56,12 @@ public class BlockController {
     @Autowired
     private BlockHeaderService blockHeaderService;
 
+    @RpcMethod("getBestBlockHeader")
+    public RpcResult getBestInfo(List<Object> params) {
+        BlockHeaderInfo localBestBlockHeader = blockHeaderService.getBestBlockHeader();
+        return new RpcResult().setResult(localBestBlockHeader);
+    }
+
     @RpcMethod("getHeaderByHeight")
     public RpcResult getHeaderByHeight(List<Object> params) {
         VerifyUtils.verifyParams(params, 1);

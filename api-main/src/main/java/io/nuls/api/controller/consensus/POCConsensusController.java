@@ -27,9 +27,14 @@ import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.AgentInfo;
+import io.nuls.api.core.model.DepositInfo;
 import io.nuls.api.core.model.PocRoundItem;
+import io.nuls.api.core.model.PunishLog;
 import io.nuls.api.service.AgentService;
+import io.nuls.api.service.DepositService;
+import io.nuls.api.service.PunishService;
 import io.nuls.api.utils.RoundManager;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,10 +53,22 @@ public class POCConsensusController {
     @Autowired
     private AgentService agentService;
 
+    @Autowired
+    private PunishService punishService;
+
+    @Autowired
+    private DepositService depositService;
+
     @RpcMethod("getBestRoundItemList")
     public RpcResult getBestRoundItemList(List<Object> params) {
         List<PocRoundItem> itemList = roundManager.getCurrentRound().getItemList();
         RpcResult rpcResult = new RpcResult();
+        //todo
+        itemList.addAll(itemList);
+        itemList.addAll(itemList);
+        itemList.addAll(itemList);
+        itemList.addAll(itemList);
+        itemList.addAll(itemList);
         rpcResult.setResult(itemList);
         return rpcResult;
     }
@@ -98,41 +115,46 @@ public class POCConsensusController {
     @RpcMethod("getConsensusNodeStatistical")
     public RpcResult getConsensusNodeStatistical(List<Object> params) {
         VerifyUtils.verifyParams(params, 0);
-
         //todo
-        return null;
+        return new RpcResult();
     }
 
-    @RpcMethod("getConsensusPublish")
-    public RpcResult getConsensusPublish(List<Object> params) {
-        VerifyUtils.verifyParams(params, 0);
-
-        //todo
-        return null;
+    @RpcMethod("getPunishList")
+    public RpcResult getPunishList(List<Object> params) {
+        VerifyUtils.verifyParams(params, 2);
+        int type = (int) params.get(0);
+        String agentAddress = (String) params.get(1);
+        List<PunishLog> list = punishService.getPunishLogList(type, agentAddress, roundManager.getCurrentRound().getIndex());
+        return new RpcResult().setResult(list);
     }
 
     @RpcMethod("getConsensusDeposit")
     public RpcResult getConsensusDeposit(List<Object> params) {
-        VerifyUtils.verifyParams(params, 0);
-
-        //todo
-        return null;
+        VerifyUtils.verifyParams(params, 1);
+        String agentHash = (String) params.get(0);
+        List<DepositInfo> list = this.depositService.getDepositListByAgentHash(agentHash);
+        return new RpcResult().setResult(list);
     }
 
     @RpcMethod("getBestRoundInfo")
     public RpcResult getBestRoundInfo(List<Object> params) {
         VerifyUtils.verifyParams(params, 0);
+        return new RpcResult().setResult(roundManager.getCurrentRound());
+    }
 
-        //todo
-        return null;
+    @RpcMethod("getConsensusCancelDeposit")
+    public RpcResult getConsensusCancelDeposit(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        String agentHash = (String) params.get(0);
+        List<DepositInfo> list = this.depositService.getCancelDepositListByAgentHash(agentHash);
+        return new RpcResult().setResult(list);
     }
 
     @RpcMethod("getRoundList")
     public RpcResult getRoundList(List<Object> params) {
         VerifyUtils.verifyParams(params, 0);
-
         //todo
-        return null;
+        return new RpcResult();
     }
 
 }

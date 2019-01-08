@@ -131,6 +131,21 @@ public class MongoDBService {
         return list;
     }
 
+    public List<Document> query(String collName, Bson var1, Bson sort) {
+        MongoCollection<Document> collection = getCollection(collName);
+        if (null == collection) {
+            throw new RuntimeException();
+        }
+
+        FindIterable<Document> iterable = collection.find(var1).sort(sort);
+        List<Document> list = new ArrayList<>();
+        MongoCursor<Document> documentMongoCursor = iterable.iterator();
+        while (documentMongoCursor.hasNext()) {
+            list.add(documentMongoCursor.next());
+        }
+        return list;
+    }
+
     public long updateOne(String collName, Bson var1, Document docs) {
         return this.updateOne(collName, var1, "$set", docs);
     }
