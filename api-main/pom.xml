@@ -36,11 +36,7 @@
             <artifactId>api-bridge</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>io.nuls</groupId>
-            <artifactId>api-controller</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+
     </dependencies>
 
     <build>

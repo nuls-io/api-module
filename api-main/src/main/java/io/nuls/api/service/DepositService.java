@@ -21,11 +21,11 @@ public class DepositService {
 
 
     public DepositInfo getDepositInfoByHash(String hash) {
-        Document document = mongoDBService.findOne(MongoTableName.DEPOSIT_INFO, Filters.eq("_id", hash));
+        Document document = mongoDBService.findOne(MongoTableName.DEPOSIT_INFO, Filters.eq("txHash", hash));
         if (document == null) {
             return null;
         }
-        DepositInfo depositInfo = DocumentTransferTool.toInfo(document, "txHash", DepositInfo.class);
+        DepositInfo depositInfo = DocumentTransferTool.toInfo(document, DepositInfo.class);
         return depositInfo;
     }
 
@@ -38,25 +38,25 @@ public class DepositService {
             return depositInfos;
         }
         for (Document document : documentList) {
-            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, "txHash", DepositInfo.class);
+            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, DepositInfo.class);
             depositInfos.add(depositInfo);
         }
         return depositInfos;
     }
 
 
-    public void saveDepsoitList(List<DepositInfo> depositInfoList) {
+    public void saveDepositList(List<DepositInfo> depositInfoList) {
         if (depositInfoList.isEmpty()) {
             return;
         }
         List<WriteModel<Document>> modelList = new ArrayList<>();
 
         for (DepositInfo depositInfo : depositInfoList) {
-            Document document = DocumentTransferTool.toDocument(depositInfo, "txHash");
+            Document document = DocumentTransferTool.toDocument(depositInfo);
             if (depositInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
             } else {
-                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", depositInfo.getTxHash()), document));
+                modelList.add(new ReplaceOneModel<>(Filters.eq("txHash", depositInfo.getTxHash()), document));
             }
         }
 
