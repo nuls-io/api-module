@@ -26,6 +26,6 @@ import java.util.Properties;
  * @author Niels
  */
 public class ApiContext {
-
+    public static long bestHeight;
     public static Properties config;
 }

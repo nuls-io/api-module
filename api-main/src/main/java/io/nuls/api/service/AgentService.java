@@ -51,6 +51,15 @@ public class AgentService {
         return agentInfo;
     }
 
+    public AgentInfo getAgentByAgentHash(String agentHash) {
+        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("txHash", agentHash));
+        if (document == null) {
+            return null;
+        }
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        return agentInfo;
+    }
+
     /**
      * @param address agentAddress or packingAddress
      * @return
@@ -83,7 +92,7 @@ public class AgentService {
     }
 
     public List<AgentInfo> getAgentList(long startHeight) {
-        Bson bson = Filters.and(Filters.gte("blockHeight", startHeight), Filters.lte("deleteHeight", 0), Filters.gte("deleteHeight", startHeight));
+        Bson bson = Filters.and(Filters.lte("blockHeight", startHeight), Filters.or(Filters.eq("deleteHeight", 0), Filters.gt("deleteHeight", startHeight)));
 
         List<Document> list = this.mongoDBService.query(MongoTableName.AGENT_INFO, bson);
         List<AgentInfo> resultList = new ArrayList<>();

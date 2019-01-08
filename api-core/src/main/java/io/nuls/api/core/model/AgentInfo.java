@@ -40,6 +40,8 @@ public class AgentInfo extends TxData {
 
     private long totalReward;
 
+    private String alias;
+
     private boolean isNew;
 
     public AgentInfo() {
@@ -205,5 +207,13 @@ public class AgentInfo extends TxData {
 
     public void setNew(boolean aNew) {
         isNew = aNew;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 }

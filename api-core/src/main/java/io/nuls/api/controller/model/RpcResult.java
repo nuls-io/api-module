@@ -56,15 +56,17 @@ public class RpcResult {
         return result;
     }
 
-    public void setResult(Object result) {
+    public RpcResult setResult(Object result) {
         this.result = result;
+        return this;
     }
 
     public RpcResultError getError() {
         return error;
     }
 
-    public void setError(RpcResultError error) {
+    public RpcResult setError(RpcResultError error) {
         this.error = error;
+        return this;
     }
 }

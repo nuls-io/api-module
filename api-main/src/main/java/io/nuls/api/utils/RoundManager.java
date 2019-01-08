@@ -22,10 +22,8 @@ package io.nuls.api.utils;
 
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
-import io.nuls.api.core.model.AgentInfo;
-import io.nuls.api.core.model.BlockInfo;
-import io.nuls.api.core.model.CurrentRound;
-import io.nuls.api.core.model.DepositInfo;
+import io.nuls.api.core.ApiContext;
+import io.nuls.api.core.model.*;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.service.AgentService;
 import io.nuls.api.service.DepositService;
@@ -33,6 +31,7 @@ import io.nuls.sdk.core.crypto.Sha256Hash;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.ArraysTool;
 import io.nuls.sdk.core.utils.SerializeUtils;
+import io.nuls.sdk.core.utils.TimeService;
 
 import java.util.*;
 
@@ -89,17 +88,59 @@ public class RoundManager {
                 sorterList.add(sorter);
             }
         }
+
+        String seeds = ApiContext.config.getProperty("wallet.consensus.seeds");
+        String[] seedAddresses = seeds.split(",");
+        for (String address : seedAddresses) {
+            AgentSorter sorter = new AgentSorter();
+            sorter.setSeedAddress(address);
+            byte[] hash = ArraysTool.concatenate(AddressTool.getAddress(address), SerializeUtils.uint64ToByteArray(blockInfo.getBlockHeader().getRoundStartTime()));
+            sorter.setSorter(Sha256Hash.twiceOf(hash).toString());
+            sorterList.add(sorter);
+        }
         Collections.sort(sorterList);
 
-        //todo 处理时间对index的影响
 
+        BlockHeaderInfo header = blockInfo.getBlockHeader();
         //生成新的round
         CurrentRound newCurrentRound = new CurrentRound();
-//        newCurrentRound.setIndex(index);
+        newCurrentRound.setIndex(header.getRoundIndex());
+        newCurrentRound.setStartHeight(header.getHeight());
+        newCurrentRound.setStartTime(header.getRoundStartTime());
+        newCurrentRound.setMemberCount(sorterList.size());
+        newCurrentRound.setEndTime(startHeight + 10000 * sorterList.size());
+        newCurrentRound.setProducedBlockCount(1);
 
+
+        List<PocRoundItem> itemList = new ArrayList<>();
+        int index = 1;
+        String packer = null;
+        for (AgentSorter sorter : sorterList) {
+            PocRoundItem item = new PocRoundItem();
+            item.setRoundIndex(header.getRoundIndex());
+            item.setOrder(index++);
+            if (null == sorter.getSeedAddress()) {
+                AgentInfo agentInfo = map.get(sorter.getAgentId());
+                item.setProducer(agentInfo.getAlias() == null ?
+                        agentInfo.getAgentId().substring(agentInfo.getAgentId().length() - 8) : agentInfo.getAlias());
+            } else {
+                item.setProducer(sorter.getSeedAddress());
+            }
+
+            if (index == header.getPackingIndexOfRound()) {
+                packer = item.getProducer();
+            }
+            itemList.add(item);
+        }
+        newCurrentRound.setItemList(itemList);
+        newCurrentRound.setMemberCount(itemList.size());
+        newCurrentRound.setPacker(packer);
+        newCurrentRound.setPackerOrder(header.getPackingIndexOfRound() + 1);
 
         //todo 存储
+        System.out.println("轮次尚未存储");
 
+        this.currentRound = newCurrentRound;
     }
 
     private void processCurrentRound(BlockInfo blockInfo) {

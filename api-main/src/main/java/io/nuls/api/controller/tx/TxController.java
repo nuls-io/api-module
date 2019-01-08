@@ -30,6 +30,7 @@ import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.model.TransactionInfo;
+import io.nuls.api.service.TransactionService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.StringUtils;
 
@@ -43,6 +44,9 @@ public class TxController {
 
     @Autowired
     private WalletRPCHandler rpcHandler;
+
+    @Autowired
+    private TransactionService txService;
 
     @RpcMethod("getTx")
     public RpcResult getTx(List<Object> params) {
@@ -68,14 +72,33 @@ public class TxController {
 
     @RpcMethod("getTxList")
     public RpcResult getTxList(List<Object> params) {
-        //todo
-        return null;
+        VerifyUtils.verifyParams(params, 2);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        int type = 0;
+        if (params.size() > 2) {
+            type = (int) params.get(2);
+        }
+        boolean includeCoinBase = false;
+        if (params.size() > 3) {
+            includeCoinBase = (boolean) params.get(3);
+        }
+        List<TransactionInfo> txList = txService.getTxList(pageIndex, pageSize, type, includeCoinBase);
+        RpcResult rpcResult = new RpcResult();
+        rpcResult.setResult(txList);
+        return rpcResult;
     }
 
     @RpcMethod("getTxStatistical")
     public RpcResult getTxStatistical(List<Object> params) {
         //todo
-        return null;
+        return new RpcResult();
     }
 
 
