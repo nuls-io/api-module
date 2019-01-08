@@ -1,13 +1,19 @@
 package io.nuls.api.service;
 
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.sdk.core.utils.StringUtils;
 import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class BlockHeaderService {
@@ -50,5 +56,21 @@ public class BlockHeaderService {
     public void saveBLockHeaderInfo(BlockHeaderInfo blockHeaderInfo) {
         Document document = DocumentTransferTool.toDocument(blockHeaderInfo, "height");
         mongoDBService.insertOne(MongoTableName.BLOCK_HEADER, document);
+    }
+
+    /**
+     * 分页查询区块列表，支持按照出快地址过滤
+     */
+    public List<BlockHeaderInfo> pageQuery(int pageIndex, int pageSize, String packingAddress) {
+        Bson filter = null;
+        if (StringUtils.isNotBlank(packingAddress)) {
+            filter = Filters.eq("packingAddress", packingAddress);
+        }
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.BLOCK_HEADER, filter, Sorts.descending("height"), pageIndex, pageSize);
+        List<BlockHeaderInfo> list = new ArrayList<>();
+        for (Document document : docsList) {
+            list.add(DocumentTransferTool.toInfo(document, BlockHeaderInfo.class));
+        }
+        return list;
     }
 }

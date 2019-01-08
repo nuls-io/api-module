@@ -82,7 +82,7 @@ public class ApiModuleBootstrap {
 
 
         ScheduleManager scheduleManager = SpringLiteContext.getBean(ScheduleManager.class);
-        scheduleManager.start(clearDB);
+//        scheduleManager.start(clearDB);
 
         JsonRpcServer server = new JsonRpcServer();
 

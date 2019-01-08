@@ -210,7 +210,12 @@ public class MongoDBService {
             throw new RuntimeException();
         }
         //todo skip在大数据情况会非常慢
-        FindIterable<Document> iterable = collection.find(var1).sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
+        FindIterable<Document> iterable;
+        if (null != var1) {
+            iterable = collection.find(var1).sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
+        } else {
+            iterable = collection.find().sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
+        }
         List<Document> list = new ArrayList<>();
         MongoCursor<Document> documentMongoCursor = iterable.iterator();
         while (documentMongoCursor.hasNext()) {

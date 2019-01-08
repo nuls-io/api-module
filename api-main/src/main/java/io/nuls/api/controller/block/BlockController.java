@@ -32,6 +32,7 @@ import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.mongodb.MongoDBService;
+import io.nuls.api.service.BlockHeaderService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.StringUtils;
 
@@ -49,6 +50,9 @@ public class BlockController {
 
     @Autowired
     private WalletRPCHandler rpcHandler;
+
+    @Autowired
+    private BlockHeaderService blockHeaderService;
 
     @RpcMethod("getHeaderByHeight")
     public RpcResult getHeaderByHeight(List<Object> params) {
@@ -121,10 +125,23 @@ public class BlockController {
 
     @RpcMethod("getBlockList")
     public RpcResult getBlockList(List<Object> params) {
-        VerifyUtils.verifyParams(params, 1);
-
-        //todo
-        return null;
+        VerifyUtils.verifyParams(params, 2);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        String packingAddress = null;
+        if (params.size() > 2) {
+            packingAddress = (String) params.get(2);
+        }
+        List<BlockHeaderInfo> list = blockHeaderService.pageQuery(pageIndex, pageSize, packingAddress);
+        RpcResult result = new RpcResult();
+        result.setResult(list);
+        return result;
     }
 
 }
