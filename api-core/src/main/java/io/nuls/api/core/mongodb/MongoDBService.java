@@ -239,6 +239,22 @@ public class MongoDBService {
         return list;
     }
 
+    public List<Document> pageQuery(String collName, Bson sort, int pageNumber, int pageSize) {
+        MongoCollection<Document> collection = getCollection(collName);
+        if (null == collection) {
+            throw new RuntimeException();
+        }
+        //todo skip在大数据情况会非常慢
+        FindIterable<Document> iterable;
+        iterable = collection.find().sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
+        List<Document> list = new ArrayList<>();
+        MongoCursor<Document> documentMongoCursor = iterable.iterator();
+        while (documentMongoCursor.hasNext()) {
+            list.add(documentMongoCursor.next());
+        }
+        return list;
+    }
+
     public BulkWriteResult bulkWrite(String collName, List<? extends WriteModel<? extends Document>> modelList) {
         MongoCollection<Document> collection = getCollection(collName);
         if (null == collection) {

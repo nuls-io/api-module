@@ -49,7 +49,6 @@ public class BlockController {
     @Autowired
     private MongoDBService dbService;
 
-
     @Autowired
     private WalletRPCHandler rpcHandler;
 
