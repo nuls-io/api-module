@@ -20,9 +20,15 @@
 
 package io.nuls.api.controller.account;
 
+import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.controller.utils.VerifyUtils;
+import io.nuls.api.core.model.AccountInfo;
+import io.nuls.api.service.AccountService;
+
+import java.util.List;
 
 /**
  * @author Niels
@@ -30,16 +36,31 @@ import io.nuls.api.controller.model.RpcResult;
 @Controller
 public class AccountController {
 
-    @RpcMethod("getAcount")
-    public RpcResult getAccount() {
+    @Autowired
+    private AccountService accountService;
 
+    @RpcMethod("getAccount")
+    public RpcResult getAccount() {
 
 
         return null;
     }
 
-    @RpcMethod("getAcountList")
-    public RpcResult getAccountList() {
-        return null;
+    @RpcMethod("getAccountList")
+    public RpcResult getAccountList(List<Object> params) {
+        VerifyUtils.verifyParams(params, 2);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+
+        List<AccountInfo> accountInfoList = accountService.pageQuery(pageIndex, pageSize);
+        RpcResult result = new RpcResult();
+        result.setResult(accountInfoList);
+        return result;
     }
 }

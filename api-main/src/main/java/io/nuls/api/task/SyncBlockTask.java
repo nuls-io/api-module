@@ -30,7 +30,7 @@ public class SyncBlockTask implements Runnable {
         boolean running = true;
         while (running) {
             try {
-                running = syncBlock();
+//                running = syncBlock();
             } catch (Exception e) {
                 Log.error(e);
                 running = false;

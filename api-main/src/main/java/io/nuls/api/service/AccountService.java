@@ -26,7 +26,7 @@ public class AccountService {
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (AccountInfo accountInfo : accountInfoMap.values()) {
             Document document = DocumentTransferTool.toDocument(accountInfo, "address");
-             if (accountInfo.isNew()) {
+            if (accountInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
             } else {
                 modelList.add(new ReplaceOneModel<>(Filters.eq("_id", accountInfo.getAddress()), document));
@@ -42,5 +42,14 @@ public class AccountService {
         }
         AccountInfo accountInfo = DocumentTransferTool.toInfo(document, "address", AccountInfo.class);
         return accountInfo;
+    }
+
+    public List<AccountInfo> pageQuery(int pageNumber, int pageSize) {
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.BLOCK_HEADER, Sorts.descending("height"), pageNumber, pageSize);
+        List<AccountInfo> accountInfoList = new ArrayList<>();
+        for (Document document : docsList) {
+            accountInfoList.add(DocumentTransferTool.toInfo(document, "address", AccountInfo.class));
+        }
+        return accountInfoList;
     }
 }
