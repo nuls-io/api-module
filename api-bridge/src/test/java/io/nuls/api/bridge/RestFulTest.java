@@ -35,14 +35,14 @@ public class RestFulTest {
 
 
     public static void main(String[] args) {
-//        RestFulUtils utils = RestFulUtils.getInstance();
-//        utils.setServerUri("http://192.168.1.37:8001/api");
-//        Result result = utils.get("/block/header/height/1",null);
-//        System.out.println(result);
+        RestFulUtils utils = RestFulUtils.getInstance();
+        utils.setServerUri("http://127.0.0.1:8001/api");
+        Result result = utils.get("/block/header/height/1",null);
+        System.out.println(result);
 
 
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target("http://192.168.1.37:8001").path("/api/block/header/height/1");
+        WebTarget target = client.target("http://127.0.0.1:8001/api").path("/block/header/height/1");
         Response response = target.request(new String[]{"application/json"}).get();
         System.out.println(response);
     }

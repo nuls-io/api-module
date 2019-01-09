@@ -44,6 +44,20 @@ public class DepositService {
         return depositInfos;
     }
 
+    public List<DepositInfo> getCancelDepositListByAgentHash(String hash) {
+        List<DepositInfo> depositInfos = new ArrayList<>();
+        Bson bson = Filters.and(Filters.eq("agentHash", hash),  Filters.eq("type", 1));
+        List<Document> documentList = mongoDBService.query(MongoTableName.DEPOSIT_INFO, bson);
+        if (documentList == null && documentList.isEmpty()) {
+            return depositInfos;
+        }
+        for (Document document : documentList) {
+            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, DepositInfo.class);
+            depositInfos.add(depositInfo);
+        }
+        return depositInfos;
+    }
+
 
     public void saveDepositList(List<DepositInfo> depositInfoList) {
         if (depositInfoList.isEmpty()) {

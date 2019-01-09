@@ -3,6 +3,7 @@ package io.nuls.api.service;
 import com.mongodb.client.model.Filters;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
+import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
@@ -98,6 +99,7 @@ public class BlockService {
         save(blockInfo, agentInfo);
         time2 = System.currentTimeMillis();
         System.out.println("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (time2 - time1));
+        ApiContext.bestHeight = headerInfo.getHeight();
         return true;
     }
 

@@ -30,10 +30,12 @@ import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
+import io.nuls.api.core.model.PocRoundItem;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.service.BlockHeaderService;
 import io.nuls.api.utils.JsonRpcException;
+import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.utils.StringUtils;
 
 import java.util.List;
@@ -52,6 +54,12 @@ public class BlockController {
 
     @Autowired
     private BlockHeaderService blockHeaderService;
+
+    @RpcMethod("getBestBlockHeader")
+    public RpcResult getBestInfo(List<Object> params) {
+        BlockHeaderInfo localBestBlockHeader = blockHeaderService.getBestBlockHeader();
+        return new RpcResult().setResult(localBestBlockHeader);
+    }
 
     @RpcMethod("getHeaderByHeight")
     public RpcResult getHeaderByHeight(List<Object> params) {

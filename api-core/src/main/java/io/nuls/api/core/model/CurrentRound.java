@@ -31,18 +31,9 @@ public class CurrentRound extends PocRound {
         this.setIndex(-1);
     }
 
-    private String packer;
     private int packerOrder;
 
     private List<PocRoundItem> itemList;
-
-    public String getPacker() {
-        return packer;
-    }
-
-    public void setPacker(String packer) {
-        this.packer = packer;
-    }
 
     public int getPackerOrder() {
         return packerOrder;
@@ -58,5 +49,19 @@ public class CurrentRound extends PocRound {
 
     public void setItemList(List<PocRoundItem> itemList) {
         this.itemList = itemList;
+    }
+
+    public PocRound toPocRound() {
+        PocRound round = new PocRound();
+        round.setEndHeight(this.getEndHeight());
+        round.setEndTime(this.getEndTime());
+        round.setIndex(this.getIndex());
+        round.setMemberCount(this.getMemberCount());
+        round.setProducedBlockCount(this.getProducedBlockCount());
+        round.setRedCardCount(this.getRedCardCount());
+        round.setStartHeight(this.getStartHeight());
+        round.setStartTime(this.getStartTime());
+        round.setYellowCardCount(this.getYellowCardCount());
+        return round;
     }
 }

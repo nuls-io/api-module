@@ -31,9 +31,9 @@ public class PocRoundItem {
 
     private int order;
 
-    private String producer;//出块人（节点）
+    private String agentName;
 
-    private int resule;
+    private String seedAddress;
 
     private long blockHeight;
 
@@ -65,20 +65,20 @@ public class PocRoundItem {
         this.order = order;
     }
 
-    public String getProducer() {
-        return producer;
+    public String getAgentName() {
+        return agentName;
     }
 
-    public void setProducer(String producer) {
-        this.producer = producer;
+    public void setAgentName(String agentName) {
+        this.agentName = agentName;
     }
 
-    public int getResule() {
-        return resule;
+    public String getSeedAddress() {
+        return seedAddress;
     }
 
-    public void setResule(int resule) {
-        this.resule = resule;
+    public void setSeedAddress(String seedAddress) {
+        this.seedAddress = seedAddress;
     }
 
     public long getBlockHeight() {

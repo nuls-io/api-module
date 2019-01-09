@@ -22,6 +22,7 @@ package io.nuls.api.service;
 
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
+import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.model.PocRound;
 import io.nuls.api.core.model.PocRoundItem;
 import io.nuls.api.core.mongodb.MongoDBService;
@@ -39,20 +40,18 @@ import static com.mongodb.client.model.Filters.eq;
 @Component
 public class RoundService {
 
-    private static String RoundTable = "round_table";
-    private static String RoundItemTable = "round_item_table";
 
     @Autowired
     private MongoDBService mongoDBService;
 
     public void saveRound(PocRound round) {
         Document document = DocumentTransferTool.toDocument(round, "index");
-        this.mongoDBService.insertOne(RoundTable, document);
+        this.mongoDBService.insertOne(MongoTableName.ROUND_INFO, document);
     }
 
     public void saveRoundItem(PocRoundItem item) {
         Document document = DocumentTransferTool.toDocument(item, "id");
-        this.mongoDBService.insertOne(RoundItemTable, document);
+        this.mongoDBService.insertOne(MongoTableName.ROUND_ITEM_INFO, document);
     }
 
     public void saveRoundItemList(List<PocRoundItem> itemList) {
@@ -61,21 +60,21 @@ public class RoundService {
             Document document = DocumentTransferTool.toDocument(item, "id");
             docsList.add(document);
         }
-        this.mongoDBService.insertMany(RoundItemTable, docsList);
+        this.mongoDBService.insertMany(MongoTableName.ROUND_ITEM_INFO, docsList);
     }
 
     public long updateRound(PocRound round) {
-        Document document = DocumentTransferTool.toDocument(round);
-        return this.mongoDBService.update(RoundTable, eq("_id", round.getIndex()), document);
+        Document document = DocumentTransferTool.toDocument(round, "index");
+        return this.mongoDBService.update(MongoTableName.ROUND_INFO, eq("_id", round.getIndex()), document);
     }
 
     public long updateRoundItem(PocRoundItem item) {
         Document document = DocumentTransferTool.toDocument(item, "id");
-        return this.mongoDBService.update(RoundItemTable, eq("_id", item.getId()), document);
+        return this.mongoDBService.update(MongoTableName.ROUND_ITEM_INFO, eq("_id", item.getId()), document);
     }
 
     public void removeRound(long roundIndex) {
-        this.mongoDBService.delete(RoundTable, eq("_id", roundIndex));
-        this.mongoDBService.delete(RoundItemTable, eq("roundIndex", roundIndex));
+        this.mongoDBService.delete(MongoTableName.ROUND_INFO, eq("_id", roundIndex));
+        this.mongoDBService.delete(MongoTableName.ROUND_ITEM_INFO, eq("roundIndex", roundIndex));
     }
 }

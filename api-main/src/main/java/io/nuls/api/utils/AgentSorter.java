@@ -27,6 +27,8 @@ public class AgentSorter implements Comparable<AgentSorter>{
 
     private String agentId;
 
+    private String seedAddress;
+
     private String sorter;
 
     public String getAgentId() {
@@ -45,6 +47,13 @@ public class AgentSorter implements Comparable<AgentSorter>{
         this.sorter = sorter;
     }
 
+    public String getSeedAddress() {
+        return seedAddress;
+    }
+
+    public void setSeedAddress(String seedAddress) {
+        this.seedAddress = seedAddress;
+    }
 
     @Override
     public int compareTo(AgentSorter o2) {
