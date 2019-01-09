@@ -69,12 +69,31 @@ public class TransactionService {
             filter = filter2;
         }
 
+
         List<Document> docList = this.mongoDBService.pageQuery(MongoTableName.TX_INFO, filter, Sorts.descending("height", "time"), pageIndex, pageSize);
 
         List<TransactionInfo> txList = new ArrayList<>();
 
         for (Document document : docList) {
             txList.add(DocumentTransferTool.toInfo(document, TransactionInfo.class));
+        }
+        return txList;
+    }
+
+
+    public List<TransactionInfo> getBlockTxList(int pageIndex, int pageSize, long blockHeight, int type) {
+        Bson filter = null;
+        if (type == 0) {
+            filter = eq("height", blockHeight);
+        } else {
+            filter = and(eq("type", type), eq("height", blockHeight));
+        }
+        List<Document> docList = this.mongoDBService.pageQuery(MongoTableName.TX_INFO, filter, Sorts.descending("height", "time"), pageIndex, pageSize);
+
+        List<TransactionInfo> txList = new ArrayList<>();
+
+        for (Document document : docList) {
+            txList.add(TransactionInfo.fromDocument(document));
         }
         return txList;
     }

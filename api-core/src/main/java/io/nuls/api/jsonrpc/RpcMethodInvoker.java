@@ -47,6 +47,9 @@ public class RpcMethodInvoker {
         RpcResult result = null;
         try {
             result = (RpcResult) method.invoke(bean, jsonParams);
+        } catch (JsonRpcException e) {
+            result = new RpcResult();
+            result.setError(e.getError());
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.error(e);
             result = new RpcResult();
@@ -54,9 +57,6 @@ public class RpcMethodInvoker {
             error.setMessage(e.getMessage());
             error.setCode(-32603);
             result.setError(error);
-        } catch (JsonRpcException e) {
-            result = new RpcResult();
-            result.setError(e.getError());
         }
         return result;
     }

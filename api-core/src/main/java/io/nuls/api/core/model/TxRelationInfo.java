@@ -16,11 +16,13 @@ public class TxRelationInfo {
 
     private Long fee;
 
+    private long balance;
+
     public TxRelationInfo() {
 
     }
 
-    public TxRelationInfo(String address, TransactionInfo info, long values) {
+    public TxRelationInfo(String address, TransactionInfo info, long values, long balance) {
         this.address = address;
         this.txHash = info.getHash();
         this.type = info.getType();
@@ -28,6 +30,7 @@ public class TxRelationInfo {
         this.fee = info.getFee();
         this.height = info.getHeight();
         this.values = values;
+        this.balance = balance;
     }
 
     public String getAddress() {
@@ -95,5 +98,13 @@ public class TxRelationInfo {
 
     public void setFee(Long fee) {
         this.fee = fee;
+    }
+
+    public long getBalance() {
+        return balance;
+    }
+
+    public void setBalance(long balance) {
+        this.balance = balance;
     }
 }

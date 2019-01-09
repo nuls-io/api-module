@@ -18,21 +18,43 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.controller.constant;
-
-import io.nuls.api.controller.model.RpcResultError;
+package io.nuls.api.controller.model;
 
 /**
  * @author Niels
  */
-public interface RpcErrorCode {
-
+public enum RpcErrorCode {
     // 参数不对
-    RpcResultError PARAMS_ERROR = new RpcResultError(1000, "Parameters is wrong!", null);
+    PARAMS_ERROR(1000, "Parameters is wrong!"),
 
     //数据未找到
-    RpcResultError DATA_NOT_EXISTS = new RpcResultError(404, "Data is not exists!", null);
-    
+    DATA_NOT_EXISTS(404, "Data is not exists!"),
+
     //交易解析错误
-    RpcResultError TX_PARSE_ERROR = new RpcResultError(999, "Transaction parse error!", null);
-}
+    TX_PARSE_ERROR(999, "Transaction parse error!");
+
+
+    private int code;
+
+    private String message;
+
+    RpcErrorCode(int code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }}

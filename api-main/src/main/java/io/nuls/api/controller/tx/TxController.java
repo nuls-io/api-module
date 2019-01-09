@@ -24,7 +24,7 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.bridge.WalletRPCHandler;
-import io.nuls.api.controller.constant.RpcErrorCode;
+import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
@@ -53,13 +53,13 @@ public class TxController {
         VerifyUtils.verifyParams(params, 1);
         String hash = "" + params.get(0);
         if (StringUtils.isBlank(hash)) {
-            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[hash] is required"));
         }
         RpcClientResult<TransactionInfo> rpcClientResult = rpcHandler.getTx(hash);
         if (rpcClientResult.isFailed()) {
             RpcResult result = new RpcResult();
             if (null == rpcClientResult.getData()) {
-                result.setError(RpcErrorCode.DATA_NOT_EXISTS);
+                result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
             } else {
                 result.setError(new RpcResultError(rpcClientResult.getCode(), rpcClientResult.getMsg(), null));
             }
@@ -94,6 +94,30 @@ public class TxController {
         rpcResult.setResult(txList);
         return rpcResult;
     }
+
+
+    @RpcMethod("getBlockTxList")
+    public RpcResult getBlockTxList(List<Object> params) {
+        VerifyUtils.verifyParams(params, 4);
+
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+
+        long height = Long.valueOf(params.get(2).toString());
+        int type = (int) params.get(3);
+
+        List<TransactionInfo> txList = txService.getBlockTxList(pageIndex, pageSize, height, type);
+        RpcResult rpcResult = new RpcResult();
+        rpcResult.setResult(txList);
+        return rpcResult;
+    }
+
 
     @RpcMethod("getTxStatistical")
     public RpcResult getTxStatistical(List<Object> params) {

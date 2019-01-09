@@ -20,6 +20,9 @@
 
 package io.nuls.api.controller.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Niels
  */
@@ -32,11 +35,23 @@ public class RpcResultError {
     private Object data;
 
     public RpcResultError() {
+
     }
 
     public RpcResultError(int code, String message, Object data) {
         this.code = code;
         this.message = message;
+        this.data = data;
+    }
+
+    public RpcResultError(RpcErrorCode rpcErrorCode) {
+        this.code = rpcErrorCode.getCode();
+        this.message = rpcErrorCode.getMessage();
+    }
+
+    public RpcResultError(RpcErrorCode rpcErrorCode, Object data) {
+        this.code = rpcErrorCode.getCode();
+        this.message = rpcErrorCode.getMessage();
         this.data = data;
     }
 

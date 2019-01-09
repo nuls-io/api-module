@@ -30,7 +30,7 @@ public class SyncBlockTask implements Runnable {
         boolean running = true;
         while (running) {
             try {
-//                running = syncBlock();
+                running = syncBlock();
             } catch (Exception e) {
                 Log.error(e);
                 running = false;
@@ -55,6 +55,10 @@ public class SyncBlockTask implements Runnable {
             localBestHeight = -1;
         } else {
             localBestHeight = localBestBlockHeader.getHeight();
+        }
+        //暂时只解析到70000块
+        if (localBestHeight > 65000) {
+            return false;
         }
         //调用RPC接口获取节点钱包下一区块
         RpcClientResult<BlockHeaderInfo> result = null;

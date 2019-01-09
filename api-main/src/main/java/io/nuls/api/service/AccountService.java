@@ -5,9 +5,11 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.model.AccountInfo;
+import io.nuls.api.core.model.TxRelationInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,11 +47,29 @@ public class AccountService {
     }
 
     public List<AccountInfo> pageQuery(int pageNumber, int pageSize) {
-        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.BLOCK_HEADER, Sorts.descending("height"), pageNumber, pageSize);
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.ACCOUNT_INFO, pageNumber, pageSize);
         List<AccountInfo> accountInfoList = new ArrayList<>();
         for (Document document : docsList) {
             accountInfoList.add(DocumentTransferTool.toInfo(document, "address", AccountInfo.class));
         }
         return accountInfoList;
+    }
+
+    public List<TxRelationInfo> getAccountTxs(String address, int pageIndex, int pageSize, int type, boolean isMark) {
+        Bson filter = null;
+        Bson addressFilter = Filters.eq("address", address);
+
+        if (type == 0 && isMark) {
+            filter = Filters.and(addressFilter, Filters.ne("type", 1));
+        } else if (type > 0) {
+            filter = Filters.and(addressFilter, Filters.eq("type", type));
+        }
+
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.TX_RELATION_INFO, filter, Sorts.descending("height", "createTime"), pageIndex, pageSize);
+        List<TxRelationInfo> txRelationInfoList = new ArrayList<>();
+        for (Document document : docsList) {
+            txRelationInfoList.add(DocumentTransferTool.toInfo(document, TxRelationInfo.class));
+        }
+        return txRelationInfoList;
     }
 }

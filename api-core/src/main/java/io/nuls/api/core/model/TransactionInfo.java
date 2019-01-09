@@ -151,6 +151,14 @@ public class TransactionInfo {
         this.agentInfo = agentInfo;
     }
 
+    public void setValue(long value) {
+        this.value = value;
+    }
+
+    public long getValue() {
+        return value;
+    }
+
     public void setByAgentInfo(AgentInfo agentInfo) {
         this.agentId = agentInfo.getAgentId();
         if (agentInfo.getAgentAlias() != null) {
@@ -193,5 +201,16 @@ public class TransactionInfo {
         Document document = new Document();
         document.append("_id", hash).append("height", height).append("createTime", createTime).append("type", type).append("value", value).append("fee", fee);
         return document;
+    }
+
+    public static TransactionInfo fromDocument(Document document) {
+        TransactionInfo info = new TransactionInfo();
+        info.setHash(document.getString("_id"));
+        info.setHeight(document.getLong("height"));
+        info.setCreateTime(document.getLong("createTime"));
+        info.setType(document.getInteger("type"));
+        info.setFee(document.getLong("fee"));
+        info.setValue(document.getLong("value"));
+        return info;
     }
 }

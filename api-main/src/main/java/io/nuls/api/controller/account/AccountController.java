@@ -23,10 +23,15 @@ package io.nuls.api.controller.account;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
+import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.AccountInfo;
+import io.nuls.api.core.model.TxRelationInfo;
 import io.nuls.api.service.AccountService;
+import io.nuls.api.utils.JsonRpcException;
+import io.nuls.sdk.core.utils.StringUtils;
 
 import java.util.List;
 
@@ -61,6 +66,33 @@ public class AccountController {
         List<AccountInfo> accountInfoList = accountService.pageQuery(pageIndex, pageSize);
         RpcResult result = new RpcResult();
         result.setResult(accountInfoList);
+        return result;
+    }
+
+
+    @RpcMethod("getAccountTxs")
+    public RpcResult getAccountTxs(List<Object> params) {
+        VerifyUtils.verifyParams(params, 5);
+        String address = (String) params.get(0);
+        if (StringUtils.isBlank(address)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is required"));
+        }
+
+        int pageIndex = (int) params.get(1);
+        int pageSize = (int) params.get(2);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+
+        int type = (int) params.get(3);
+        boolean isMark = (boolean) params.get(4);
+
+        List<TxRelationInfo> relationInfos = accountService.getAccountTxs(address, pageIndex, pageSize, type, isMark);
+        RpcResult result = new RpcResult();
+        result.setResult(relationInfos);
         return result;
     }
 }

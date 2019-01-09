@@ -19,7 +19,8 @@
  */
 package io.nuls.api.controller.utils;
 
-import io.nuls.api.controller.constant.RpcErrorCode;
+import io.nuls.api.controller.model.RpcErrorCode;
+import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.utils.JsonRpcException;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class VerifyUtils {
 
     public static void verifyParams(List<Object> params, int minSize) {
         if (null == params || params.size() < minSize) {
-            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "Incorrect number of parameters"));
         }
     }
 }

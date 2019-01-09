@@ -24,18 +24,16 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.bridge.WalletRPCHandler;
-import io.nuls.api.controller.constant.RpcErrorCode;
+import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
-import io.nuls.api.core.model.PocRoundItem;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.service.BlockHeaderService;
 import io.nuls.api.utils.JsonRpcException;
-import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.utils.StringUtils;
 
 import java.util.List;
@@ -66,7 +64,7 @@ public class BlockController {
         VerifyUtils.verifyParams(params, 1);
         long height = Long.parseLong("" + params.get(0));
         if (height < 0) {
-            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[height] should not be less than 0"));
         }
         RpcClientResult<BlockHeaderInfo> result = rpcHandler.getBlockHeader(height);
         BlockHeaderInfo header = result.getData();
@@ -84,7 +82,7 @@ public class BlockController {
         VerifyUtils.verifyParams(params, 1);
         String hash = (String) params.get(0);
         if (StringUtils.isBlank(hash)) {
-            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[hash] is required"));
         }
         RpcClientResult<BlockHeaderInfo> result = rpcHandler.getBlockHeader(hash);
         BlockHeaderInfo header = result.getData();
@@ -101,7 +99,7 @@ public class BlockController {
         VerifyUtils.verifyParams(params, 1);
         String hash = (String) params.get(0);
         if (StringUtils.isBlank(hash)) {
-            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[hash] is required"));
         }
         RpcClientResult<BlockInfo> result = rpcHandler.getBlock(hash);
         BlockInfo block = result.getData();
@@ -118,7 +116,7 @@ public class BlockController {
         VerifyUtils.verifyParams(params, 1);
         long height = Long.parseLong("" + params.get(0));
         if (height < 0) {
-            throw new JsonRpcException(RpcErrorCode.PARAMS_ERROR);
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[height] should not be less than 0"));
         }
         RpcClientResult<BlockInfo> result = rpcHandler.getBlock(height);
         BlockInfo block = result.getData();

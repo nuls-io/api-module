@@ -178,7 +178,7 @@ public class BlockService {
             accountInfo.setTxCount(accountInfo.getTxCount() + 1);
             accountInfo.setTotalBalance(accountInfo.getTotalBalance() + output.getValue());
             accountInfo.setHeight(blockHeight);
-            txRelationInfoSet.add(new TxRelationInfo(output.getAddress(), tx, output.getValue()));
+            txRelationInfoSet.add(new TxRelationInfo(output.getAddress(), tx, output.getValue(), accountInfo.getTotalBalance()));
         }
     }
 
@@ -215,7 +215,7 @@ public class BlockService {
                 accountInfo.setTotalOut(accountInfo.getTotalOut() + Math.abs(value));
             }
             accountInfo.setTotalBalance(accountInfo.getTotalBalance() + value);
-            txRelationInfoSet.add(new TxRelationInfo(entry.getKey(), tx, value));
+            txRelationInfoSet.add(new TxRelationInfo(entry.getKey(), tx, value, accountInfo.getTotalBalance()));
         }
     }
 
@@ -251,7 +251,7 @@ public class BlockService {
                 accountInfo.setTotalOut(accountInfo.getTotalOut() + Math.abs(value));
             }
             accountInfo.setTotalBalance(accountInfo.getTotalBalance() + value);
-            txRelationInfoSet.add(new TxRelationInfo(entry.getKey(), tx, value));
+            txRelationInfoSet.add(new TxRelationInfo(entry.getKey(), tx, value, accountInfo.getTotalBalance()));
         }
         aliasInfoList.add((AliasInfo) tx.getTxData());
     }
@@ -271,7 +271,7 @@ public class BlockService {
 
         //记录交易的锁定金额
         long lockValue = tx.getTos().get(0).getValue();
-        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, lockValue));
+        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, lockValue, accountInfo.getTotalBalance()));
 
         AgentInfo agentInfo = (AgentInfo) tx.getTxData();
         agentInfo.setNew(true);
@@ -299,7 +299,7 @@ public class BlockService {
 
         //记录交易的锁定金额
         long lockValue = tx.getTos().get(0).getValue();
-        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, lockValue));
+        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, lockValue, accountInfo.getTotalBalance()));
 
         DepositInfo depositInfo = (DepositInfo) tx.getTxData();
         depositInfo.setNew(true);
@@ -315,7 +315,7 @@ public class BlockService {
 
         //记录交易的解锁金额
         long lockValue = tx.getTos().get(0).getValue();
-        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, lockValue));
+        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, lockValue, accountInfo.getTotalBalance()));
 
         //查询委托记录，生成对应的取消委托信息
         DepositInfo cancelInfo = (DepositInfo) tx.getTxData();
@@ -339,7 +339,7 @@ public class BlockService {
             if (i == 0) {
                 accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
             }
-            txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, output.getValue()));
+            txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, output.getValue(), accountInfo.getTotalBalance()));
         }
 
         //查询所有当前节点下的委托，生成取消委托记录
@@ -379,7 +379,7 @@ public class BlockService {
             AccountInfo accountInfo = queryAccountInfo(punishLog.getAddress());
             accountInfo.setTxCount(accountInfo.getTxCount() + 1);
             accountInfo.setHeight(blockHeight);
-            txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, 0));
+            txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, 0, accountInfo.getTotalBalance()));
         }
     }
 
@@ -392,7 +392,7 @@ public class BlockService {
             AccountInfo accountInfo = queryAccountInfo(output.getAddress());
             accountInfo.setTxCount(accountInfo.getTxCount() + 1);
             accountInfo.setHeight(blockHeight);
-            txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, output.getValue()));
+            txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, output.getValue(), accountInfo.getTotalBalance()));
         }
 
         //根据红牌找到被惩罚的节点
