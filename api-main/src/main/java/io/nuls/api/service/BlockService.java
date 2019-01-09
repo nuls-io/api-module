@@ -322,7 +322,7 @@ public class BlockService {
         DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelInfo.getTxHash());
         depositInfo.setDeleteHash(cancelInfo.getTxHash());
         depositInfo.setDeleteHeight(cancelInfo.getDeleteHeight());
-        depositInfo.setBlockHeight(blockHeight);
+//        depositInfo.setBlockHeight(blockHeight);
         cancelInfo.copyInfoWithDeposit(depositInfo);
         cancelInfo.setTxHash(tx.getHash());
         cancelInfo.setNew(true);
@@ -353,7 +353,7 @@ public class BlockService {
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo depositInfo : depositInfos) {
-                depositInfo.setBlockHeight(blockHeight);
+//                depositInfo.setBlockHeight(blockHeight);
                 depositInfo.setDeleteHash(tx.getHash());
                 depositInfo.setDeleteHeight(tx.getHeight());
                 depositInfoList.add(depositInfo);
@@ -404,7 +404,7 @@ public class BlockService {
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo depositInfo : depositInfos) {
-                depositInfo.setBlockHeight(blockHeight);
+//                depositInfo.setBlockHeight(blockHeight);
                 depositInfo.setDeleteHash(tx.getHash());
                 depositInfo.setDeleteHeight(tx.getHeight());
                 depositInfoList.add(depositInfo);

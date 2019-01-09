@@ -65,12 +65,12 @@ public class RoundService {
 
     public long updateRound(PocRound round) {
         Document document = DocumentTransferTool.toDocument(round, "index");
-        return this.mongoDBService.update(MongoTableName.ROUND_INFO, eq("_id", round.getIndex()), document);
+        return this.mongoDBService.updateOne(MongoTableName.ROUND_INFO, eq("_id", round.getIndex()), document);
     }
 
     public long updateRoundItem(PocRoundItem item) {
         Document document = DocumentTransferTool.toDocument(item, "id");
-        return this.mongoDBService.update(MongoTableName.ROUND_ITEM_INFO, eq("_id", item.getId()), document);
+        return this.mongoDBService.updateOne(MongoTableName.ROUND_ITEM_INFO, eq("_id", item.getId()), document);
     }
 
     public void removeRound(long roundIndex) {
