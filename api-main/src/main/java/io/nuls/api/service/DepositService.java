@@ -1,6 +1,9 @@
 package io.nuls.api.service;
 
-import com.mongodb.client.model.*;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.ReplaceOneModel;
+import com.mongodb.client.model.WriteModel;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
@@ -46,7 +49,7 @@ public class DepositService {
 
     public List<DepositInfo> getCancelDepositListByAgentHash(String hash) {
         List<DepositInfo> depositInfos = new ArrayList<>();
-        Bson bson = Filters.and(Filters.eq("agentHash", hash),  Filters.eq("type", 1));
+        Bson bson = Filters.and(Filters.eq("agentHash", hash), Filters.eq("type", 1));
         List<Document> documentList = mongoDBService.query(MongoTableName.DEPOSIT_INFO, bson);
         if (documentList == null && documentList.isEmpty()) {
             return depositInfos;
@@ -78,7 +81,14 @@ public class DepositService {
     }
 
     public List<DepositInfo> getDepositList(long startHeight) {
-        //todo 返回全部在此高度有效的委托列表 from cache.
-        return new ArrayList<>();
+        Bson bson = Filters.and(Filters.lte("blockHeight", startHeight),Filters.eq("type",0), Filters.or(Filters.eq("deleteHeight", 0), Filters.gt("deleteHeight", startHeight)));
+
+        List<Document> list = this.mongoDBService.query(MongoTableName.DEPOSIT_INFO, bson);
+        List<DepositInfo> resultList = new ArrayList<>();
+        for (Document document : list) {
+            resultList.add(DocumentTransferTool.toInfo(document, DepositInfo.class));
+        }
+
+        return resultList;
     }
 }

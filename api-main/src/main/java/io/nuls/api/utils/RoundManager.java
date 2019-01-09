@@ -142,12 +142,12 @@ public class RoundManager {
         round.setYellowCardCount(0);
 
         fillPunishCount(blockInfo.getTxs(), round);
-
-//        roundService.saveRound(round.toPocRound());
-//        roundService.saveRoundItemList(round.getItemList());
-
-
         this.currentRound = round;
+//        Log.warn("++++++++{}+++++++" + round.getIndex(), blockInfo.getBlockHeader().getHeight());
+        roundService.saveRound(round.toPocRound());
+        roundService.saveRoundItemList(round.getItemList());
+
+
     }
 
     private void fillPunishCount(List<TransactionInfo> txs, CurrentRound round) {
@@ -166,19 +166,21 @@ public class RoundManager {
 
     private void processCurrentRound(BlockInfo blockInfo) {
         int indexOfRound = blockInfo.getBlockHeader().getPackingIndexOfRound();
-        if (indexOfRound < currentRound.getMemberCount()) {
-            //下一个出块者
-            currentRound.setPackerOrder(indexOfRound + 1);
+        //下一个出块者
+        currentRound.setPackerOrder(indexOfRound + 1);
+//        System.out.println("+++++++++" + blockInfo.getBlockHeader().getHeight());
+        PocRoundItem item = currentRound.getItemList().get(indexOfRound - 1);
+        item.setBlockHeight(blockInfo.getBlockHeader().getHeight());
+        item.setReward(blockInfo.getBlockHeader().getReward());
+        item.setTxCount(blockInfo.getBlockHeader().getTxCount());
 
-            PocRoundItem item = currentRound.getItemList().get(indexOfRound);
-            item.setBlockHeight(blockInfo.getBlockHeader().getHeight());
-            item.setReward(blockInfo.getBlockHeader().getReward());
-            item.setTxCount(blockInfo.getBlockHeader().getTxCount());
+        roundService.updateRoundItem(item);
+        this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() + 1);
+        this.currentRound.setEndHeight(blockInfo.getBlockHeader().getHeight());
+        this.fillPunishCount(blockInfo.getTxs(), currentRound);
 
+        this.roundService.updateRound(this.currentRound.toPocRound());
 
-        } else {
-            processNextRound(blockInfo);
-        }
     }
 
     private void rollbackCurrentRound(BlockInfo blockInfo) {

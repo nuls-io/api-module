@@ -29,7 +29,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document,"agentId", AgentInfo.class);
         return agentInfo;
     }
 
@@ -38,7 +38,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document,"agentId", AgentInfo.class);
         return agentInfo;
     }
 
@@ -70,7 +70,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document,"agentId", AgentInfo.class);
         return agentInfo;
     }
 
@@ -97,7 +97,7 @@ public class AgentService {
         List<Document> list = this.mongoDBService.query(MongoTableName.AGENT_INFO, bson);
         List<AgentInfo> resultList = new ArrayList<>();
         for (Document document : list) {
-            resultList.add(DocumentTransferTool.toInfo(document, AgentInfo.class));
+            resultList.add(DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class));
         }
 
         return resultList;
