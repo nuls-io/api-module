@@ -69,7 +69,7 @@ public class BlockHeaderService {
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.BLOCK_HEADER, filter, Sorts.descending("height"), pageIndex, pageSize);
         List<BlockHeaderInfo> list = new ArrayList<>();
         for (Document document : docsList) {
-            list.add(DocumentTransferTool.toInfo(document, BlockHeaderInfo.class));
+            list.add(DocumentTransferTool.toInfo(document,"height", BlockHeaderInfo.class));
         }
         return list;
     }

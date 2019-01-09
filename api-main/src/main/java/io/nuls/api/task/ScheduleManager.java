@@ -31,6 +31,8 @@ public class ScheduleManager {
             mongoDBService.dropTable(MongoTableName.TX_INFO);
             mongoDBService.dropTable(MongoTableName.PUNISH_INFO);
             mongoDBService.dropTable(MongoTableName.UTXO_INFO);
+            mongoDBService.dropTable(MongoTableName.ROUND_INFO);
+            mongoDBService.dropTable(MongoTableName.ROUND_ITEM_INFO);
         }
 
         executorService = Executors.newScheduledThreadPool(1);

@@ -27,6 +27,8 @@ import io.nuls.api.core.model.*;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.service.AgentService;
 import io.nuls.api.service.DepositService;
+import io.nuls.api.service.RoundService;
+import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.crypto.Sha256Hash;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.ArraysTool;
@@ -50,6 +52,9 @@ public class RoundManager {
     @Autowired
     private DepositService depositService;
 
+    @Autowired
+    private RoundService roundService;
+
     public void process(BlockInfo blockInfo) {
         if (blockInfo.getBlockHeader().getRoundIndex() == currentRound.getIndex()) {
             processCurrentRound(blockInfo);
@@ -65,7 +70,7 @@ public class RoundManager {
         Map<String, AgentInfo> map = new HashMap<>();
         for (AgentInfo agent : agentList) {
             agent.setTotalDeposit(agent.getDeposit());
-            map.put(agent.getAgentId(), agent);
+            map.put(agent.getTxHash(), agent);
         }
         for (DepositInfo deposit : depositList) {
             AgentInfo agent = map.get(deposit.getAgentHash());
@@ -79,7 +84,7 @@ public class RoundManager {
         for (AgentInfo agent : map.values()) {
             if (agent.getTotalDeposit() >= MIN_DEPOSIT) {
                 AgentSorter sorter = new AgentSorter();
-                sorter.setAgentId(agent.getAgentId());
+                sorter.setAgentId(agent.getTxHash());
                 byte[] hash = ArraysTool.concatenate(AddressTool.getAddress(agent.getPackingAddress()), SerializeUtils.uint64ToByteArray(blockInfo.getBlockHeader().getRoundStartTime()));
 
                 sorter.setSorter(Sha256Hash.twiceOf(hash).toString());
@@ -102,43 +107,61 @@ public class RoundManager {
 
         BlockHeaderInfo header = blockInfo.getBlockHeader();
         //生成新的round
-        CurrentRound newCurrentRound = new CurrentRound();
-        newCurrentRound.setIndex(header.getRoundIndex());
-        newCurrentRound.setStartHeight(header.getHeight());
-        newCurrentRound.setStartTime(header.getRoundStartTime());
-        newCurrentRound.setMemberCount(sorterList.size());
-        newCurrentRound.setEndTime(startHeight + 10000 * sorterList.size());
-        newCurrentRound.setProducedBlockCount(1);
+        CurrentRound round = new CurrentRound();
+        round.setIndex(header.getRoundIndex());
+        round.setStartHeight(header.getHeight());
+        round.setStartTime(header.getRoundStartTime());
+        round.setMemberCount(sorterList.size());
+        round.setEndTime(startHeight + 10000 * sorterList.size());
+        round.setProducedBlockCount(1);
 
 
         List<PocRoundItem> itemList = new ArrayList<>();
         int index = 1;
-        String packer = null;
         for (AgentSorter sorter : sorterList) {
             PocRoundItem item = new PocRoundItem();
             item.setRoundIndex(header.getRoundIndex());
             item.setOrder(index++);
+            item.setId(item.getRoundIndex() + "_" + item.getOrder());
             if (null == sorter.getSeedAddress()) {
                 AgentInfo agentInfo = map.get(sorter.getAgentId());
-                item.setProducer(agentInfo.getAlias() == null ?
-                        agentInfo.getAgentId().substring(agentInfo.getAgentId().length() - 8) : agentInfo.getAlias());
-            } else {
-                item.setProducer(sorter.getSeedAddress());
-            }
+                item.setAgentName(agentInfo.getAlias() == null ?
+                        agentInfo.getTxHash().substring(agentInfo.getTxHash().length() - 8) : agentInfo.getAlias());
 
-            if (index == header.getPackingIndexOfRound()) {
-                packer = item.getProducer();
+            } else {
+                item.setSeedAddress(sorter.getSeedAddress());
+
             }
             itemList.add(item);
         }
-        newCurrentRound.setItemList(itemList);
-        newCurrentRound.setMemberCount(itemList.size());
-        newCurrentRound.setPacker(packer);
-        newCurrentRound.setPackerOrder(header.getPackingIndexOfRound() + 1);
-        //todo 存储
-        System.out.println("轮次尚未存储");
+        round.setItemList(itemList);
+        round.setMemberCount(itemList.size());
+        round.setPackerOrder(header.getPackingIndexOfRound() + 1);
 
-        this.currentRound = newCurrentRound;
+        round.setRedCardCount(0);
+        round.setYellowCardCount(0);
+
+        fillPunishCount(blockInfo.getTxs(), round);
+
+//        roundService.saveRound(round.toPocRound());
+//        roundService.saveRoundItemList(round.getItemList());
+
+
+        this.currentRound = round;
+    }
+
+    private void fillPunishCount(List<TransactionInfo> txs, CurrentRound round) {
+        int redCount = 0;
+        int yellowCount = 0;
+        for (TransactionInfo tx : txs) {
+            if (tx.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
+                yellowCount += tx.getTxDataList() != null ? tx.getTxDataList().size() : 0;
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
+                redCount++;
+            }
+        }
+        round.setYellowCardCount(round.getYellowCardCount() + yellowCount);
+        round.setRedCardCount(round.getRedCardCount() + redCount);
     }
 
     private void processCurrentRound(BlockInfo blockInfo) {
@@ -146,7 +169,13 @@ public class RoundManager {
         if (indexOfRound < currentRound.getMemberCount()) {
             //下一个出块者
             currentRound.setPackerOrder(indexOfRound + 1);
-            currentRound.setPacker(currentRound.getItemList().get(indexOfRound).getProducer());
+
+            PocRoundItem item = currentRound.getItemList().get(indexOfRound);
+            item.setBlockHeight(blockInfo.getBlockHeader().getHeight());
+            item.setReward(blockInfo.getBlockHeader().getReward());
+            item.setTxCount(blockInfo.getBlockHeader().getTxCount());
+
+
         } else {
             processNextRound(blockInfo);
         }

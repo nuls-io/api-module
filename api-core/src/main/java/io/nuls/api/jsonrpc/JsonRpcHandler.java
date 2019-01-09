@@ -47,7 +47,11 @@ public class JsonRpcHandler extends HttpHandler {
         response.setHeader("Access-control-Allow-Origin", request.getHeader("Origin"));
         response.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS,PUT,DELETE");
         response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
-        
+        if (request.getMethod().equals(Method.OPTIONS)) {
+            response.getWriter().write("ok");
+            return;
+        }
+        System.out.println("request::::::::::::::");
         if (!request.getMethod().equals(Method.POST)) {
             Log.warn("the request is not POST!");
             responseError(response, -32600, "", 0);
