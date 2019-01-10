@@ -77,4 +77,15 @@ public class AccountService {
         PageInfo<TxRelationInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, txRelationInfoList);
         return pageInfo;
     }
+
+    public AccountInfo getAccount(String address) {
+        Bson filter = Filters.eq("address", address);
+        Document document = mongoDBService.findOne(MongoTableName.ACCOUNT_INFO, filter);
+        if (document == null) {
+            return null;
+        }
+        AccountInfo accountInfo = DocumentTransferTool.toInfo(document, "address", AccountInfo.class);
+        return accountInfo;
+
+    }
 }

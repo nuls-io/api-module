@@ -32,6 +32,7 @@ import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.TxRelationInfo;
 import io.nuls.api.service.AccountService;
 import io.nuls.api.utils.JsonRpcException;
+import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.StringUtils;
 
 import java.util.List;
@@ -75,8 +76,8 @@ public class AccountController {
     public RpcResult getAccountTxs(List<Object> params) {
         VerifyUtils.verifyParams(params, 5);
         String address = (String) params.get(0);
-        if (StringUtils.isBlank(address)) {
-            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is required"));
+        if (AddressTool.validAddress(address)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
         }
 
         int pageIndex = (int) params.get(1);
@@ -95,5 +96,21 @@ public class AccountController {
         RpcResult result = new RpcResult();
         result.setResult(relationInfos);
         return result;
+    }
+
+    @RpcMethod("getAccount")
+    public RpcResult getAccount(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        String address = (String) params.get(0);
+        if (AddressTool.validAddress(address)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
+        }
+
+        AccountInfo accountInfo = accountService.getAccount(address);
+        RpcResult result = new RpcResult();
+        if (accountInfo == null) {
+            return result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
+        }
+        return result.setResult(accountInfo);
     }
 }
