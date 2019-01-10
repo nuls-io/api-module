@@ -111,7 +111,7 @@ public class TxController {
         }
 
         long height = Long.valueOf(params.get(2).toString());
-        int type = (int) params.get(3);
+        int type = Integer.parseInt("" + params.get(3));
 
         PageInfo<TransactionInfo> pageInfo = txService.getBlockTxList(pageIndex, pageSize, height, type);
         RpcResult rpcResult = new RpcResult();

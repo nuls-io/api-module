@@ -166,4 +166,16 @@ public class POCConsensusController {
         return new RpcResult().setResult(pageInfo);
     }
 
+    @RpcMethod("getRoundInfo")
+    public RpcResult getRoundInfo(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        long roundIndex = Long.parseLong(params.get(0) + "");
+        CurrentRound round = new CurrentRound();
+        PocRound pocRound = roundService.getRound(roundIndex);
+        List<PocRoundItem> itemList = roundService.getRoundItemList(roundIndex);
+        round.setItemList(itemList);
+        round.initByPocRound(pocRound);
+        return new RpcResult().setResult(round);
+    }
+
 }

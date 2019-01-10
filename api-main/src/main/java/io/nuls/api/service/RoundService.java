@@ -92,4 +92,19 @@ public class RoundService {
         }
         return roundList;
     }
+
+    public PocRound getRound(long roundIndex) {
+        Document document = this.mongoDBService.findOne(MongoTableName.ROUND_INFO, eq("_id", roundIndex));
+        return DocumentTransferTool.toInfo(document, "index", PocRound.class);
+    }
+
+    public List<PocRoundItem> getRoundItemList(long roundIndex) {
+
+        List<Document> list = this.mongoDBService.query(MongoTableName.ROUND_INFO, eq("roundIndex", roundIndex), Sorts.ascending("order"));
+        List<PocRoundItem> itemList = new ArrayList<>();
+        for (Document document : list) {
+            itemList.add(DocumentTransferTool.toInfo(document, PocRoundItem.class));
+        }
+        return itemList;
+    }
 }
