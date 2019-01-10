@@ -29,7 +29,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document,"agentId", AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
         return agentInfo;
     }
 
@@ -38,7 +38,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document,"agentId", AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
         return agentInfo;
     }
 
@@ -70,7 +70,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document,"agentId", AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
         return agentInfo;
     }
 
@@ -101,5 +101,10 @@ public class AgentService {
         }
 
         return resultList;
+    }
+
+    public long agentsCount(long startHeight) {
+        Bson bson = Filters.and(Filters.lte("blockHeight", startHeight), Filters.or(Filters.eq("deleteHeight", 0), Filters.gt("deleteHeight", startHeight)));
+        return this.mongoDBService.getCount(MongoTableName.AGENT_INFO, bson);
     }
 }

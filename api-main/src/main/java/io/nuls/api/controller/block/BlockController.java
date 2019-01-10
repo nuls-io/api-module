@@ -144,8 +144,13 @@ public class BlockController {
         if (params.size() > 2) {
             packingAddress = (String) params.get(2);
         }
+//        Whether to filter empty blocks
+        boolean filterEmptyBlocks = false;
+        if (params.size() > 3) {
+            filterEmptyBlocks = (boolean) params.get(3);
+        }
 
-        PageInfo<BlockHeaderInfo> pageInfo = blockHeaderService.pageQuery(pageIndex, pageSize, packingAddress);
+        PageInfo<BlockHeaderInfo> pageInfo = blockHeaderService.pageQuery(pageIndex, pageSize, packingAddress,filterEmptyBlocks);
         RpcResult result = new RpcResult();
         result.setResult(pageInfo);
         return result;

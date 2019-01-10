@@ -62,16 +62,23 @@ public class BlockHeaderService {
     /**
      * 分页查询区块列表，支持按照出快地址过滤
      */
-    public PageInfo<BlockHeaderInfo> pageQuery(int pageIndex, int pageSize, String packingAddress) {
+    public PageInfo<BlockHeaderInfo> pageQuery(int pageIndex, int pageSize, String packingAddress, boolean filterEmptyBlocks) {
         Bson filter = null;
         if (StringUtils.isNotBlank(packingAddress)) {
             filter = Filters.eq("packingAddress", packingAddress);
+        }
+        if (filterEmptyBlocks) {
+            if (filter == null) {
+                filter = Filters.gt("txCount", 1);
+            } else {
+                filter = Filters.and(filter, Filters.gt("txCount", 1));
+            }
         }
         long totalCount = mongoDBService.getCount(MongoTableName.BLOCK_HEADER, filter);
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.BLOCK_HEADER, filter, Sorts.descending("height"), pageIndex, pageSize);
         List<BlockHeaderInfo> list = new ArrayList<>();
         for (Document document : docsList) {
-            list.add(DocumentTransferTool.toInfo(document,"height", BlockHeaderInfo.class));
+            list.add(DocumentTransferTool.toInfo(document, "height", BlockHeaderInfo.class));
         }
         PageInfo<BlockHeaderInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, list);
         return pageInfo;

@@ -20,6 +20,7 @@
 
 package io.nuls.api.service;
 
+import com.mongodb.client.model.Sorts;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
@@ -28,6 +29,7 @@ import io.nuls.api.core.model.PocRoundItem;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,5 +78,18 @@ public class RoundService {
     public void removeRound(long roundIndex) {
         this.mongoDBService.delete(MongoTableName.ROUND_INFO, eq("_id", roundIndex));
         this.mongoDBService.delete(MongoTableName.ROUND_ITEM_INFO, eq("roundIndex", roundIndex));
+    }
+
+    public long getTotalCount() {
+        return this.mongoDBService.getCount(MongoTableName.ROUND_INFO);
+    }
+
+    public List<PocRound> getRoundList(int pageIndex, int pageSize) {
+        List<Document> list = this.mongoDBService.pageQuery(MongoTableName.ROUND_INFO, Sorts.descending("index"), pageIndex, pageSize);
+        List<PocRound> roundList = new ArrayList<>();
+        for (Document document : list) {
+            roundList.add(DocumentTransferTool.toInfo(document, "index", PocRound.class));
+        }
+        return roundList;
     }
 }

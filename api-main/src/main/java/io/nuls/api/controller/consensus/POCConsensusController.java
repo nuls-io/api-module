@@ -26,13 +26,11 @@ import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.ApiContext;
-import io.nuls.api.core.model.AgentInfo;
-import io.nuls.api.core.model.DepositInfo;
-import io.nuls.api.core.model.PocRoundItem;
-import io.nuls.api.core.model.PunishLog;
+import io.nuls.api.core.model.*;
 import io.nuls.api.service.AgentService;
 import io.nuls.api.service.DepositService;
 import io.nuls.api.service.PunishService;
+import io.nuls.api.service.RoundService;
 import io.nuls.api.utils.RoundManager;
 import org.checkerframework.checker.units.qual.A;
 
@@ -59,15 +57,13 @@ public class POCConsensusController {
     @Autowired
     private DepositService depositService;
 
+    @Autowired
+    private RoundService roundService;
+
     @RpcMethod("getBestRoundItemList")
     public RpcResult getBestRoundItemList(List<Object> params) {
         List<PocRoundItem> itemList = roundManager.getCurrentRound().getItemList();
         RpcResult rpcResult = new RpcResult();
-        //todo
-        itemList.addAll(itemList);
-        itemList.addAll(itemList);
-        itemList.addAll(itemList);
-        itemList.addAll(itemList);
         itemList.addAll(itemList);
         rpcResult.setResult(itemList);
         return rpcResult;
@@ -76,12 +72,11 @@ public class POCConsensusController {
     @RpcMethod("getConsensusNodeCount")
     public RpcResult getConsensusNodeCount(List<Object> params) {
         String[] seeds = ApiContext.config.getProperty("wallet.consensus.seeds").split(",");
-        Map<String, Integer> resultMap = new HashMap<>();
-        resultMap.put("seedsCount", seeds.length);
-        resultMap.put("consensusCount", roundManager.getCurrentRound().getMemberCount() - seeds.length);
-        //todo 考虑写一个只查询count的方法
-        List<AgentInfo> list = agentService.getAgentList(ApiContext.bestHeight);
-        resultMap.put("totalCount", list.size() + seeds.length);
+        Map<String, Long> resultMap = new HashMap<>();
+        resultMap.put("seedsCount", (long) seeds.length);
+        resultMap.put("consensusCount", (long) (roundManager.getCurrentRound().getMemberCount() - seeds.length));
+        long count = agentService.agentsCount(ApiContext.bestHeight);
+        resultMap.put("totalCount", count + seeds.length);
         RpcResult result = new RpcResult();
         result.setResult(resultMap);
         return result;
@@ -152,9 +147,23 @@ public class POCConsensusController {
 
     @RpcMethod("getRoundList")
     public RpcResult getRoundList(List<Object> params) {
-        VerifyUtils.verifyParams(params, 0);
-        //todo
-        return new RpcResult();
+        VerifyUtils.verifyParams(params, 2);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        long count = roundService.getTotalCount();
+        List<PocRound> roundList = roundService.getRoundList(pageIndex, pageSize);
+        PageInfo<PocRound> pageInfo = new PageInfo<>();
+        pageInfo.setPageNumber(pageIndex);
+        pageInfo.setPageSize(pageSize);
+        pageInfo.setTotalCount(count);
+        pageInfo.setList(roundList);
+        return new RpcResult().setResult(pageInfo);
     }
 
 }
