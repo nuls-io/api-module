@@ -25,7 +25,6 @@ import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.JsonRpcException;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -47,16 +46,20 @@ public class RpcMethodInvoker {
         RpcResult result = null;
         try {
             result = (RpcResult) method.invoke(bean, jsonParams);
-        } catch (JsonRpcException e) {
-            result = new RpcResult();
-            result.setError(e.getError());
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (Exception e) {
             Log.error(e);
-            result = new RpcResult();
-            RpcResultError error = new RpcResultError();
-            error.setMessage(e.getMessage());
-            error.setCode(-32603);
-            result.setError(error);
+            if (e.getCause() instanceof JsonRpcException) {
+                JsonRpcException jsonRpcException = (JsonRpcException) e.getCause();
+                result = new RpcResult();
+                result.setError(jsonRpcException.getError());
+
+            } else {
+                result = new RpcResult();
+                RpcResultError error = new RpcResultError();
+                error.setMessage(e.getMessage());
+                error.setCode(-32603);
+                result.setError(error);
+            }
         }
         return result;
     }
