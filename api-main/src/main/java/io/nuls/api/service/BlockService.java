@@ -8,6 +8,7 @@ import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.mongodb.MongoDBService;
+import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import org.bson.Document;
@@ -94,11 +95,11 @@ public class BlockService {
         //处理交易
         processTransactions(blockInfo.getTxs(), agentInfo, headerInfo.getHeight());
 
-        processRoundData(blockInfo);
+//        processRoundData(blockInfo);
 
         save(blockInfo, agentInfo);
         time2 = System.currentTimeMillis();
-        System.out.println("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (time2 - time1));
+        Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (time2 - time1)+"ms");
         ApiContext.bestHeight = headerInfo.getHeight();
         return true;
     }
@@ -132,6 +133,8 @@ public class BlockService {
                 processYellowPunishTx(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
                 processRedPunishTx(tx, blockHeight);
+            } else if(tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
+
             }
             //todo 剩余的智能合约解析，等前面的数据解析没问题之后 ，再继续
         }
@@ -322,7 +325,6 @@ public class BlockService {
         DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelInfo.getTxHash());
         depositInfo.setDeleteHash(cancelInfo.getTxHash());
         depositInfo.setDeleteHeight(cancelInfo.getDeleteHeight());
-//        depositInfo.setBlockHeight(blockHeight);
         cancelInfo.copyInfoWithDeposit(depositInfo);
         cancelInfo.setTxHash(tx.getHash());
         cancelInfo.setNew(true);
@@ -353,7 +355,6 @@ public class BlockService {
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo depositInfo : depositInfos) {
-//                depositInfo.setBlockHeight(blockHeight);
                 depositInfo.setDeleteHash(tx.getHash());
                 depositInfo.setDeleteHeight(tx.getHeight());
                 depositInfoList.add(depositInfo);
@@ -404,7 +405,6 @@ public class BlockService {
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo depositInfo : depositInfos) {
-//                depositInfo.setBlockHeight(blockHeight);
                 depositInfo.setDeleteHash(tx.getHash());
                 depositInfo.setDeleteHeight(tx.getHeight());
                 depositInfoList.add(depositInfo);

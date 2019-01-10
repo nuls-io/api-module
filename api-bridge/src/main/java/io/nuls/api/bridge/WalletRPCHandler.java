@@ -186,4 +186,13 @@ public class WalletRPCHandler {
         return clientResult;
     }
 
+
+    public RpcClientResult<ContractResultInfo> getContractResult(String hash) {
+        Result result = restFulUtils.get("/contract/result/" + hash, null);
+        if (result.isFailed()) {
+            return RpcClientResult.errorResult(result);
+        }
+        //todo
+        return null;
+    }
 }

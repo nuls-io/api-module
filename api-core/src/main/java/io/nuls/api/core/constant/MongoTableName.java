@@ -23,8 +23,8 @@ public class MongoTableName {
     //UTXO记录
     public static final String UTXO_INFO = "utxo_info";
 
-
     public static final String ROUND_INFO = "round_table";
+
     public static final String ROUND_ITEM_INFO = "round_item_table";
 
 

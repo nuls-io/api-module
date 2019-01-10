@@ -28,6 +28,7 @@ import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
+import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.api.service.TransactionService;
@@ -89,9 +90,9 @@ public class TxController {
         if (params.size() > 3) {
             includeCoinBase = (boolean) params.get(3);
         }
-        List<TransactionInfo> txList = txService.getTxList(pageIndex, pageSize, type, includeCoinBase);
+        PageInfo<TransactionInfo> pageInfo = txService.getTxList(pageIndex, pageSize, type, includeCoinBase);
         RpcResult rpcResult = new RpcResult();
-        rpcResult.setResult(txList);
+        rpcResult.setResult(pageInfo);
         return rpcResult;
     }
 
@@ -112,9 +113,9 @@ public class TxController {
         long height = Long.valueOf(params.get(2).toString());
         int type = (int) params.get(3);
 
-        List<TransactionInfo> txList = txService.getBlockTxList(pageIndex, pageSize, height, type);
+        PageInfo<TransactionInfo> pageInfo = txService.getBlockTxList(pageIndex, pageSize, height, type);
         RpcResult rpcResult = new RpcResult();
-        rpcResult.setResult(txList);
+        rpcResult.setResult(pageInfo);
         return rpcResult;
     }
 

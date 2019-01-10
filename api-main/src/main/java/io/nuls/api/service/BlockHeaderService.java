@@ -6,6 +6,7 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.model.BlockHeaderInfo;
+import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
 import io.nuls.sdk.core.utils.StringUtils;
@@ -61,16 +62,18 @@ public class BlockHeaderService {
     /**
      * 分页查询区块列表，支持按照出快地址过滤
      */
-    public List<BlockHeaderInfo> pageQuery(int pageIndex, int pageSize, String packingAddress) {
+    public PageInfo<BlockHeaderInfo> pageQuery(int pageIndex, int pageSize, String packingAddress) {
         Bson filter = null;
         if (StringUtils.isNotBlank(packingAddress)) {
             filter = Filters.eq("packingAddress", packingAddress);
         }
+        long totalCount = mongoDBService.getCount(MongoTableName.BLOCK_HEADER, filter);
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.BLOCK_HEADER, filter, Sorts.descending("height"), pageIndex, pageSize);
         List<BlockHeaderInfo> list = new ArrayList<>();
         for (Document document : docsList) {
             list.add(DocumentTransferTool.toInfo(document,"height", BlockHeaderInfo.class));
         }
-        return list;
+        PageInfo<BlockHeaderInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, list);
+        return pageInfo;
     }
 }

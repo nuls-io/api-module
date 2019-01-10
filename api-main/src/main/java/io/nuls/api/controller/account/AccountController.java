@@ -28,6 +28,7 @@ import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.AccountInfo;
+import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.TxRelationInfo;
 import io.nuls.api.service.AccountService;
 import io.nuls.api.utils.JsonRpcException;
@@ -63,9 +64,9 @@ public class AccountController {
             pageSize = 10;
         }
 
-        List<AccountInfo> accountInfoList = accountService.pageQuery(pageIndex, pageSize);
+        PageInfo<AccountInfo> pageInfo = accountService.pageQuery(pageIndex, pageSize);
         RpcResult result = new RpcResult();
-        result.setResult(accountInfoList);
+        result.setResult(pageInfo);
         return result;
     }
 
@@ -90,7 +91,7 @@ public class AccountController {
         int type = (int) params.get(3);
         boolean isMark = (boolean) params.get(4);
 
-        List<TxRelationInfo> relationInfos = accountService.getAccountTxs(address, pageIndex, pageSize, type, isMark);
+        PageInfo<TxRelationInfo> relationInfos = accountService.getAccountTxs(address, pageIndex, pageSize, type, isMark);
         RpcResult result = new RpcResult();
         result.setResult(relationInfos);
         return result;

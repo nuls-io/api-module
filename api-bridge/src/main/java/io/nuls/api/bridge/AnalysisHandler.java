@@ -401,6 +401,10 @@ public class AnalysisHandler {
 
     }
 
+
+
+
+
     /**
      * 计算每个区块的coinbase奖励
      *

@@ -30,6 +30,7 @@ import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
+import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.service.BlockHeaderService;
@@ -143,9 +144,10 @@ public class BlockController {
         if (params.size() > 2) {
             packingAddress = (String) params.get(2);
         }
-        List<BlockHeaderInfo> list = blockHeaderService.pageQuery(pageIndex, pageSize, packingAddress);
+
+        PageInfo<BlockHeaderInfo> pageInfo = blockHeaderService.pageQuery(pageIndex, pageSize, packingAddress);
         RpcResult result = new RpcResult();
-        result.setResult(list);
+        result.setResult(pageInfo);
         return result;
     }
 

@@ -56,9 +56,6 @@ public class MongoDBService {
 
     public void insertOne(String collName, Document document) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         collection.insertOne(document);
     }
 
@@ -73,18 +70,12 @@ public class MongoDBService {
             return;
         }
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         collection.insertMany(docList);
 
     }
 
     public List<Document> getDocumentListOfCollection(String collName) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         //检索所有文档
         /**
          * 1. 获取迭代器FindIterable<Document>
@@ -109,19 +100,12 @@ public class MongoDBService {
      */
     public Document findOne(String collName, Bson var1) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
 //        collection.up
         return collection.find(var1).first();
     }
 
     public List<Document> query(String collName, Bson var1) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
-
         FindIterable<Document> iterable = collection.find(var1);
         List<Document> list = new ArrayList<>();
         MongoCursor<Document> documentMongoCursor = iterable.iterator();
@@ -133,9 +117,6 @@ public class MongoDBService {
 
     public List<Document> query(String collName, Bson var1, Bson sort) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
 
         FindIterable<Document> iterable = collection.find(var1).sort(sort);
         List<Document> list = new ArrayList<>();
@@ -152,9 +133,6 @@ public class MongoDBService {
 
     public long updateOne(String collName, Bson var1, String op, Document docs) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         return collection.updateOne(var1, new Document(op, docs)).getModifiedCount();
 
     }
@@ -165,72 +143,63 @@ public class MongoDBService {
 
     public long update(String collName, Bson var1, String op, Document docs) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         return collection.updateMany(var1, new Document(op, docs)).getModifiedCount();
     }
 
     public long delete(String collName, Bson var1) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         return collection.deleteMany(var1).getDeletedCount();
     }
 
     public String createIndex(String collName, Document index) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         return collection.createIndex(index);
     }
 
     public List<String> createIndexes(String collName, List<IndexModel> indexModels) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         return collection.createIndexes(indexModels);
     }
 
     public void dropIndexes(String collName) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         collection.dropIndexes();
     }
 
     public void dropTable(String collName) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         collection.drop();
     }
 
     public ListIndexesIterable<Document> getIndexes(String collName) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         return collection.listIndexes();
+    }
+
+
+    public List<Document> pageQuery(String collName, int pageNumber, int pageSize) {
+        return pageQuery(collName, null, null, pageNumber, pageSize);
+    }
+
+    public List<Document> pageQuery(String collName, Bson sort, int pageNumber, int pageSize) {
+        return pageQuery(collName, null, sort, pageNumber, pageSize);
     }
 
     public List<Document> pageQuery(String collName, Bson var1, Bson sort, int pageNumber, int pageSize) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         //todo skip在大数据情况会非常慢
         FindIterable<Document> iterable;
-        if (null != var1) {
-            iterable = collection.find(var1).sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
-        } else {
+
+        if (var1 == null && sort == null) {
+            iterable = collection.find().skip((pageNumber - 1) * pageSize).limit(pageSize);
+        } else if (var1 == null && sort != null) {
             iterable = collection.find().sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
+        } else if (var1 != null && sort == null) {
+            iterable = collection.find(var1).skip((pageNumber - 1) * pageSize).limit(pageSize);
+        } else {
+            iterable = collection.find(var1).sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
         }
+
         List<Document> list = new ArrayList<>();
         MongoCursor<Document> documentMongoCursor = iterable.iterator();
         while (documentMongoCursor.hasNext()) {
@@ -239,44 +208,20 @@ public class MongoDBService {
         return list;
     }
 
-    public List<Document> pageQuery(String collName, Bson sort, int pageNumber, int pageSize) {
+    public long getCount(String collName, Bson var1) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
+        if (var1 == null) {
+            return collection.countDocuments();
         }
-        //todo skip在大数据情况会非常慢
-        FindIterable<Document> iterable;
-        iterable = collection.find().sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
-        List<Document> list = new ArrayList<>();
-        MongoCursor<Document> documentMongoCursor = iterable.iterator();
-        while (documentMongoCursor.hasNext()) {
-            list.add(documentMongoCursor.next());
-        }
-        return list;
+        return collection.countDocuments(var1);
     }
 
-    public List<Document> pageQuery(String collName, int pageNumber, int pageSize) {
-        MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
-        //todo skip在大数据情况会非常慢
-        FindIterable<Document> iterable;
-        iterable = collection.find().skip((pageNumber - 1) * pageSize).limit(pageSize);
-        List<Document> list = new ArrayList<>();
-        MongoCursor<Document> documentMongoCursor = iterable.iterator();
-        while (documentMongoCursor.hasNext()) {
-            list.add(documentMongoCursor.next());
-        }
-        return list;
+    public long getCount(String collName) {
+        return getCount(collName, null);
     }
-
 
     public BulkWriteResult bulkWrite(String collName, List<? extends WriteModel<? extends Document>> modelList) {
         MongoCollection<Document> collection = getCollection(collName);
-        if (null == collection) {
-            throw new RuntimeException();
-        }
         return collection.bulkWrite(modelList);
     }
 

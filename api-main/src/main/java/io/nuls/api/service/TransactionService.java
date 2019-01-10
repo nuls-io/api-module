@@ -5,6 +5,7 @@ import com.mongodb.client.model.Sorts;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
+import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.api.core.model.TxRelationInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
@@ -51,7 +52,7 @@ public class TransactionService {
     }
 
 
-    public List<TransactionInfo> getTxList(int pageIndex, int pageSize, int type, boolean includeCoinBase) {
+    public PageInfo<TransactionInfo> getTxList(int pageIndex, int pageSize, int type, boolean includeCoinBase) {
         Bson filter1 = null;
         Bson filter2 = null;
         Bson filter = null;
@@ -69,32 +70,33 @@ public class TransactionService {
             filter = filter2;
         }
 
-
+        long totalCount = mongoDBService.getCount(MongoTableName.TX_INFO, filter);
         List<Document> docList = this.mongoDBService.pageQuery(MongoTableName.TX_INFO, filter, Sorts.descending("height", "time"), pageIndex, pageSize);
-
         List<TransactionInfo> txList = new ArrayList<>();
-
         for (Document document : docList) {
-            txList.add(DocumentTransferTool.toInfo(document, TransactionInfo.class));
+            txList.add(TransactionInfo.fromDocument(document));
         }
-        return txList;
+
+        PageInfo<TransactionInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, txList);
+        return pageInfo;
     }
 
 
-    public List<TransactionInfo> getBlockTxList(int pageIndex, int pageSize, long blockHeight, int type) {
+    public PageInfo<TransactionInfo> getBlockTxList(int pageIndex, int pageSize, long blockHeight, int type) {
         Bson filter = null;
         if (type == 0) {
             filter = eq("height", blockHeight);
         } else {
             filter = and(eq("type", type), eq("height", blockHeight));
         }
+        long totalCount = mongoDBService.getCount(MongoTableName.TX_INFO, filter);
         List<Document> docList = this.mongoDBService.pageQuery(MongoTableName.TX_INFO, filter, Sorts.descending("height", "time"), pageIndex, pageSize);
-
         List<TransactionInfo> txList = new ArrayList<>();
-
         for (Document document : docList) {
             txList.add(TransactionInfo.fromDocument(document));
         }
-        return txList;
+
+        PageInfo<TransactionInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, txList);
+        return pageInfo;
     }
 }
