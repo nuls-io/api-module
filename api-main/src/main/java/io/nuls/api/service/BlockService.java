@@ -95,11 +95,11 @@ public class BlockService {
         //处理交易
         processTransactions(blockInfo.getTxs(), agentInfo, headerInfo.getHeight());
 
-//        processRoundData(blockInfo);
+        processRoundData(blockInfo);
 
         save(blockInfo, agentInfo);
         time2 = System.currentTimeMillis();
-        Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (time2 - time1)+"ms");
+//        Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (time2 - time1)+"ms");
         ApiContext.bestHeight = headerInfo.getHeight();
         return true;
     }
@@ -324,7 +324,7 @@ public class BlockService {
         DepositInfo cancelInfo = (DepositInfo) tx.getTxData();
         DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelInfo.getTxHash());
         depositInfo.setDeleteHash(cancelInfo.getTxHash());
-        depositInfo.setDeleteHeight(cancelInfo.getDeleteHeight());
+        depositInfo.setDeleteHeight(cancelInfo.getBlockHeight());
         cancelInfo.copyInfoWithDeposit(depositInfo);
         cancelInfo.setTxHash(tx.getHash());
         cancelInfo.setNew(true);

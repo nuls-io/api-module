@@ -46,13 +46,6 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
-    @RpcMethod("getAccount")
-    public RpcResult getAccount() {
-
-
-        return null;
-    }
-
     @RpcMethod("getAccountList")
     public RpcResult getAccountList(List<Object> params) {
         VerifyUtils.verifyParams(params, 2);

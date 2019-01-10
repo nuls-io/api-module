@@ -65,6 +65,9 @@ public class RoundManager {
 
     private void processNextRound(BlockInfo blockInfo) {
         long startHeight = currentRound.getStartHeight();
+        if (null != currentRound.getStartBlockHeader() && currentRound.getStartBlockHeader().getPackingIndexOfRound() > 1) {
+            startHeight = startHeight - 1;
+        }
         List<AgentInfo> agentList = this.agentService.getAgentList(startHeight);
         List<DepositInfo> depositList = this.depositService.getDepositList(startHeight);
         Map<String, AgentInfo> map = new HashMap<>();
@@ -110,6 +113,7 @@ public class RoundManager {
         CurrentRound round = new CurrentRound();
         round.setIndex(header.getRoundIndex());
         round.setStartHeight(header.getHeight());
+        round.setStartBlockHeader(header);
         round.setStartTime(header.getRoundStartTime());
         round.setMemberCount(sorterList.size());
         round.setEndTime(startHeight + 10000 * sorterList.size());
@@ -127,7 +131,7 @@ public class RoundManager {
                 AgentInfo agentInfo = map.get(sorter.getAgentId());
                 item.setAgentName(agentInfo.getAlias() == null ?
                         agentInfo.getTxHash().substring(agentInfo.getTxHash().length() - 8) : agentInfo.getAlias());
-
+                item.setPackingAddress(agentInfo.getPackingAddress());
             } else {
                 item.setSeedAddress(sorter.getSeedAddress());
 
@@ -143,7 +147,7 @@ public class RoundManager {
 
         fillPunishCount(blockInfo.getTxs(), round);
         this.currentRound = round;
-//        Log.warn("++++++++{}+++++++" + round.getIndex(), blockInfo.getBlockHeader().getHeight());
+//        Log.warn("++++++++{}({})+++++++" + round.toString(), blockInfo.getBlockHeader().getHeight(), startHeight);
         roundService.saveRound(round.toPocRound());
         roundService.saveRoundItemList(round.getItemList());
 
@@ -167,7 +171,7 @@ public class RoundManager {
     private void processCurrentRound(BlockInfo blockInfo) {
         int indexOfRound = blockInfo.getBlockHeader().getPackingIndexOfRound();
         //下一个出块者
-        currentRound.setPackerOrder(indexOfRound + 1);
+        currentRound.setPackerOrder(indexOfRound < currentRound.getMemberCount() ? indexOfRound + 1 : indexOfRound);
 //        System.out.println("+++++++++" + blockInfo.getBlockHeader().getHeight());
         PocRoundItem item = currentRound.getItemList().get(indexOfRound - 1);
         item.setBlockHeight(blockInfo.getBlockHeader().getHeight());

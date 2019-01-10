@@ -41,6 +41,8 @@ public class PocRoundItem {
 
     private long reward;
 
+    private String packingAddress;
+
     public String getId() {
         return id;
     }
@@ -103,5 +105,13 @@ public class PocRoundItem {
 
     public void setReward(long reward) {
         this.reward = reward;
+    }
+
+    public String getPackingAddress() {
+        return packingAddress;
+    }
+
+    public void setPackingAddress(String packingAddress) {
+        this.packingAddress = packingAddress;
     }
 }

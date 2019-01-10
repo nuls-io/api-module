@@ -20,6 +20,9 @@
 
 package io.nuls.api.core.model;
 
+import org.apache.tools.ant.util.DateUtils;
+
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -32,6 +35,8 @@ public class CurrentRound extends PocRound {
     }
 
     private int packerOrder;
+
+    private BlockHeaderInfo startBlockHeader;
 
     private List<PocRoundItem> itemList;
 
@@ -63,5 +68,31 @@ public class CurrentRound extends PocRound {
         round.setStartTime(this.getStartTime());
         round.setYellowCardCount(this.getYellowCardCount());
         return round;
+    }
+
+
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("index:" + this.getIndex());
+        stringBuilder.append(", startHeight:");
+        stringBuilder.append(this.getStartHeight());
+        stringBuilder.append(", startTime:" + DateUtils.format(new Date(this.getStartTime()), "YYYY-mm-DD HH:MM:SS"));
+        stringBuilder.append("\n");
+        int index = 1;
+        for (PocRoundItem item : this.getItemList()) {
+            stringBuilder.append(index++);
+            stringBuilder.append(" , ");
+            stringBuilder.append(item.getSeedAddress() == null ? item.getPackingAddress() : item.getSeedAddress());
+            stringBuilder.append("\n");
+        }
+        return stringBuilder.toString();
+    }
+
+    public BlockHeaderInfo getStartBlockHeader() {
+        return startBlockHeader;
+    }
+
+    public void setStartBlockHeader(BlockHeaderInfo startBlockHeader) {
+        this.startBlockHeader = startBlockHeader;
     }
 }
