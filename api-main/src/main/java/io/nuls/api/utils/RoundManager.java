@@ -116,7 +116,7 @@ public class RoundManager {
         round.setStartBlockHeader(header);
         round.setStartTime(header.getRoundStartTime());
         round.setMemberCount(sorterList.size());
-        round.setEndTime(startHeight + 10000 * sorterList.size());
+        round.setEndTime(round.getStartTime() + 10000 * sorterList.size());
         round.setProducedBlockCount(1);
 
 
@@ -189,16 +189,20 @@ public class RoundManager {
 
     private void rollbackCurrentRound(BlockInfo blockInfo) {
         //todo
+
+
     }
 
-    private void rollbackNextRound(BlockInfo blockInfo) {
+    private void rollbackPreRound(BlockInfo blockInfo) {
         //todo
     }
 
     public void rollback(BlockInfo blockInfo) {
-        //todo
-
-
+        if (blockInfo.getBlockHeader().getHeight() == currentRound.getStartHeight()) {
+            rollbackPreRound(blockInfo);
+        } else {
+            rollbackCurrentRound(blockInfo);
+        }
     }
 
 
