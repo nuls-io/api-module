@@ -56,7 +56,7 @@ public class SyncBlockTask implements Runnable {
         } else {
             localBestHeight = localBestBlockHeader.getHeight();
         }
-        //暂时只解析到70000块
+
         if (localBestHeight > 65000) {
             return false;
         }

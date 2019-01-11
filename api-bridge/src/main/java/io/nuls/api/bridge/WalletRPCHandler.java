@@ -192,7 +192,33 @@ public class WalletRPCHandler {
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
-        //todo
-        return null;
+        RpcClientResult clientResult = null;
+        try {
+            ContractResultInfo resultDto = AnalysisHandler.toContractResult((Map<String, Object>) result.getData());
+            clientResult = RpcClientResult.getSuccess();
+            clientResult.setData(resultDto);
+        } catch (Exception e) {
+            Log.error(e);
+            clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
+        }
+        return clientResult;
+    }
+
+    public RpcClientResult<ContractInfo> getContractInfo(String contractAddress) {
+        Result result = restFulUtils.get("/contract/info/" + contractAddress, null);
+        if (result.isFailed()) {
+            return RpcClientResult.errorResult(result);
+        }
+        RpcClientResult clientResult = null;
+        try {
+            ContractInfo contractAddressInfo = AnalysisHandler.toContractInfo((Map<String, Object>) result.getData());
+            clientResult = RpcClientResult.getSuccess();
+            clientResult.setData(contractAddressInfo);
+        } catch (Exception e) {
+            Log.error(e);
+            clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
+        }
+        return clientResult;
+
     }
 }

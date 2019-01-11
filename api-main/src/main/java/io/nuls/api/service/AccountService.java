@@ -79,7 +79,7 @@ public class AccountService {
     }
 
     public AccountInfo getAccount(String address) {
-        Bson filter = Filters.eq("address", address);
+        Bson filter = Filters.eq("_id", address);
         Document document = mongoDBService.findOne(MongoTableName.ACCOUNT_INFO, filter);
         if (document == null) {
             return null;
