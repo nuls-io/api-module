@@ -43,6 +43,8 @@ public class PocRound {
 
     private long endHeight;
 
+    private double lostRate;
+
     public long getIndex() {
         return index;
     }
@@ -113,5 +115,13 @@ public class PocRound {
 
     public void setEndHeight(long endHeight) {
         this.endHeight = endHeight;
+    }
+
+    public double getLostRate() {
+        return lostRate;
+    }
+
+    public void setLostRate(double lostRate) {
+        this.lostRate = lostRate;
     }
 }

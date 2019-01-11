@@ -32,6 +32,7 @@ import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.crypto.Sha256Hash;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.ArraysTool;
+import io.nuls.sdk.core.utils.DoubleUtils;
 import io.nuls.sdk.core.utils.SerializeUtils;
 
 import java.util.*;
@@ -144,6 +145,7 @@ public class RoundManager {
 
         round.setRedCardCount(0);
         round.setYellowCardCount(0);
+        round.setLostRate(DoubleUtils.div(header.getPackingIndexOfRound() - round.getProducedBlockCount(), round.getMemberCount()));
 
         fillPunishCount(blockInfo.getTxs(), round);
         this.currentRound = round;
@@ -181,6 +183,7 @@ public class RoundManager {
         roundService.updateRoundItem(item);
         this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() + 1);
         this.currentRound.setEndHeight(blockInfo.getBlockHeader().getHeight());
+        currentRound.setLostRate(DoubleUtils.div(blockInfo.getBlockHeader().getPackingIndexOfRound() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
         this.fillPunishCount(blockInfo.getTxs(), currentRound);
 
         this.roundService.updateRound(this.currentRound.toPocRound());
