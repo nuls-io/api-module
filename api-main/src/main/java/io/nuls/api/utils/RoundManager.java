@@ -26,6 +26,7 @@ import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.service.AgentService;
+import io.nuls.api.service.BlockHeaderService;
 import io.nuls.api.service.DepositService;
 import io.nuls.api.service.RoundService;
 import io.nuls.sdk.core.contast.TransactionConstant;
@@ -55,6 +56,9 @@ public class RoundManager {
 
     @Autowired
     private RoundService roundService;
+
+    @Autowired
+    private BlockHeaderService blockHeaderService;
 
     public void process(BlockInfo blockInfo) {
         if (blockInfo.getBlockHeader().getRoundIndex() == currentRound.getIndex()) {
@@ -197,7 +201,19 @@ public class RoundManager {
     }
 
     private void rollbackPreRound(BlockInfo blockInfo) {
-        //todo
+        this.roundService.removeRound(currentRound.getIndex());
+        PocRound round = null;
+        long roundIndex = currentRound.getIndex() - 1;
+        while (round == null) {
+            round = roundService.getRound(roundIndex--);
+        }
+        CurrentRound preRound = new CurrentRound();
+        preRound.initByPocRound(round);
+        List<PocRoundItem> list = roundService.getRoundItemList(round.getIndex());
+        preRound.setItemList(list);
+        preRound.setStartBlockHeader(blockHeaderService.getBlockHeaderInfoByHeight(round.getStartHeight()));
+        preRound.setPackerOrder(round.getMemberCount());
+        this.currentRound = preRound;
     }
 
     public void rollback(BlockInfo blockInfo) {
