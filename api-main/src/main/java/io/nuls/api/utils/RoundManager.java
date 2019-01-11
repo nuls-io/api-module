@@ -26,12 +26,14 @@ import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.service.AgentService;
+import io.nuls.api.service.BlockHeaderService;
 import io.nuls.api.service.DepositService;
 import io.nuls.api.service.RoundService;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.crypto.Sha256Hash;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.ArraysTool;
+import io.nuls.sdk.core.utils.DoubleUtils;
 import io.nuls.sdk.core.utils.SerializeUtils;
 
 import java.util.*;
@@ -54,6 +56,9 @@ public class RoundManager {
 
     @Autowired
     private RoundService roundService;
+
+    @Autowired
+    private BlockHeaderService blockHeaderService;
 
     public void process(BlockInfo blockInfo) {
         if (blockInfo.getBlockHeader().getRoundIndex() == currentRound.getIndex()) {
@@ -116,7 +121,7 @@ public class RoundManager {
         round.setStartBlockHeader(header);
         round.setStartTime(header.getRoundStartTime());
         round.setMemberCount(sorterList.size());
-        round.setEndTime(startHeight + 10000 * sorterList.size());
+        round.setEndTime(round.getStartTime() + 10000 * sorterList.size());
         round.setProducedBlockCount(1);
 
 
@@ -144,6 +149,7 @@ public class RoundManager {
 
         round.setRedCardCount(0);
         round.setYellowCardCount(0);
+        round.setLostRate(DoubleUtils.div(header.getPackingIndexOfRound() - round.getProducedBlockCount(), round.getMemberCount()));
 
         fillPunishCount(blockInfo.getTxs(), round);
         this.currentRound = round;
@@ -181,6 +187,7 @@ public class RoundManager {
         roundService.updateRoundItem(item);
         this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() + 1);
         this.currentRound.setEndHeight(blockInfo.getBlockHeader().getHeight());
+        currentRound.setLostRate(DoubleUtils.div(blockInfo.getBlockHeader().getPackingIndexOfRound() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
         this.fillPunishCount(blockInfo.getTxs(), currentRound);
 
         this.roundService.updateRound(this.currentRound.toPocRound());
@@ -189,16 +196,32 @@ public class RoundManager {
 
     private void rollbackCurrentRound(BlockInfo blockInfo) {
         //todo
+
+
     }
 
-    private void rollbackNextRound(BlockInfo blockInfo) {
-        //todo
+    private void rollbackPreRound(BlockInfo blockInfo) {
+        this.roundService.removeRound(currentRound.getIndex());
+        PocRound round = null;
+        long roundIndex = currentRound.getIndex() - 1;
+        while (round == null) {
+            round = roundService.getRound(roundIndex--);
+        }
+        CurrentRound preRound = new CurrentRound();
+        preRound.initByPocRound(round);
+        List<PocRoundItem> list = roundService.getRoundItemList(round.getIndex());
+        preRound.setItemList(list);
+        preRound.setStartBlockHeader(blockHeaderService.getBlockHeaderInfoByHeight(round.getStartHeight()));
+        preRound.setPackerOrder(round.getMemberCount());
+        this.currentRound = preRound;
     }
 
     public void rollback(BlockInfo blockInfo) {
-        //todo
-
-
+        if (blockInfo.getBlockHeader().getHeight() == currentRound.getStartHeight()) {
+            rollbackPreRound(blockInfo);
+        } else {
+            rollbackCurrentRound(blockInfo);
+        }
     }
 
 

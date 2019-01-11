@@ -136,7 +136,7 @@ public class AnalysisHandler {
             info.setTxDataHex(Hex.encode(tx.getTxData().serialize()));
         }
         if (tx.getRemark() != null) {
-            info.setRemark(Hex.encode(tx.getRemark()));
+            info.setRemark(new String(tx.getRemark(), "UTF-8"));
         }
         info.setFroms(toInputs(tx.getCoinData(), tx));
         info.setTos(toOutputs(tx.getCoinData(), info.getHash()));

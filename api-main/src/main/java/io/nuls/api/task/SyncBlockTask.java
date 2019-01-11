@@ -3,6 +3,7 @@ package io.nuls.api.task;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.bridge.WalletRPCHandler;
+import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
@@ -56,7 +57,8 @@ public class SyncBlockTask implements Runnable {
         } else {
             localBestHeight = localBestBlockHeader.getHeight();
         }
-
+        ApiContext.bestHeight = localBestHeight;
+        //暂时只解析到70000块
         if (localBestHeight > 65000) {
             return false;
         }
