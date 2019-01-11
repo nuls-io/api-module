@@ -67,7 +67,9 @@ public class ApiModuleBootstrap {
             walletPort = prop.getProperty("wallet.port");
             walletChainId = prop.getProperty("wallet.chain.id");
             clearDB = Boolean.valueOf(prop.getProperty("db.clear"));
-
+            dbName = prop.getProperty("db.name");
+            dbIp = prop.getProperty("db.ip");
+            dbPort = Integer.parseInt(prop.getProperty("db.port"));
         } catch (Exception e) {
             Log.error(e);
         }

@@ -9,6 +9,9 @@ import java.lang.reflect.Field;
 public class DocumentTransferTool {
 
     public static Document toDocument(Object obj) {
+        if (null == obj) {
+            return null;
+        }
         Class clazz = obj.getClass();
         Field[] fields = clazz.getDeclaredFields();
         Document document = new Document();
@@ -27,6 +30,9 @@ public class DocumentTransferTool {
     }
 
     public static Document toDocument(Object obj, String _id) {
+        if (null == obj) {
+            return null;
+        }
         Class clazz = obj.getClass();
         Field[] fields = clazz.getDeclaredFields();
         Document document = new Document();
@@ -49,6 +55,9 @@ public class DocumentTransferTool {
     }
 
     public static <T> T toInfo(Document document, Class<T> clazz) {
+        if (null == document) {
+            return null;
+        }
         try {
             T instance = clazz.getDeclaredConstructor().newInstance();
             Field[] fields = clazz.getDeclaredFields();
@@ -67,6 +76,9 @@ public class DocumentTransferTool {
     }
 
     public static <T> T toInfo(Document document, String _id, Class<T> clazz) {
+        if (null == document) {
+            return null;
+        }
         try {
             T instance = clazz.getDeclaredConstructor().newInstance();
             Field[] fields = clazz.getDeclaredFields();

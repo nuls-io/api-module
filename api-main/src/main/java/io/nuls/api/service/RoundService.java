@@ -95,6 +95,9 @@ public class RoundService {
 
     public PocRound getRound(long roundIndex) {
         Document document = this.mongoDBService.findOne(MongoTableName.ROUND_INFO, eq("_id", roundIndex));
+        if (null == document) {
+            return null;
+        }
         return DocumentTransferTool.toInfo(document, "index", PocRound.class);
     }
 
