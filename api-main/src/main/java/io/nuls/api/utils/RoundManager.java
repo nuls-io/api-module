@@ -151,7 +151,7 @@ public class RoundManager {
         round.setYellowCardCount(0);
         round.setLostRate(DoubleUtils.div(header.getPackingIndexOfRound() - round.getProducedBlockCount(), round.getMemberCount()));
 
-        fillPunishCount(blockInfo.getTxs(), round);
+        fillPunishCount(blockInfo.getTxs(), round, true);
         this.currentRound = round;
 //        Log.warn("++++++++{}({})+++++++" + round.toString(), blockInfo.getBlockHeader().getHeight(), startHeight);
         roundService.saveRound(round.toPocRound());
@@ -160,7 +160,7 @@ public class RoundManager {
 
     }
 
-    private void fillPunishCount(List<TransactionInfo> txs, CurrentRound round) {
+    private void fillPunishCount(List<TransactionInfo> txs, CurrentRound round, boolean add) {
         int redCount = 0;
         int yellowCount = 0;
         for (TransactionInfo tx : txs) {
@@ -170,9 +170,15 @@ public class RoundManager {
                 redCount++;
             }
         }
-        round.setYellowCardCount(round.getYellowCardCount() + yellowCount);
-        round.setRedCardCount(round.getRedCardCount() + redCount);
+        if (add) {
+            round.setYellowCardCount(round.getYellowCardCount() + yellowCount);
+            round.setRedCardCount(round.getRedCardCount() + redCount);
+        } else {
+            round.setYellowCardCount(round.getYellowCardCount() - yellowCount);
+            round.setRedCardCount(round.getRedCardCount() - redCount);
+        }
     }
+
 
     private void processCurrentRound(BlockInfo blockInfo) {
         int indexOfRound = blockInfo.getBlockHeader().getPackingIndexOfRound();
@@ -188,14 +194,26 @@ public class RoundManager {
         this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() + 1);
         this.currentRound.setEndHeight(blockInfo.getBlockHeader().getHeight());
         currentRound.setLostRate(DoubleUtils.div(blockInfo.getBlockHeader().getPackingIndexOfRound() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
-        this.fillPunishCount(blockInfo.getTxs(), currentRound);
+        this.fillPunishCount(blockInfo.getTxs(), currentRound, true);
 
         this.roundService.updateRound(this.currentRound.toPocRound());
 
     }
 
     private void rollbackCurrentRound(BlockInfo blockInfo) {
-        //todo
+        int indexOfRound = blockInfo.getBlockHeader().getPackingIndexOfRound();
+        PocRoundItem item = currentRound.getItemList().get(indexOfRound);
+        item.setBlockHeight(0);
+        item.setReward(0);
+        item.setTxCount(0);
+
+        roundService.updateRoundItem(item);
+        this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() - 1);
+        this.currentRound.setEndHeight(blockInfo.getBlockHeader().getHeight() - 1);
+        currentRound.setLostRate(DoubleUtils.div(blockInfo.getBlockHeader().getPackingIndexOfRound() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
+        this.fillPunishCount(blockInfo.getTxs(), currentRound, false);
+
+        this.roundService.updateRound(this.currentRound.toPocRound());
 
 
     }
