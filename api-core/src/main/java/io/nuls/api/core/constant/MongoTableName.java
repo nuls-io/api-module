@@ -33,4 +33,7 @@ public class MongoTableName {
     //new_info表，最新高度的_id字段名
     public static final String BEST_BLOCK_HEIGHT = "best_block_height";
 
+
+    public static final String TX_COUNT_INFO = "tx_count_info";
+
 }
