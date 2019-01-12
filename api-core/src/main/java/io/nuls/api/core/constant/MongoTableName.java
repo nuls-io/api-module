@@ -30,10 +30,16 @@ public class MongoTableName {
     public static final String ACCOUNT_TOKEN_INFO = "account_token_info";
 
 
+    public static final String TX_COUNT_INFO = "tx_count_info";
+
+    //------------------------------------字段------------------------------------------------------------
+
+
     //new_info表，最新高度的_id字段名
     public static final String BEST_BLOCK_HEIGHT = "best_block_height";
 
+    //new_info表，最新交易数量统计的id字段并
+    public static final String BEST_TX_COUNT_ID = "best_tx_count_id";
 
-    public static final String TX_COUNT_INFO = "tx_count_info";
 
 }

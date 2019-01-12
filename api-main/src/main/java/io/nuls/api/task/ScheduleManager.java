@@ -44,6 +44,6 @@ public class ScheduleManager {
         executorService.scheduleAtFixedRate(syncBlockTask, 1, 10, TimeUnit.SECONDS);
 
 
-        executorService.scheduleAtFixedRate(txCountTask, 0, 24, TimeUnit.HOURS);
+        executorService.scheduleAtFixedRate(txCountTask, 1, 60, TimeUnit.MINUTES);
     }
 }

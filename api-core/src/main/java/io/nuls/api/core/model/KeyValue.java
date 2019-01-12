@@ -23,55 +23,24 @@ package io.nuls.api.core.model;
 /**
  * @author Niels
  */
-public class TxCountInfo {
+public class KeyValue {
+    private String key;
 
-    private long time;
+    private Object value;
 
-    private int date;
-
-    private int month;
-
-    private int year;
-
-    private long count;
-
-    public int getDate() {
-        return date;
+    public String getKey() {
+        return key;
     }
 
-    public void setDate(int date) {
-        this.date = date;
+    public void setKey(String key) {
+        this.key = key;
     }
 
-    public int getMonth() {
-        return month;
+    public Object getValue() {
+        return value;
     }
 
-    public void setMonth(int month) {
-        this.month = month;
-    }
-
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
-    }
-
-    public long getCount() {
-        return count;
-    }
-
-    public void setCount(long count) {
-        this.count = count;
-    }
-
-    public long getTime() {
-        return time;
-    }
-
-    public void setTime(long time) {
-        this.time = time;
+    public void setValue(Object value) {
+        this.value = value;
     }
 }
