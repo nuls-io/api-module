@@ -47,6 +47,7 @@ import io.nuls.sdk.core.utils.VarInt;
 import org.spongycastle.util.Arrays;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -454,8 +455,8 @@ public class AnalysisHandler {
         if (Boolean.parseBoolean(map.get("isNrc20").toString())) {
             contractInfo.setTokenName((String) map.get("nrc20TokenName"));
             contractInfo.setSymbol((String) map.get("nrc20TokenSymbol"));
-            contractInfo.setDecimals(Long.parseLong(map.get("decimals").toString()));
-            contractInfo.setTotalSupply(map.get("totalSupply").toString());
+            contractInfo.setDecimals(Integer.parseInt(map.get("decimals").toString()));
+            contractInfo.setTotalSupply(new BigInteger(map.get("totalSupply").toString()));
         }
         contractInfo.setStatus(0);
         contractInfo.setMethods(JSONUtils.obj2json(map.get("method")));

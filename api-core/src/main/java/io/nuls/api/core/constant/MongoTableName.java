@@ -26,6 +26,8 @@ public class MongoTableName {
     public static final String ROUND_INFO = "round_table";
 
     public static final String ROUND_ITEM_INFO = "round_item_table";
+    //账户token信息表
+    public static final String ACCOUNT_TOKEN_INFO = "account_token_info";
 
 
     //new_info表，最新高度的_id字段名

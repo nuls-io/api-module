@@ -24,6 +24,8 @@
  */
 package io.nuls.api.core.model;
 
+import java.math.BigInteger;
+
 public class ContractInfo {
 
     private String contractAddress;
@@ -50,11 +52,11 @@ public class ContractInfo {
 
     private String symbol;
 
-    private Long decimals;
+    private int decimals;
 
-    private String totalSupply;
+    private BigInteger totalSupply;
 
-    public boolean isToken(){
+    public boolean isToken() {
         return isNrc20 == 0 ? false : true;
     }
 
@@ -146,19 +148,19 @@ public class ContractInfo {
         this.symbol = symbol;
     }
 
-    public Long getDecimals() {
+    public int getDecimals() {
         return decimals;
     }
 
-    public void setDecimals(Long decimals) {
+    public void setDecimals(int decimals) {
         this.decimals = decimals;
     }
 
-    public String getTotalSupply() {
+    public BigInteger getTotalSupply() {
         return totalSupply;
     }
 
-    public void setTotalSupply(String totalSupply) {
+    public void setTotalSupply(BigInteger totalSupply) {
         this.totalSupply = totalSupply;
     }
 

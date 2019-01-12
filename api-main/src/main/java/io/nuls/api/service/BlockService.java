@@ -15,6 +15,8 @@ import io.nuls.sdk.core.contast.TransactionConstant;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 
@@ -43,6 +45,8 @@ public class BlockService {
     private RoundManager roundManager;
     @Autowired
     private WalletRPCHandler rpcHandler;
+    @Autowired
+    private NRC20Sever nrc20Sever;
 
     //记录每个区块打包交易的所有已花费(input)
     private List<Input> inputList = new ArrayList<>();
@@ -60,8 +64,10 @@ public class BlockService {
     private List<DepositInfo> depositInfoList = new ArrayList<>();
     //记录每个区块的红黄牌信息
     private List<PunishLog> punishLogList = new ArrayList<>();
-    //记录每个区块新创建的只能合约信息
+    //记录每个区块新创建的智能合约信息
     private List<ContractInfo> contractInfoList = new ArrayList<>();
+    //记录每个区块智能合约相关的账户token信息
+    private List<AccountTokenInfo> tokenInfoList = new ArrayList<>();
 
     /**
      * 存储最新区块信息
@@ -448,9 +454,27 @@ public class BlockService {
         ContractInfo contractInfo = contractInfoResult.getData();
         contractInfoList.add(contractInfo);
 
-        if(contractInfo.getIsNrc20() == 1) {
 
+        //如果是NRC20合约，还需要创建合约token地址
+        if (contractInfo.getIsNrc20() == 1) {
+            processNrc20ForAccount(contractInfo.getCreater(), contractInfo.getSymbol(), contractInfo.getTotalSupply());
         }
+    }
+
+
+    private void processNrc20ForAccount(String address, String symbol, BigInteger value) {
+        AccountTokenInfo tokenInfo = nrc20Sever.getAccountTokenInfo(address, symbol);
+        if (tokenInfo == null) {
+            AccountInfo accountInfo = queryAccountInfo(address);
+            accountInfo.getTokens().add(symbol);
+
+            tokenInfo = new AccountTokenInfo(address, symbol);
+        }
+        tokenInfo.setBalance(tokenInfo.getBalance().add(value));
+        if (tokenInfo.getBalance().compareTo(BigInteger.ZERO) < 0) {
+            throw new RuntimeException("data error: " + address + " token[" + symbol + "] balance < 0");
+        }
+        tokenInfoList.add(tokenInfo);
     }
 
 
@@ -551,5 +575,6 @@ public class BlockService {
         depositInfoList.clear();
         punishLogList.clear();
         contractInfoList.clear();
+        tokenInfoList.clear();
     }
 }
