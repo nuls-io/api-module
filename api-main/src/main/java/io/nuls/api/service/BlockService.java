@@ -3,6 +3,7 @@ package io.nuls.api.service;
 import com.mongodb.client.model.Filters;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
+import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.constant.NulsConstant;
@@ -40,6 +41,8 @@ public class BlockService {
     private PunishService punishService;
     @Autowired
     private RoundManager roundManager;
+    @Autowired
+    private WalletRPCHandler rpcHandler;
 
     //记录每个区块打包交易的所有已花费(input)
     private List<Input> inputList = new ArrayList<>();
@@ -57,6 +60,8 @@ public class BlockService {
     private List<DepositInfo> depositInfoList = new ArrayList<>();
     //记录每个区块的红黄牌信息
     private List<PunishLog> punishLogList = new ArrayList<>();
+    //记录每个区块新创建的只能合约信息
+    private List<ContractInfo> contractInfoList = new ArrayList<>();
 
     /**
      * 存储最新区块信息
@@ -95,11 +100,11 @@ public class BlockService {
         //处理交易
         processTransactions(blockInfo.getTxs(), agentInfo, headerInfo.getHeight());
 
-        processRoundData(blockInfo);
+//        processRoundData(blockInfo);
 
         save(blockInfo, agentInfo);
         time2 = System.currentTimeMillis();
-//        Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (time2 - time1)+"ms");
+        Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (time2 - time1) + "ms");
         ApiContext.bestHeight = headerInfo.getHeight();
         return true;
     }
@@ -133,10 +138,11 @@ public class BlockService {
                 processYellowPunishTx(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
                 processRedPunishTx(tx, blockHeight);
-            } else if(tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
+                processCreateContract(tx, blockHeight);
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
 
             }
-            //todo 剩余的智能合约解析，等前面的数据解析没问题之后 ，再继续
         }
     }
 
@@ -422,6 +428,45 @@ public class BlockService {
         }
     }
 
+    private void processCreateContract(TransactionInfo tx, long blockHeight) {
+        //首先查询合约交易执行结果
+        RpcClientResult<ContractResultInfo> clientResult = rpcHandler.getContractResult(tx.getHash());
+        if (clientResult.isSuccess() == false) {
+            throw new RuntimeException(clientResult.getMsg());
+        }
+        //执行结果为失败时，直接返回
+        ContractResultInfo resultInfo = clientResult.getData();
+        if (!resultInfo.getSuccess()) {
+            return;
+        }
+
+        ContractCreateInfo contractCreateInfo = (ContractCreateInfo) tx.getTxData();
+        RpcClientResult<ContractInfo> contractInfoResult = rpcHandler.getContractInfo(contractCreateInfo.getContractAddress());
+        if (contractInfoResult.isSuccess() == false) {
+            throw new RuntimeException(clientResult.getMsg());
+        }
+        ContractInfo contractInfo = contractInfoResult.getData();
+        contractInfoList.add(contractInfo);
+
+        if(contractInfo.getIsNrc20() == 1) {
+
+        }
+    }
+
+
+    private void processCallContract(TransactionInfo tx) {
+        //首先查询合约交易执行结果
+        RpcClientResult<ContractResultInfo> clientResult = rpcHandler.getContractResult(tx.getHash());
+        if (clientResult.isSuccess() == false) {
+            throw new RuntimeException(clientResult.getMsg());
+        }
+        //执行结果为失败时，直接返回
+        ContractResultInfo resultInfo = clientResult.getData();
+        if (!resultInfo.getSuccess()) {
+            return;
+        }
+
+    }
 
     private AccountInfo queryAccountInfo(String address) {
         AccountInfo accountInfo = accountInfoMap.get(address);
@@ -505,5 +550,6 @@ public class BlockService {
         agentInfoList.clear();
         depositInfoList.clear();
         punishLogList.clear();
+        contractInfoList.clear();
     }
 }

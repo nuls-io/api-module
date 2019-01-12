@@ -30,11 +30,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ContractResultInfo {
+
     private String txHash;
 
     private String contractAddress;
 
-    private String success;
+    private boolean success;
 
     private String errorMessage;
 
@@ -54,11 +55,7 @@ public class ContractResultInfo {
 
     private Long refundFee;
 
-    private String stateroot;
-
     private Long txValue;
-
-    private String stacktrace;
 
     private Long balance;
 
@@ -78,17 +75,9 @@ public class ContractResultInfo {
 
     private String remark;
 
-    private Integer confirmCount;
+    private Long confirmCount;
 
     private Long createTime;
-
-    public Integer getConfirmCount() {
-        return confirmCount;
-    }
-
-    public void setConfirmCount(Integer confirmCount) {
-        this.confirmCount = confirmCount;
-    }
 
     public String getTxHash() {
         return txHash;
@@ -106,12 +95,12 @@ public class ContractResultInfo {
         this.contractAddress = contractAddress == null ? null : contractAddress.trim();
     }
 
-    public String getSuccess() {
+    public boolean getSuccess() {
         return success;
     }
 
-    public void setSuccess(String success) {
-        this.success = success == null ? null : success.trim();
+    public void setSuccess(boolean success) {
+        this.success = success;
     }
 
     public String getErrorMessage() {
@@ -186,28 +175,12 @@ public class ContractResultInfo {
         this.refundFee = refundFee;
     }
 
-    public String getStateroot() {
-        return stateroot;
-    }
-
-    public void setStateroot(String stateroot) {
-        this.stateroot = stateroot == null ? null : stateroot.trim();
-    }
-
     public Long getTxValue() {
         return txValue;
     }
 
     public void setTxValue(Long txValue) {
         this.txValue = txValue;
-    }
-
-    public String getStacktrace() {
-        return stacktrace;
-    }
-
-    public void setStacktrace(String stacktrace) {
-        this.stacktrace = stacktrace == null ? null : stacktrace.trim();
     }
 
     public Long getBalance() {
@@ -288,5 +261,13 @@ public class ContractResultInfo {
 
     public void setCreateTime(Long createTime) {
         this.createTime = createTime;
+    }
+
+    public Long getConfirmCount() {
+        return confirmCount;
+    }
+
+    public void setConfirmCount(Long confirmCount) {
+        this.confirmCount = confirmCount;
     }
 }

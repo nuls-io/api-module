@@ -335,10 +335,10 @@ public class AnalysisHandler {
 
         punishLog.setBlockHeight(tx.getBlockHeight());
         punishLog.setTime(tx.getTime());
-//        punishLog.setRoundIndex(header.getRoundIndex());
         return punishLog;
 
     }
+
 
     private static ContractCreateInfo toContractCreateInfo(Transaction tx) throws Exception {
         CreateContractTransaction createContractTx = (CreateContractTransaction) tx;
@@ -348,7 +348,7 @@ public class AnalysisHandler {
         contractInfo.setCreater(AddressTool.getStringAddressByBytes(model.getSender()));
         contractInfo.setContractAddress(AddressTool.getStringAddressByBytes(model.getContractAddress()));
         contractInfo.setContractCode(Hex.encode(model.getCode()));
-        contractInfo.setGaslimit(model.getGasLimit());
+        contractInfo.setGasLimit(model.getGasLimit());
         contractInfo.setPrice(model.getPrice());
         contractInfo.setArgs(JSONUtils.obj2json(model.getArgs()));
 
@@ -390,7 +390,6 @@ public class AnalysisHandler {
         return info;
     }
 
-
     private static ContractTransferInfo toContractTransferInfo(Transaction tx) {
         ContractTransferTransaction contractTransferTx = (ContractTransferTransaction) tx;
         ContractTransferData model = contractTransferTx.getTxData();
@@ -401,6 +400,67 @@ public class AnalysisHandler {
 
     }
 
+    public static ContractResultInfo toContractResult(Map<String, Object> map) throws Exception {
+        ContractResultInfo resultInfo = new ContractResultInfo();
+        map = (Map<String, Object>) map.get("data");
+        if (map != null) {
+            resultInfo.setErrorMessage((String) map.get("errorMessage"));
+            resultInfo.setSuccess((Boolean) map.get("success"));
+            resultInfo.setResult((String) map.get("result"));
+            resultInfo.setContractAddress((String) map.get("contractAddress"));
+
+            resultInfo.setGasUsed(map.get("gasUsed") != null ? Long.parseLong(map.get("gasUsed").toString()) : 0);
+            resultInfo.setGasLimit(map.get("gasLimit") != null ? Long.parseLong(map.get("gasLimit").toString()) : 0);
+            resultInfo.setPrice(map.get("price") != null ? Long.parseLong(map.get("price").toString()) : 0);
+            resultInfo.setTotalFee(map.get("totalFee") != null ? Long.parseLong(map.get("totalFee").toString()) : 0);
+            resultInfo.setTxSizeFee(map.get("txSizeFee") != null ? Long.parseLong(map.get("txSizeFee").toString()) : 0);
+            resultInfo.setActualContractFee(map.get("actualContractFee") != null ? Long.parseLong(map.get("actualContractFee").toString()) : 0);
+            resultInfo.setRefundFee(map.get("refundFee") != null ? Long.parseLong(map.get("refundFee").toString()) : 0);
+            resultInfo.setTxValue(map.get("value") != null ? Long.parseLong(map.get("value").toString()) : 0);
+            resultInfo.setBalance(map.get("balance") != null ? Long.parseLong(map.get("balance").toString()) : 0);
+            resultInfo.setNonce(map.get("nonce") != null ? Long.parseLong(map.get("nonce").toString()) : 0);
+            resultInfo.setRemark(map.get("remark") != null ? (String) map.get("remark") : "");
+
+            resultInfo.setTokenName((String) map.get("name"));
+            resultInfo.setSymbol((String) map.get("symbol"));
+            resultInfo.setDecimals(map.get("decimals") != null ? Long.parseLong(map.get("decimals").toString()) : 0);
+
+            ArrayList listEvents = (ArrayList) map.get("events");
+            if (listEvents != null && listEvents.size() > 0) {
+                resultInfo.setEvents(JSONUtils.obj2json(listEvents));
+            }
+            ArrayList listTransfers = (ArrayList) map.get("transfers");
+            if (listTransfers != null && listTransfers.size() > 0) {
+                resultInfo.setTransfers(JSONUtils.obj2json(listTransfers));
+            }
+            ArrayList listTokenTransfers = (ArrayList) map.get("tokenTransfers");
+            if (listTokenTransfers != null && listTokenTransfers.size() > 0) {
+                resultInfo.setTokenTransfers(JSONUtils.obj2json(listTokenTransfers));
+            }
+        }
+        return resultInfo;
+    }
+
+
+    public static ContractInfo toContractInfo(Map<String, Object> map) throws Exception {
+        ContractInfo contractInfo = new ContractInfo();
+        contractInfo.setCreateTxHash((String) map.get("createTxHash"));
+        contractInfo.setContractAddress((String) map.get("address"));
+        contractInfo.setCreater((String) map.get("creater"));
+        contractInfo.setCreateTime(Long.parseLong(map.get("createTime").toString()));
+        contractInfo.setBlockHeight(Long.parseLong(map.get("blockHeight").toString()));
+        contractInfo.setIsNrc20(Boolean.parseBoolean(map.get("isNrc20").toString()) ? 1 : 0);
+        //如果是NRC20需要解析代币信息
+        if (Boolean.parseBoolean(map.get("isNrc20").toString())) {
+            contractInfo.setTokenName((String) map.get("nrc20TokenName"));
+            contractInfo.setSymbol((String) map.get("nrc20TokenSymbol"));
+            contractInfo.setDecimals(Long.parseLong(map.get("decimals").toString()));
+            contractInfo.setTotalSupply(map.get("totalSupply").toString());
+        }
+        contractInfo.setStatus(0);
+        contractInfo.setMethods(JSONUtils.obj2json(map.get("method")));
+        return contractInfo;
+    }
 
     /**
      * 计算每个区块的coinbase奖励

@@ -69,7 +69,7 @@ public class AccountController {
     public RpcResult getAccountTxs(List<Object> params) {
         VerifyUtils.verifyParams(params, 5);
         String address = (String) params.get(0);
-        if (AddressTool.validAddress(address)) {
+        if (!AddressTool.validAddress(address)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
         }
 
@@ -95,7 +95,7 @@ public class AccountController {
     public RpcResult getAccount(List<Object> params) {
         VerifyUtils.verifyParams(params, 1);
         String address = (String) params.get(0);
-        if (AddressTool.validAddress(address)) {
+        if (!AddressTool.validAddress(address)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
         }
 
