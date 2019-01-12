@@ -58,7 +58,9 @@ public class SyncBlockTask implements Runnable {
             localBestHeight = localBestBlockHeader.getHeight();
         }
         ApiContext.bestHeight = localBestHeight;
-
+        if (localBestHeight > 65000) {
+            return false;
+        }
         //调用RPC接口获取节点钱包下一区块
         RpcClientResult<BlockHeaderInfo> result = null;
         try {
