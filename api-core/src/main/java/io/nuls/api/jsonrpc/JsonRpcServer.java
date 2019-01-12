@@ -24,12 +24,12 @@ import io.nuls.api.core.util.Log;
 import io.nuls.api.bean.SpringLiteContext;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
+import jersey.repackaged.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.glassfish.grizzly.http.server.*;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 import org.glassfish.grizzly.utils.Charsets;
-import org.glassfish.jersey.internal.guava.ThreadFactoryBuilder;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;

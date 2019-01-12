@@ -15,7 +15,6 @@ import io.nuls.sdk.core.contast.TransactionConstant;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -68,6 +67,8 @@ public class BlockService {
     private List<ContractInfo> contractInfoList = new ArrayList<>();
     //记录每个区块智能合约相关的账户token信息
     private List<AccountTokenInfo> tokenInfoList = new ArrayList<>();
+    //记录智能合约相关的交易信息
+    private List<ContractTxInfo> contractTxInfoList = new ArrayList<>();
 
     /**
      * 存储最新区块信息
@@ -80,6 +81,9 @@ public class BlockService {
      * @param blockInfo 完整的区块信息
      * @return boolean 是否保存成功
      */
+
+    boolean hasContract = false;
+
     public boolean saveNewBlock(BlockInfo blockInfo) {
         clear();
         long time1, time2;
@@ -123,9 +127,12 @@ public class BlockService {
     private void processTransactions(List<TransactionInfo> txs, AgentInfo agentInfo, long blockHeight) {
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
+            if (tx.getType() > 10) {
+                hasContract = true;
+            }
+
             tx.setByAgentInfo(agentInfo);
             processWithTxInputOutput(tx);
-
             if (tx.getType() == TransactionConstant.TX_TYPE_COINBASE) {
                 processCoinBaseTx(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_TRANSFER) {
@@ -177,7 +184,6 @@ public class BlockService {
         }
         if (tx.getTos() != null) {
             for (Output output : tx.getTos()) {
-                //
                 outputMap.put(output.getKey(), output);
             }
         }
@@ -454,13 +460,24 @@ public class BlockService {
         ContractInfo contractInfo = contractInfoResult.getData();
         contractInfoList.add(contractInfo);
 
-
+        createContractTxInfo(tx, blockHeight, contractInfo.getContractAddress());
         //如果是NRC20合约，还需要创建合约token地址
         if (contractInfo.getIsNrc20() == 1) {
             processNrc20ForAccount(contractInfo.getCreater(), contractInfo.getSymbol(), contractInfo.getTotalSupply());
         }
     }
 
+    private void createContractTxInfo(TransactionInfo tx, long blockHeight, String contractAddress) {
+        ContractTxInfo contractTxInfo = new ContractTxInfo();
+        contractTxInfo.setTxHash(tx.getHash());
+        contractTxInfo.setBlockHeight(blockHeight);
+        contractTxInfo.setContractAddress(contractAddress);
+        contractTxInfo.setTime(tx.getCreateTime());
+        contractTxInfo.setType(tx.getType());
+        contractTxInfo.setFee(tx.getFee());
+
+        contractTxInfoList.add(contractTxInfo);
+    }
 
     private void processNrc20ForAccount(String address, String symbol, BigInteger value) {
         AccountTokenInfo tokenInfo = nrc20Sever.getAccountTokenInfo(address, symbol);
@@ -508,6 +525,9 @@ public class BlockService {
      * 解析区块和所有交易后，将数据存储到数据库中
      */
     public void save(BlockInfo blockInfo, AgentInfo agentInfo) {
+        if (hasContract) {
+            return;
+        }
         saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
         blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
         //如果区块非种子节点地址打包，则需要修改打包节点的奖励统计，放在agentInfoList里一并处理
@@ -576,5 +596,6 @@ public class BlockService {
         punishLogList.clear();
         contractInfoList.clear();
         tokenInfoList.clear();
+        contractTxInfoList.clear();
     }
 }

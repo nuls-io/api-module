@@ -2,7 +2,9 @@ package io.nuls.api.core.model;
 
 import io.nuls.sdk.core.model.Address;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class AccountInfo {
@@ -30,7 +32,7 @@ public class AccountInfo {
     //记录最新更改账户统计信息的高度
     private long height;
 
-    private Set<String> tokens;
+    private List<String> tokens;
 
     //是否是根据最新区块的交易新创建的账户，只为业务使用，不存储该字段
     private boolean isNew;
@@ -43,7 +45,7 @@ public class AccountInfo {
         this.address = address;
         Address address1 = new Address(address);
         this.type = address1.getAddressType();
-        this.tokens = new HashSet<>();
+        this.tokens = new ArrayList<>();
         this.isNew = true;
     }
 
@@ -143,11 +145,11 @@ public class AccountInfo {
         this.totalBalance = totalBalance;
     }
 
-    public Set<String> getTokens() {
+    public List<String> getTokens() {
         return tokens;
     }
 
-    public void setTokens(Set<String> tokens) {
+    public void setTokens(List<String> tokens) {
         this.tokens = tokens;
     }
 }
