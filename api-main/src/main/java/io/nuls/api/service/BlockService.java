@@ -12,6 +12,7 @@ import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
+import io.nuls.sdk.core.model.transaction.CoinBaseTransaction;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -102,9 +103,11 @@ public class BlockService {
             agentInfo = agentService.getAgentByPackingAddress(headerInfo.getPackingAddress());
         }
 
-        agentInfo.setTotalReward(agentInfo.getTotalReward() + headerInfo.getReward());
+        calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
+
         agentInfo.setTotalPackingCount(agentInfo.getTotalPackingCount() + 1);
         agentInfo.setLastRewardHeight(headerInfo.getHeight());
+        agentInfo.setVersion(headerInfo.getAgentVersion());
         headerInfo.setByAgentInfo(agentInfo);
 
         //处理交易
@@ -118,6 +121,22 @@ public class BlockService {
         ApiContext.bestHeight = headerInfo.getHeight();
         return true;
     }
+
+    private void calcCommissionReward(AgentInfo agentInfo, TransactionInfo transactionInfo) {
+        List<Output> list = transactionInfo.getTos();
+        long agentReward = 0L, other = 0L;
+        for (Output output : list) {
+            if (output.getAddress().equals(agentInfo.getRewardAddress())) {
+                agentReward += output.getValue();
+            } else {
+                other += output.getValue();
+            }
+        }
+        agentInfo.setTotalReward(agentInfo.getTotalReward() + agentReward);
+        long value = other * agentInfo.getCommissionRate() / (100 - agentInfo.getCommissionRate());
+        agentInfo.setCommissionReward(agentInfo.getCommissionReward() + value);
+    }
+
 
     private void processRoundData(BlockInfo blockInfo) {
         roundManager.process(blockInfo);

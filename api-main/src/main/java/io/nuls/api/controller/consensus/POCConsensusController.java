@@ -32,7 +32,7 @@ import io.nuls.api.service.DepositService;
 import io.nuls.api.service.PunishService;
 import io.nuls.api.service.RoundService;
 import io.nuls.api.utils.RoundManager;
-import org.checkerframework.checker.units.qual.A;
+import io.nuls.sdk.core.utils.DoubleUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -104,6 +104,23 @@ public class POCConsensusController {
         String agentHash = (String) params.get(0);
 
         AgentInfo agentInfo = agentService.getAgentByAgentHash(agentHash);
+        long count = punishService.getYellowCount(agentInfo.getAgentAddress());
+        agentInfo.setLostRate(DoubleUtils.div(count, count + agentInfo.getTotalPackingCount()));
+
+        List<PocRoundItem> itemList = roundManager.getCurrentRound().getItemList();
+        PocRoundItem roundItem = null;
+        for (PocRoundItem item : itemList) {
+            if (item.getPackingAddress().equals(agentInfo.getPackingAddress())) {
+                roundItem = item;
+                break;
+            }
+        }
+        if (null == roundItem) {
+            agentInfo.setStatus(0);
+        } else {
+            agentInfo.setRoundPackingTime(roundManager.getCurrentRound().getStartTime() + roundItem.getOrder() * 10000);
+            agentInfo.setStatus(1);
+        }
         return new RpcResult().setResult(agentInfo);
     }
 

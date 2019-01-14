@@ -27,13 +27,7 @@
 package io.nuls.api.bridge;
 
 import io.nuls.api.core.constant.NulsConstant;
-import io.nuls.api.core.model.AgentInfo;
-import io.nuls.api.core.model.AliasInfo;
-import io.nuls.api.core.model.BlockInfo;
-import io.nuls.api.core.model.BlockHeaderInfo;
-import io.nuls.api.core.model.DepositInfo;
 import io.nuls.api.core.model.*;
-import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.crypto.Hex;
 import io.nuls.sdk.core.exception.NulsException;
@@ -46,7 +40,6 @@ import io.nuls.sdk.core.utils.NulsByteBuffer;
 import io.nuls.sdk.core.utils.VarInt;
 import org.spongycastle.util.Arrays;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -110,6 +103,7 @@ public class AnalysisHandler {
         info.setCreateTime(blockHeader.getTime());
         info.setPackingAddress(AddressTool.getStringAddressByBytes(blockHeader.getPackingAddress()));
         info.setRoundStartTime(extendsData.getRoundStartTime());
+        info.setAgentVersion(extendsData.getCurrentVersion());
         //是否是种子节点打包的区块
         if (NulsConstant.SEED_NODE_ADDRESS.contains(info.getPackingAddress())) {
             info.setSeedPacked(true);
