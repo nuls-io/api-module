@@ -81,7 +81,7 @@ public class TxCountService {
         if (documentList.size() < 32) {
             for (Document document : documentList) {
                 KeyValue keyValue = new KeyValue();
-                keyValue.setKey(document.get("month") + "-" + document.get("date"));
+                keyValue.setKey(document.get("month") + "/" + document.get("date"));
                 keyValue.setValue(document.getLong("count"));
                 list.add(keyValue);
             }
@@ -97,7 +97,7 @@ public class TxCountService {
         Map<String, Long> map = new HashMap<>();
 
         for (Document document : documentList) {
-            String key = document.get("year") + "-" + document.get("month");
+            String key = document.get("year") + "/" + document.get("month");
             Long value = map.get(key);
             if (null == value) {
                 value = 0L;
