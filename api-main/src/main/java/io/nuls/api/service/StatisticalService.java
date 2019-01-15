@@ -26,9 +26,10 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.model.KeyValue;
-import io.nuls.api.core.model.TxCountInfo;
+import io.nuls.api.core.model.StatisticalInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.sdk.core.utils.DoubleUtils;
 import org.bson.Document;
 
 import java.util.*;
@@ -39,28 +40,35 @@ import static com.mongodb.client.model.Filters.*;
  * @author Niels
  */
 @Component
-public class TxCountService {
+public class StatisticalService {
     @Autowired
     private MongoDBService mongoDBService;
 
     public long getBestId() {
-        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, Filters.eq("_id", MongoTableName.BEST_TX_COUNT_ID));
+        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, Filters.eq("_id", MongoTableName.LAST_STATISTICAL_TIME));
         if (null == document) {
             return 0;
         }
         return document.getLong("value");
     }
 
-    public void updateBestId(long id) {
+    public void saveBestId(long id) {
         Document document = new Document();
-        document.put("_id", MongoTableName.BEST_TX_COUNT_ID);
+        document.put("_id", MongoTableName.LAST_STATISTICAL_TIME);
         document.put("value", id);
-        mongoDBService.updateOne(MongoTableName.NEW_INFO, Filters.eq("_id", MongoTableName.BEST_TX_COUNT_ID), document);
+        mongoDBService.insertOne(MongoTableName.NEW_INFO, document);
     }
 
-    public void insert(TxCountInfo info) {
+    public void updateBestId(long id) {
+        Document document = new Document();
+        document.put("_id", MongoTableName.LAST_STATISTICAL_TIME);
+        document.put("value", id);
+        mongoDBService.updateOne(MongoTableName.NEW_INFO, Filters.eq("_id", MongoTableName.LAST_STATISTICAL_TIME), document);
+    }
+
+    public void insert(StatisticalInfo info) {
         Document document = DocumentTransferTool.toDocument(info, "time");
-        mongoDBService.insertOne(MongoTableName.TX_COUNT_INFO, document);
+        mongoDBService.insertOne(MongoTableName.STATISTICAL_INFO, document);
     }
 
     public long calcTxCount(long start, long end) {
@@ -74,25 +82,30 @@ public class TxCountService {
      * @param type 0:14天，1:周，2：月，3：年，4：全部
      * @return
      */
-    public List getList(int type) {
+    public List getStatisticalList(int type, String field) {
         List<KeyValue> list = new ArrayList<>();
         long startTime = getStartTime(type);
-        List<Document> documentList = mongoDBService.query(MongoTableName.TX_COUNT_INFO, gte("_id", startTime), Sorts.ascending("_id"));
+        List<Document> documentList = mongoDBService.query(MongoTableName.STATISTICAL_INFO, gte("_id", startTime), Sorts.ascending("_id"));
         if (documentList.size() < 32) {
             for (Document document : documentList) {
                 KeyValue keyValue = new KeyValue();
                 keyValue.setKey(document.get("month") + "/" + document.get("date"));
-                keyValue.setValue(document.getLong("count"));
+                keyValue.setValue(document.getLong(field));
                 list.add(keyValue);
             }
         } else {
-            summary(list, documentList);
-
+            if ("txCount".equals(field)) {
+                summaryLong(list, documentList, field);
+            } else if ("annualizedReward".equals(field)) {
+                avgDouble(list, documentList, field);
+            } else {
+                avgLong(list, documentList, field);
+            }
         }
         return list;
     }
 
-    private void summary(List<KeyValue> list, List<Document> documentList) {
+    private void summaryLong(List<KeyValue> list, List<Document> documentList, String field) {
         List<String> keyList = new ArrayList<>();
         Map<String, Long> map = new HashMap<>();
 
@@ -103,13 +116,67 @@ public class TxCountService {
                 value = 0L;
                 keyList.add(key);
             }
-            value += document.getLong("count");
+            value += document.getLong(field);
             map.put(key, value);
         }
         for (String key : keyList) {
             KeyValue keyValue = new KeyValue();
             keyValue.setKey(key);
             keyValue.setValue(map.get(key));
+            list.add(keyValue);
+        }
+    }
+
+    private void avgLong(List<KeyValue> list, List<Document> documentList, String field) {
+        List<String> keyList = new ArrayList<>();
+        Map<String, List<Long>> map = new HashMap<>();
+
+        for (Document document : documentList) {
+            String key = document.get("year") + "/" + document.get("month");
+            List<Long> value = map.get(key);
+            if (null == value) {
+                value = new ArrayList<>();
+                keyList.add(key);
+                map.put(key, value);
+            }
+            value.add(document.getLong(field));
+        }
+        for (String key : keyList) {
+            KeyValue keyValue = new KeyValue();
+            keyValue.setKey(key);
+            long value = 0;
+            List<Long> valueList = map.get(key);
+            for (long val : valueList) {
+                value += val;
+            }
+            keyValue.setValue(value / valueList.size());
+            list.add(keyValue);
+        }
+    }
+
+    private void avgDouble(List<KeyValue> list, List<Document> documentList, String field) {
+        List<String> keyList = new ArrayList<>();
+        Map<String, List<Double>> map = new HashMap<>();
+
+        for (Document document : documentList) {
+            String key = document.get("year") + "/" + document.get("month");
+            List<Double> value = map.get(key);
+            if (null == value) {
+                value = new ArrayList<>();
+                keyList.add(key);
+                map.put(key, value);
+            }
+            value.add(document.getDouble(field));
+        }
+        for (String key : keyList) {
+            KeyValue keyValue = new KeyValue();
+            keyValue.setKey(key);
+            double value = 0;
+            List<Double> valueList = map.get(key);
+            for (double val : valueList) {
+                value += val;
+            }
+            keyValue.setValue(DoubleUtils.div(value, valueList.size(), 2));
             list.add(keyValue);
         }
     }

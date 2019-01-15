@@ -27,10 +27,7 @@ import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.*;
-import io.nuls.api.service.AgentService;
-import io.nuls.api.service.DepositService;
-import io.nuls.api.service.PunishService;
-import io.nuls.api.service.RoundService;
+import io.nuls.api.service.*;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.utils.DoubleUtils;
 
@@ -60,6 +57,9 @@ public class POCConsensusController {
     @Autowired
     private RoundService roundService;
 
+    @Autowired
+    private StatisticalService statisticalService;
+
     @RpcMethod("getBestRoundItemList")
     public RpcResult getBestRoundItemList(List<Object> params) {
         List<PocRoundItem> itemList = roundManager.getCurrentRound().getItemList();
@@ -84,15 +84,15 @@ public class POCConsensusController {
 
     @RpcMethod("getConsensusStatistical")
     public RpcResult getConsensusStatistical(List<Object> params) {
-        VerifyUtils.verifyParams(params, 0);
-
-        //todo
-        return new RpcResult();
+        VerifyUtils.verifyParams(params, 1);
+        int type = (int) params.get(0);
+        List list = this.statisticalService.getStatisticalList(type, "consensusLocked");
+        return new RpcResult().setResult(list);
     }
 
     @RpcMethod("getConsensusNodes")
     public RpcResult getConsensusNodes(List<Object> params) {
-        VerifyUtils.verifyParams(params, 0);
+        VerifyUtils.verifyParams(params, 1);
         //todo 条件过滤，状态修改，字段填充
         List<AgentInfo> list = agentService.getAgentList(ApiContext.bestHeight);
         return new RpcResult().setResult(list);
@@ -121,14 +121,32 @@ public class POCConsensusController {
             agentInfo.setRoundPackingTime(roundManager.getCurrentRound().getStartTime() + roundItem.getOrder() * 10000);
             agentInfo.setStatus(1);
         }
+
+        List<DepositInfo> depositInfoList = depositService.getDepositListByAgentHash(agentHash);
+        long totalDeposit = 0;
+        for (DepositInfo dep : depositInfoList) {
+            totalDeposit += dep.getAmount();
+        }
+        agentInfo.setDepositCount(depositInfoList.size());
+        agentInfo.setTotalDeposit(totalDeposit);
+
+
         return new RpcResult().setResult(agentInfo);
     }
 
     @RpcMethod("getConsensusNodeStatistical")
     public RpcResult getConsensusNodeStatistical(List<Object> params) {
-        VerifyUtils.verifyParams(params, 0);
-        //todo
-        return new RpcResult();
+        VerifyUtils.verifyParams(params, 1);
+        int type = (int) params.get(0);
+        List list = this.statisticalService.getStatisticalList(type, "nodeCount");
+        return new RpcResult().setResult(list);
+    }
+    @RpcMethod("getAnnulizedRewardStatistical")
+    public RpcResult getAnnulizedRewardStatistical(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        int type = (int) params.get(0);
+        List list = this.statisticalService.getStatisticalList(type, "annualizedReward");
+        return new RpcResult().setResult(list);
     }
 
     @RpcMethod("getPunishList")

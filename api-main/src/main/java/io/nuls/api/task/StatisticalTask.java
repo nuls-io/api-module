@@ -22,38 +22,52 @@ package io.nuls.api.task;
 
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
+import io.nuls.api.core.ApiContext;
+import io.nuls.api.core.model.AgentInfo;
 import io.nuls.api.core.model.BlockHeaderInfo;
-import io.nuls.api.core.model.TxCountInfo;
+import io.nuls.api.core.model.DepositInfo;
+import io.nuls.api.core.model.StatisticalInfo;
 import io.nuls.api.core.util.Log;
+import io.nuls.api.service.AgentService;
 import io.nuls.api.service.BlockHeaderService;
-import io.nuls.api.service.TxCountService;
+import io.nuls.api.service.DepositService;
+import io.nuls.api.service.StatisticalService;
+import io.nuls.sdk.core.utils.DoubleUtils;
 
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * @author Niels
  */
 @Component
-public class TxCountTask implements Runnable {
+public class StatisticalTask implements Runnable {
 
     @Autowired
-    private TxCountService txCountService;
+    private StatisticalService statisticalService;
 
     @Autowired
     private BlockHeaderService blockHeaderService;
 
+    @Autowired
+    private DepositService depositService;
+
+    @Autowired
+    private AgentService agentService;
+
+
     @Override
     public void run() {
         try {
-            this.calcTxCount();
+            this.doCalc();
         } catch (Exception e) {
             Log.error(e);
         }
     }
 
 
-    private void calcTxCount() {
-        long bestId = txCountService.getBestId();
+    private void doCalc() {
+        long bestId = statisticalService.getBestId();
         BlockHeaderInfo header = blockHeaderService.getBestBlockHeader();
         if (null == header) {
             return;
@@ -65,6 +79,7 @@ public class TxCountTask implements Runnable {
             BlockHeaderInfo header0 = blockHeaderService.getBlockHeaderInfoByHeight(0);
             start = header0.getCreateTime();
             end = start + day;
+            this.statisticalService.saveBestId(start);
         } else {
             end = start + day - 1;
         }
@@ -72,24 +87,44 @@ public class TxCountTask implements Runnable {
             if (end > header.getCreateTime()) {
                 break;
             }
-            doCalc(start, end);
+            statistical(start, end);
             start = end + 1;
             end = end + day;
             header = blockHeaderService.getBestBlockHeader();
         }
     }
 
-    private void doCalc(long start, long end) {
-        long count = txCountService.calcTxCount(start, end);
+    private void statistical(long start, long end) {
+        long txCount = statisticalService.calcTxCount(start, end);
+        long consensusLocked = 0;
+        List<AgentInfo> agentList = agentService.getAgentList(ApiContext.bestHeight);
+        List<DepositInfo> depositList = depositService.getDepositList(ApiContext.bestHeight);
+        int nodeCount = agentList.size();
+        for (AgentInfo agent : agentList) {
+            consensusLocked += agent.getDeposit();
+        }
+        for (DepositInfo deposit : depositList) {
+            consensusLocked += deposit.getAmount();
+        }
+        double annualizedReward = DoubleUtils.mul(100, DoubleUtils.div(500000000000000L, consensusLocked, 4), 2);
+
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(end);
-        TxCountInfo info = new TxCountInfo();
+        StatisticalInfo info = new StatisticalInfo();
         info.setTime(end);
-        info.setCount(count);
+        info.setTxCount(txCount);
+        info.setAnnualizedReward(annualizedReward);
+        info.setNodeCount(nodeCount);
+        info.setConsensusLocked(consensusLocked);
         info.setDate(calendar.get(Calendar.DATE));
         info.setMonth(calendar.get(Calendar.MONTH));
         info.setYear(calendar.get(Calendar.YEAR));
-        this.txCountService.insert(info);
+        try {
+            this.statisticalService.insert(info);
+        } catch (Exception e) {
+            Log.error(e);
+        }
+        this.statisticalService.updateBestId(info.getTime());
     }
 
 }

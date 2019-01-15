@@ -4,7 +4,6 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.mongodb.MongoDBService;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -19,7 +18,7 @@ public class ScheduleManager {
     private SyncBlockTask syncBlockTask;
 
     @Autowired
-    private TxCountTask txCountTask;
+    private StatisticalTask statisticalTask;
 
     @Autowired
     private MongoDBService mongoDBService;
@@ -44,6 +43,6 @@ public class ScheduleManager {
         executorService.scheduleAtFixedRate(syncBlockTask, 1, 10, TimeUnit.SECONDS);
 
 
-        executorService.scheduleAtFixedRate(txCountTask, 1, 60, TimeUnit.MINUTES);
+        executorService.scheduleAtFixedRate(statisticalTask, 1, 60, TimeUnit.MINUTES);
     }
 }

@@ -12,7 +12,7 @@ import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
-import io.nuls.sdk.core.model.transaction.CoinBaseTransaction;
+import io.nuls.sdk.core.utils.DoubleUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -124,6 +124,11 @@ public class BlockService {
 
     private void calcCommissionReward(AgentInfo agentInfo, TransactionInfo transactionInfo) {
         List<Output> list = transactionInfo.getTos();
+        if (null == list) {
+            agentInfo.setTotalReward(0);
+            agentInfo.setCommissionReward(0);
+            return;
+        }
         long agentReward = 0L, other = 0L;
         for (Output output : list) {
             if (output.getAddress().equals(agentInfo.getRewardAddress())) {
@@ -132,9 +137,20 @@ public class BlockService {
                 other += output.getValue();
             }
         }
+        List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
+        long totalDeposit = 0;
+        for (DepositInfo depositInfo : depositInfos) {
+            totalDeposit += depositInfo.getAmount();
+        }
+        agentInfo.setTotalDeposit(totalDeposit);
         agentInfo.setTotalReward(agentInfo.getTotalReward() + agentReward);
-        long value = other * agentInfo.getCommissionRate() / (100 - agentInfo.getCommissionRate());
-        agentInfo.setCommissionReward(agentInfo.getCommissionReward() + value);
+        if (agentInfo.getCommissionRate() < 100) {
+            long value = other * agentInfo.getCommissionRate() / (100 - agentInfo.getCommissionRate());
+            agentInfo.setCommissionReward(agentInfo.getCommissionReward() + value);
+        } else {
+
+            agentInfo.setCommissionReward((long) (agentReward * DoubleUtils.div(agentInfo.getDeposit(), agentInfo.getDeposit() + agentInfo.getTotalDeposit())));
+        }
     }
 
 
@@ -584,10 +600,10 @@ public class BlockService {
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
         if (document == null) {
             document = new Document();
-            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false);
+            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("value", newHeight).append("finish", false);
             mongoDBService.insertOne(MongoTableName.NEW_INFO, document);
         } else {
-            document.put("height", newHeight);
+            document.put("value", newHeight);
             document.put("finish", false);
             mongoDBService.update(MongoTableName.NEW_INFO, query, document);
         }

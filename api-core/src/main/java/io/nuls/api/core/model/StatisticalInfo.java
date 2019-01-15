@@ -23,7 +23,7 @@ package io.nuls.api.core.model;
 /**
  * @author Niels
  */
-public class TxCountInfo {
+public class StatisticalInfo {
 
     private long time;
 
@@ -33,7 +33,13 @@ public class TxCountInfo {
 
     private int year;
 
-    private long count;
+    private long txCount;
+
+    private long consensusLocked;
+
+    private int nodeCount;
+
+    private double annualizedReward;
 
     public int getDate() {
         return date;
@@ -59,12 +65,12 @@ public class TxCountInfo {
         this.year = year;
     }
 
-    public long getCount() {
-        return count;
+    public long getTxCount() {
+        return txCount;
     }
 
-    public void setCount(long count) {
-        this.count = count;
+    public void setTxCount(long txCount) {
+        this.txCount = txCount;
     }
 
     public long getTime() {
@@ -73,5 +79,29 @@ public class TxCountInfo {
 
     public void setTime(long time) {
         this.time = time;
+    }
+
+    public long getConsensusLocked() {
+        return consensusLocked;
+    }
+
+    public void setConsensusLocked(long consensusLocked) {
+        this.consensusLocked = consensusLocked;
+    }
+
+    public int getNodeCount() {
+        return nodeCount;
+    }
+
+    public void setNodeCount(int nodeCount) {
+        this.nodeCount = nodeCount;
+    }
+
+    public double getAnnualizedReward() {
+        return annualizedReward;
+    }
+
+    public void setAnnualizedReward(double annualizedReward) {
+        this.annualizedReward = annualizedReward;
     }
 }

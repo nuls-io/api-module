@@ -71,7 +71,7 @@ public class BlockHeaderService {
             if (filter == null) {
                 filter = Filters.gt("txCount", 1);
             } else {
-                filter = Filters.and(filter, Filters.gt("txCount", 1));
+                filter = Filters.and(filter,Filters.gt("txCount", 1));
             }
         }
         long totalCount = mongoDBService.getCount(MongoTableName.BLOCK_HEADER, filter);

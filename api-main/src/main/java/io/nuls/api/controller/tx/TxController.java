@@ -32,7 +32,7 @@ import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.api.service.TransactionService;
-import io.nuls.api.service.TxCountService;
+import io.nuls.api.service.StatisticalService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.StringUtils;
 
@@ -51,7 +51,7 @@ public class TxController {
     private TransactionService txService;
 
     @Autowired
-    private TxCountService countService;
+    private StatisticalService statisticalService;
 
     @RpcMethod("getTx")
     public RpcResult getTx(List<Object> params) {
@@ -128,7 +128,7 @@ public class TxController {
     public RpcResult getTxStatistical(List<Object> params) {
         VerifyUtils.verifyParams(params, 1);
         int type = (int) params.get(0);
-        List list = this.countService.getList(type);
+        List list = this.statisticalService.getStatisticalList(type, "txCount");
         return new RpcResult().setResult(list);
     }
 
