@@ -37,6 +37,13 @@ public class ScheduleManager {
             mongoDBService.dropTable(MongoTableName.UTXO_INFO);
             mongoDBService.dropTable(MongoTableName.ROUND_INFO);
             mongoDBService.dropTable(MongoTableName.ROUND_ITEM_INFO);
+
+            mongoDBService.dropTable(MongoTableName.ACCOUNT_TOKEN_INFO);
+            mongoDBService.dropTable(MongoTableName.CONTRACT_INFO);
+            mongoDBService.dropTable(MongoTableName.CONTRACT_TX_INFO);
+            mongoDBService.dropTable(MongoTableName.TOKEN_TRANSFER_INFO);
+
+            mongoDBService.dropTable(MongoTableName.STATISTICAL_INFO);
         }
 
         executorService = Executors.newScheduledThreadPool(2);

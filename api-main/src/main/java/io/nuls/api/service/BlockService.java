@@ -631,28 +631,28 @@ public class BlockService {
         if (hasContract) {
             return;
         }
-//        saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
-//        blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
-//        //如果区块非种子节点地址打包，则需要修改打包节点的奖励统计，放在agentInfoList里一并处理
-//        if (!blockInfo.getBlockHeader().isSeedPacked()) {
-//            agentInfoList.add(agentInfo);
-//        }
-//        //存储交易记录
-//        transactionService.saveTxList(blockInfo.getTxs());
-//        //存储交易和地址关系记录
-//        transactionService.saveTxRelationList(txRelationInfoSet);
-//        //根据input和output更新utxo表
-//        utxoService.saveWithInputOutput(inputList, outputMap);
-//        //修改账户信息表
-//        accountService.saveAccounts(accountInfoMap);
-//        //存储别名记录
-//        aliasService.saveAliasList(aliasInfoList);
-//        //存储共识节点列表
-//        agentService.saveAgentList(agentInfoList);
-//        //存储委托/取消委托记录
-//        depositService.saveDepositList(depositInfoList);
-//        //存储红黄牌惩罚记录
-//        punishService.savePunishList(punishLogList);
+        saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
+        blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
+        //如果区块非种子节点地址打包，则需要修改打包节点的奖励统计，放在agentInfoList里一并处理
+        if (!blockInfo.getBlockHeader().isSeedPacked()) {
+            agentInfoList.add(agentInfo);
+        }
+        //存储交易记录
+        transactionService.saveTxList(blockInfo.getTxs());
+        //存储交易和地址关系记录
+        transactionService.saveTxRelationList(txRelationInfoSet);
+        //根据input和output更新utxo表
+        utxoService.saveWithInputOutput(inputList, outputMap);
+        //修改账户信息表
+        accountService.saveAccounts(accountInfoMap);
+        //存储别名记录
+        aliasService.saveAliasList(aliasInfoList);
+        //存储共识节点列表
+        agentService.saveAgentList(agentInfoList);
+        //存储委托/取消委托记录
+        depositService.saveDepositList(depositInfoList);
+        //存储红黄牌惩罚记录
+        punishService.savePunishList(punishLogList);
         //存储智能合约记录
         contractService.saveContractInfos(contractInfoList);
         //存储智能合约交易关系记录

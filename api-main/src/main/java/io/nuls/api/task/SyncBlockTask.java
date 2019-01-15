@@ -57,7 +57,6 @@ public class SyncBlockTask implements Runnable {
         } else {
             localBestHeight = localBestBlockHeader.getHeight();
         }
-        localBestHeight = 66872;
         ApiContext.bestHeight = localBestHeight;
         //调用RPC接口获取节点钱包下一区块
         RpcClientResult<BlockHeaderInfo> result = null;
@@ -110,24 +109,23 @@ public class SyncBlockTask implements Runnable {
      * @return
      */
     private boolean checkBlockContinuity(BlockHeaderInfo localBest, BlockHeaderInfo newest) {
-        return true;
 
-//        if (localBest == null) {
-//            if (newest.getHeight() == 0) {
-//                return true;
-//            } else {
-//                return false;
-//            }
-//        } else {
-//            if (newest.getHeight() == localBest.getHeight() + 1) {
-//                if (newest.getPreHash().equals(localBest.getHash())) {
-//                    return true;
-//                } else {
-//                    return false;
-//                }
-//            } else {
-//                return false;
-//            }
-//        }
+        if (localBest == null) {
+            if (newest.getHeight() == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            if (newest.getHeight() == localBest.getHeight() + 1) {
+                if (newest.getPreHash().equals(localBest.getHash())) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
     }
 }
