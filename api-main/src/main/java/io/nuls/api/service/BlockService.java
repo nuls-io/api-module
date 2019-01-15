@@ -676,10 +676,10 @@ public class BlockService {
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
         if (document == null) {
             document = new Document();
-            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("value", newHeight).append("finish", false);
+            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false);
             mongoDBService.insertOne(MongoTableName.NEW_INFO, document);
         } else {
-            document.put("value", newHeight);
+            document.put("height", newHeight);
             document.put("finish", false);
             mongoDBService.update(MongoTableName.NEW_INFO, query, document);
         }
