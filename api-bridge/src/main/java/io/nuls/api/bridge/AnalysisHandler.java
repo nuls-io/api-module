@@ -109,6 +109,7 @@ public class AnalysisHandler {
         info.setCreateTime(blockHeader.getTime());
         info.setPackingAddress(AddressTool.getStringAddressByBytes(blockHeader.getPackingAddress()));
         info.setRoundStartTime(extendsData.getRoundStartTime());
+        info.setAgentVersion(extendsData.getCurrentVersion()==null?1:extendsData.getCurrentVersion());
         //是否是种子节点打包的区块
         if (NulsConstant.SEED_NODE_ADDRESS.contains(info.getPackingAddress())) {
             info.setSeedPacked(true);

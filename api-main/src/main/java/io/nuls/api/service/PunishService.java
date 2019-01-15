@@ -59,4 +59,9 @@ public class PunishService {
         return punishLogList;
     }
 
+    public long getYellowCount(String agentAddress) {
+        Bson filter = and(eq("type", 1), eq("address", agentAddress));
+        long count = mongoDBService.getCount(MongoTableName.PUNISH_INFO, filter);
+        return count;
+    }
 }

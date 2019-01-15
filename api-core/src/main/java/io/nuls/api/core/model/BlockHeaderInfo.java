@@ -66,6 +66,8 @@ public class BlockHeaderInfo {
 
     private Long roundStartTime;
 
+    private int agentVersion;
+
     public String getHash() {
         return hash;
     }
@@ -213,5 +215,13 @@ public class BlockHeaderInfo {
 
     public void setRoundStartTime(Long roundStartTime) {
         this.roundStartTime = roundStartTime;
+    }
+
+    public int getAgentVersion() {
+        return agentVersion;
+    }
+
+    public void setAgentVersion(int agentVersion) {
+        this.agentVersion = agentVersion;
     }
 }

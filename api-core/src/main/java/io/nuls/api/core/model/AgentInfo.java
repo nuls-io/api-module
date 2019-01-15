@@ -32,6 +32,8 @@ public class AgentInfo extends TxData {
 
     private long totalPackingCount;
 
+    private double lostRate;
+
     private long lastRewardHeight;
 
     private String deleteHash;
@@ -43,6 +45,12 @@ public class AgentInfo extends TxData {
     private String alias;
 
     private boolean isNew;
+
+    private long roundPackingTime;
+
+    private long commissionReward;
+
+    private int version;
 
     public AgentInfo() {
         totalReward = 0L;
@@ -215,5 +223,37 @@ public class AgentInfo extends TxData {
 
     public void setAlias(String alias) {
         this.alias = alias;
+    }
+
+    public double getLostRate() {
+        return lostRate;
+    }
+
+    public void setLostRate(double lostRate) {
+        this.lostRate = lostRate;
+    }
+
+    public long getRoundPackingTime() {
+        return roundPackingTime;
+    }
+
+    public void setRoundPackingTime(long roundPackingTime) {
+        this.roundPackingTime = roundPackingTime;
+    }
+
+    public long getCommissionReward() {
+        return commissionReward;
+    }
+
+    public void setCommissionReward(long commissionReward) {
+        this.commissionReward = commissionReward;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 }

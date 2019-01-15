@@ -16,6 +16,10 @@ public class ScheduleManager {
 
     @Autowired
     private SyncBlockTask syncBlockTask;
+
+    @Autowired
+    private StatisticalTask statisticalTask;
+
     @Autowired
     private MongoDBService mongoDBService;
 
@@ -35,7 +39,10 @@ public class ScheduleManager {
             mongoDBService.dropTable(MongoTableName.ROUND_ITEM_INFO);
         }
 
-        executorService = Executors.newScheduledThreadPool(1);
+        executorService = Executors.newScheduledThreadPool(2);
         executorService.scheduleAtFixedRate(syncBlockTask, 1, 10, TimeUnit.SECONDS);
+
+
+        executorService.scheduleAtFixedRate(statisticalTask, 1, 60, TimeUnit.MINUTES);
     }
 }

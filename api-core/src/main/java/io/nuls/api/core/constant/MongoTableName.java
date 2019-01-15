@@ -36,7 +36,16 @@ public class MongoTableName {
     public static final String TOKEN_TRANSFER_INFO = "token_transfer_info";
 
 
+    public static final String STATISTICAL_INFO = "statistical_info";
+
+    //------------------------------------字段------------------------------------------------------------
+
+
     //new_info表，最新高度的_id字段名
     public static final String BEST_BLOCK_HEIGHT = "best_block_height";
+
+    //new_info表，最新统计的时间点
+    public static final String LAST_STATISTICAL_TIME = "last_statistical_time";
+
 
 }
