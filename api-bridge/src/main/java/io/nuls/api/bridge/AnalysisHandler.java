@@ -26,14 +26,10 @@
  */
 package io.nuls.api.bridge;
 
+import io.nuls.api.bean.annotation.Autowired;
+import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.NulsConstant;
-import io.nuls.api.core.model.AgentInfo;
-import io.nuls.api.core.model.AliasInfo;
-import io.nuls.api.core.model.BlockInfo;
-import io.nuls.api.core.model.BlockHeaderInfo;
-import io.nuls.api.core.model.DepositInfo;
 import io.nuls.api.core.model.*;
-import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.crypto.Hex;
 import io.nuls.sdk.core.exception.NulsException;
@@ -46,7 +42,6 @@ import io.nuls.sdk.core.utils.NulsByteBuffer;
 import io.nuls.sdk.core.utils.VarInt;
 import org.spongycastle.util.Arrays;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,9 +50,13 @@ import java.util.Map;
 /**
  * 区块数据解析处理器
  */
+@Component
 public class AnalysisHandler {
 
-    public static BlockHeaderInfo toBlockHeader(Map<String, Object> map) {
+    @Autowired
+    private WalletRPCHandler rpcHandler;
+
+    public BlockHeaderInfo toBlockHeader(Map<String, Object> map) {
         BlockHeaderInfo info = new BlockHeaderInfo();
         info.setHash((String) map.get("hash"));
         info.setTxCount((Integer) map.get("txCount"));
@@ -76,7 +75,7 @@ public class AnalysisHandler {
         return info;
     }
 
-    public static BlockInfo toBlock(Block block) throws Exception {
+    public BlockInfo toBlock(Block block) throws Exception {
         BlockInfo blockInfo = new BlockInfo();
 
         blockInfo.setTxs(toTxs(block.getTxs()));
@@ -95,7 +94,7 @@ public class AnalysisHandler {
         return blockInfo;
     }
 
-    private static BlockHeaderInfo toBlockHeader(BlockHeader blockHeader) throws Exception {
+    private BlockHeaderInfo toBlockHeader(BlockHeader blockHeader) throws Exception {
         BlockHeaderInfo info = new BlockHeaderInfo();
         info.setHash(blockHeader.getHash().getDigestHex());
         info.setHeight(blockHeader.getHeight());
@@ -117,7 +116,7 @@ public class AnalysisHandler {
         return info;
     }
 
-    private static List<TransactionInfo> toTxs(List<Transaction> txList) throws Exception {
+    private List<TransactionInfo> toTxs(List<Transaction> txList) throws Exception {
         List<TransactionInfo> txs = new ArrayList<>();
         for (int i = 0; i < txList.size(); i++) {
             txs.add(toTransaction(txList.get(i)));
@@ -125,7 +124,7 @@ public class AnalysisHandler {
         return txs;
     }
 
-    public static TransactionInfo toTransaction(Transaction tx) throws Exception {
+    public TransactionInfo toTransaction(Transaction tx) throws Exception {
         TransactionInfo info = new TransactionInfo();
         info.setHash(tx.getHash().getDigestHex());
         info.setHeight(tx.getBlockHeight());
@@ -150,7 +149,7 @@ public class AnalysisHandler {
         return info;
     }
 
-    private static List<Input> toInputs(CoinData coinData, Transaction tx) throws NulsException {
+    private List<Input> toInputs(CoinData coinData, Transaction tx) throws NulsException {
         if (coinData == null || coinData.getFrom() == null || coinData.getFrom().isEmpty()) {
             return null;
         }
@@ -179,7 +178,7 @@ public class AnalysisHandler {
     }
 
 
-    private static List<Output> toOutputs(CoinData coinData, String txHash) {
+    private List<Output> toOutputs(CoinData coinData, String txHash) {
         if (coinData == null || coinData.getTo() == null || coinData.getTo().isEmpty()) {
             return null;
         }
@@ -201,7 +200,7 @@ public class AnalysisHandler {
         return outPuts;
     }
 
-    private static TxData toTxData(Transaction tx) throws Exception {
+    private TxData toTxData(Transaction tx) {
         if (tx.getType() == TransactionConstant.TX_TYPE_ALIAS) {
             return toAlias(tx);
         } else if (tx.getType() == TransactionConstant.TX_TYPE_REGISTER_AGENT) {
@@ -226,7 +225,7 @@ public class AnalysisHandler {
         return null;
     }
 
-    private static List<TxData> toTxDataList(Transaction tx) {
+    private List<TxData> toTxDataList(Transaction tx) {
         if (tx.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
             YellowPunishTransaction yellowPunishTx = (YellowPunishTransaction) tx;
             return toYellowPunishLog(yellowPunishTx);
@@ -234,7 +233,7 @@ public class AnalysisHandler {
         return null;
     }
 
-    private static TxData toAlias(Transaction tx) {
+    private TxData toAlias(Transaction tx) {
         AliasTransaction aliasTx = (AliasTransaction) tx;
         Alias model = aliasTx.getTxData();
         AliasInfo info = new AliasInfo();
@@ -243,7 +242,7 @@ public class AnalysisHandler {
         return info;
     }
 
-    private static TxData toAgent(Transaction tx) {
+    private TxData toAgent(Transaction tx) {
         CreateAgentTransaction agentTransaction = (CreateAgentTransaction) tx;
         Agent model = agentTransaction.getTxData();
 
@@ -266,7 +265,7 @@ public class AnalysisHandler {
         return info;
     }
 
-    private static DepositInfo toDeposit(Transaction tx) {
+    private DepositInfo toDeposit(Transaction tx) {
         DepositTransaction depositTx = (DepositTransaction) tx;
         Deposit deposit = depositTx.getTxData();
 
@@ -282,7 +281,7 @@ public class AnalysisHandler {
         return info;
     }
 
-    private static DepositInfo toCancelDeposit(Transaction tx) {
+    private DepositInfo toCancelDeposit(Transaction tx) {
         CancelDepositTransaction cancelDepositTx = (CancelDepositTransaction) tx;
         CancelDeposit cancelDeposit = cancelDepositTx.getTxData();
         DepositInfo deposit = new DepositInfo();
@@ -294,7 +293,7 @@ public class AnalysisHandler {
         return deposit;
     }
 
-    private static AgentInfo toStopAgent(Transaction tx) {
+    private AgentInfo toStopAgent(Transaction tx) {
         StopAgentTransaction stopAgentTx = (StopAgentTransaction) tx;
         StopAgent stopAgent = stopAgentTx.getTxData();
         AgentInfo agentNode = new AgentInfo();
@@ -302,7 +301,7 @@ public class AnalysisHandler {
         return agentNode;
     }
 
-    private static List<TxData> toYellowPunishLog(YellowPunishTransaction tx) {
+    private List<TxData> toYellowPunishLog(YellowPunishTransaction tx) {
         YellowPunishData model = tx.getTxData();
         List<TxData> logList = new ArrayList<>();
         for (byte[] address : model.getAddressList()) {
@@ -318,7 +317,7 @@ public class AnalysisHandler {
         return logList;
     }
 
-    private static PunishLog toRedPublishLog(Transaction tx) {
+    private PunishLog toRedPublishLog(Transaction tx) {
         RedPunishTransaction redPunishTx = (RedPunishTransaction) tx;
         RedPunishData model = redPunishTx.getTxData();
 
@@ -340,23 +339,29 @@ public class AnalysisHandler {
 
     }
 
-
-    private static ContractCreateInfo toContractCreateInfo(Transaction tx) throws Exception {
+    private ContractInfo toContractCreateInfo(Transaction tx) {
         CreateContractTransaction createContractTx = (CreateContractTransaction) tx;
         CreateContractData model = createContractTx.getTxData();
-        ContractCreateInfo contractInfo = new ContractCreateInfo();
-
-        contractInfo.setCreater(AddressTool.getStringAddressByBytes(model.getSender()));
+        ContractInfo contractInfo = new ContractInfo();
+        contractInfo.setCreateTxHash(tx.getHash().getDigestHex());
         contractInfo.setContractAddress(AddressTool.getStringAddressByBytes(model.getContractAddress()));
-        contractInfo.setContractCode(Hex.encode(model.getCode()));
-        contractInfo.setGasLimit(model.getGasLimit());
         contractInfo.setPrice(model.getPrice());
-        contractInfo.setArgs(JSONUtils.obj2json(model.getArgs()));
+        contractInfo.setGasLimit(model.getGasLimit());
+        contractInfo.setBlockHeight(tx.getBlockHeight());
+        contractInfo.setCreateTime(tx.getTime());
 
-        return contractInfo;
+        RpcClientResult<ContractInfo> clientResult1 = rpcHandler.getContractInfo(contractInfo);
+        if (!clientResult1.isSuccess()) {
+            if (clientResult1.getCode() == NulsConstant.CONTRACT_NOT_EXIST) {
+                return contractInfo;
+            } else {
+                throw new RuntimeException(clientResult1.getMsg());
+            }
+        }
+        return clientResult1.getData();
     }
 
-    private static ContractCallInfo toContractCallInfo(Transaction tx) {
+    private ContractCallInfo toContractCallInfo(Transaction tx) {
         CallContractTransaction callContractTx = (CallContractTransaction) tx;
         CallContractData contractData = callContractTx.getTxData();
 
@@ -382,7 +387,7 @@ public class AnalysisHandler {
         return callInfo;
     }
 
-    private static ContractDeleteInfo toContractDeleteInfo(Transaction tx) {
+    private ContractDeleteInfo toContractDeleteInfo(Transaction tx) {
         DeleteContractTransaction deleteContractTx = (DeleteContractTransaction) tx;
         DeleteContractData model = deleteContractTx.getTxData();
         ContractDeleteInfo info = new ContractDeleteInfo();
@@ -391,7 +396,7 @@ public class AnalysisHandler {
         return info;
     }
 
-    private static ContractTransferInfo toContractTransferInfo(Transaction tx) {
+    private ContractTransferInfo toContractTransferInfo(Transaction tx) {
         ContractTransferTransaction contractTransferTx = (ContractTransferTransaction) tx;
         ContractTransferData model = contractTransferTx.getTxData();
         ContractTransferInfo info = new ContractTransferInfo();
@@ -401,7 +406,7 @@ public class AnalysisHandler {
 
     }
 
-    public static ContractResultInfo toContractResult(Map<String, Object> map) throws Exception {
+    public ContractResultInfo toContractResult(Map<String, Object> map) {
         ContractResultInfo resultInfo = new ContractResultInfo();
         map = (Map<String, Object>) map.get("data");
         if (map != null) {
@@ -426,25 +431,51 @@ public class AnalysisHandler {
             resultInfo.setSymbol((String) map.get("symbol"));
             resultInfo.setDecimals(map.get("decimals") != null ? Long.parseLong(map.get("decimals").toString()) : 0);
 
-            ArrayList listEvents = (ArrayList) map.get("events");
-            if (listEvents != null && listEvents.size() > 0) {
-                resultInfo.setEvents(JSONUtils.obj2json(listEvents));
+            List transfers = (List) map.get("transfers");
+            if (transfers != null && transfers.size() > 0) {
+                resultInfo.setNulsTransfers(toNulsTransfer(transfers));
             }
-            ArrayList listTransfers = (ArrayList) map.get("transfers");
-            if (listTransfers != null && listTransfers.size() > 0) {
-                resultInfo.setTransfers(JSONUtils.obj2json(listTransfers));
-            }
-            ArrayList listTokenTransfers = (ArrayList) map.get("tokenTransfers");
+
+            List listTokenTransfers = (List) map.get("tokenTransfers");
             if (listTokenTransfers != null && listTokenTransfers.size() > 0) {
-                resultInfo.setTokenTransfers(JSONUtils.obj2json(listTokenTransfers));
+                resultInfo.setTokenTransfers(toTokenTransfers(listTokenTransfers));
             }
         }
         return resultInfo;
     }
 
+    public List<NulsTransfer> toNulsTransfer(List<Map<String, Object>> mapList) {
+        List<NulsTransfer> nulsTransfers = new ArrayList<>();
+        for (Map<String, Object> map : mapList) {
+            NulsTransfer nulsTransfer = new NulsTransfer();
+            nulsTransfer.setTxHash((String) map.get("orginTxHash"));
+            nulsTransfer.setFromAddress((String) map.get("from"));
+            nulsTransfer.setToAddress((String) map.get("to"));
+            nulsTransfer.setValue(Long.parseLong((String) map.get("value")));
 
-    public static ContractInfo toContractInfo(Map<String, Object> map) throws Exception {
-        ContractInfo contractInfo = new ContractInfo();
+            nulsTransfers.add(nulsTransfer);
+        }
+        return nulsTransfers;
+    }
+
+    public List<TokenTransfer> toTokenTransfers(List<Map<String, Object>> mapList) {
+        List<TokenTransfer> tokenTransfers = new ArrayList<>();
+        for (Map<String, Object> map : mapList) {
+            TokenTransfer tokenTransfer = new TokenTransfer();
+            tokenTransfer.setContractAddress((String) map.get("contractAddress"));
+            tokenTransfer.setFromAddress((String) map.get("from"));
+            tokenTransfer.setToAddress((String) map.get("to"));
+            tokenTransfer.setValue((String) map.get("value"));
+            tokenTransfer.setSymbol((String) map.get("symbol"));
+            tokenTransfer.setName((String) map.get("name"));
+            tokenTransfer.setDecimals((Integer) map.get("decimals"));
+            tokenTransfers.add(tokenTransfer);
+        }
+        return tokenTransfers;
+    }
+
+
+    public ContractInfo toContractInfo(ContractInfo contractInfo, Map<String, Object> map) {
         contractInfo.setCreateTxHash((String) map.get("createTxHash"));
         contractInfo.setContractAddress((String) map.get("address"));
         contractInfo.setCreater((String) map.get("creater"));
@@ -456,10 +487,26 @@ public class AnalysisHandler {
             contractInfo.setTokenName((String) map.get("nrc20TokenName"));
             contractInfo.setSymbol((String) map.get("nrc20TokenSymbol"));
             contractInfo.setDecimals(Integer.parseInt(map.get("decimals").toString()));
-            contractInfo.setTotalSupply(new BigInteger(map.get("totalSupply").toString()));
+            contractInfo.setTotalSupply((map.get("totalSupply").toString()));
         }
         contractInfo.setStatus(0);
-        contractInfo.setMethods(JSONUtils.obj2json(map.get("method")));
+        List<Map<String, Object>> methodMap = (List<Map<String, Object>>) map.get("method");
+        List<ContractMethod> methodList = new ArrayList<>();
+        for (Map<String, Object> map1 : methodMap) {
+            ContractMethod method = new ContractMethod();
+            method.setName((String) map1.get("name"));
+            String returnArg = (String) map1.get("returnArg");
+            method.setReturnType(returnArg);
+
+            List<Map<String, Object>> argsList = (List<Map<String, Object>>) map1.get("args");
+            List<String> paramList = new ArrayList<>();
+            for (Map<String, Object> arg : argsList) {
+                paramList.add((String) arg.get("name"));
+            }
+            method.setParams(paramList);
+            methodList.add(method);
+        }
+        contractInfo.setMethods(methodList);
         return contractInfo;
     }
 
@@ -469,7 +516,7 @@ public class AnalysisHandler {
      * @param coinBaseTx coinbase交易
      * @return
      */
-    private static Long calcCoinBaseReward(TransactionInfo coinBaseTx) {
+    private Long calcCoinBaseReward(TransactionInfo coinBaseTx) {
         long reward = 0;
         if (coinBaseTx.getTos() == null) {
             return 0L;
@@ -482,8 +529,7 @@ public class AnalysisHandler {
         return reward;
     }
 
-
-    private static Long calcFee(List<TransactionInfo> txs) {
+    private Long calcFee(List<TransactionInfo> txs) {
         long fee = 0;
         for (int i = 1; i < txs.size(); i++) {
             fee += txs.get(i).getFee();

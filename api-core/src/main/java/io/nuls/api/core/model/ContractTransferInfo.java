@@ -1,6 +1,7 @@
 package io.nuls.api.core.model;
 
 public class ContractTransferInfo extends TxData {
+
     private String txHash;
 
     private String contractAddress;

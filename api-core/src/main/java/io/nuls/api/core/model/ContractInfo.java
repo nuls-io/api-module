@@ -25,8 +25,10 @@
 package io.nuls.api.core.model;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ContractInfo {
+public class ContractInfo extends TxData {
 
     private String contractAddress;
 
@@ -36,6 +38,14 @@ public class ContractInfo {
 
     private Long blockHeight;
 
+    private boolean success;
+
+    private String errorMsg;
+
+    private long gasLimit;
+
+    private long price;
+
     private Integer isNrc20;//是否支持NRC20协议(0-否、1-是)
 
     private Integer status; // 0未认证 1通过认证 2已删除
@@ -44,17 +54,33 @@ public class ContractInfo {
 
     private String remark;
 
+    private int txCount;
+
     private String deleteHash;
 
-    private String methods;
+    private List<ContractMethod> methods;
 
+    private String methodStr;
+
+    //以下字段，为NRC20合约特有
     private String tokenName;
 
     private String symbol;
 
     private int decimals;
 
-    private BigInteger totalSupply;
+    private String totalSupply;
+
+    private int transferCount;
+
+    private List<String> owners;
+
+    private boolean isNew;
+
+
+    public ContractInfo() {
+        owners = new ArrayList<>();
+    }
 
     public boolean isToken() {
         return isNrc20 == 0 ? false : true;
@@ -124,14 +150,6 @@ public class ContractInfo {
         this.deleteHash = deleteHash == null ? null : deleteHash.trim();
     }
 
-    public String getMethods() {
-        return methods;
-    }
-
-    public void setMethods(String methods) {
-        this.methods = methods;
-    }
-
     public String getTokenName() {
         return tokenName;
     }
@@ -156,11 +174,11 @@ public class ContractInfo {
         this.decimals = decimals;
     }
 
-    public BigInteger getTotalSupply() {
+    public String getTotalSupply() {
         return totalSupply;
     }
 
-    public void setTotalSupply(BigInteger totalSupply) {
+    public void setTotalSupply(String totalSupply) {
         this.totalSupply = totalSupply;
     }
 
@@ -170,5 +188,85 @@ public class ContractInfo {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public List<ContractMethod> getMethods() {
+        return methods;
+    }
+
+    public void setMethods(List<ContractMethod> methods) {
+        this.methods = methods;
+    }
+
+    public int getTransferCount() {
+        return transferCount;
+    }
+
+    public void setTransferCount(int transferCount) {
+        this.transferCount = transferCount;
+    }
+
+    public int getTxCount() {
+        return txCount;
+    }
+
+    public void setTxCount(int txCount) {
+        this.txCount = txCount;
+    }
+
+    public List<String> getOwners() {
+        return owners;
+    }
+
+    public void setOwners(List<String> owners) {
+        this.owners = owners;
+    }
+
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setNew(boolean aNew) {
+        isNew = aNew;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public long getGasLimit() {
+        return gasLimit;
+    }
+
+    public void setGasLimit(long gasLimit) {
+        this.gasLimit = gasLimit;
+    }
+
+    public long getPrice() {
+        return price;
+    }
+
+    public void setPrice(long price) {
+        this.price = price;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
+    }
+
+    public String getMethodStr() {
+        return methodStr;
+    }
+
+    public void setMethodStr(String methodStr) {
+        this.methodStr = methodStr;
     }
 }

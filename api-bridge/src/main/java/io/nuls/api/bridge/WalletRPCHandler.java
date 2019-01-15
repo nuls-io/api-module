@@ -26,16 +26,15 @@
  */
 package io.nuls.api.bridge;
 
+import io.nuls.api.bean.annotation.Autowired;
+import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.util.Log;
-import io.nuls.api.bean.annotation.Component;
 import io.nuls.sdk.core.contast.KernelErrorCode;
 import io.nuls.sdk.core.crypto.Hex;
-import io.nuls.sdk.core.model.Address;
 import io.nuls.sdk.core.model.Block;
 import io.nuls.sdk.core.model.Result;
 import io.nuls.sdk.core.model.transaction.Transaction;
-import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.core.utils.VarInt;
 import io.nuls.sdk.tool.NulsSDKTool;
@@ -52,6 +51,9 @@ import java.util.Map;
 @Component
 public class WalletRPCHandler {
 
+    @Autowired
+    private AnalysisHandler analysisHandler;
+
     private RestFulUtils restFulUtils = RestFulUtils.getInstance();
 
     /**
@@ -67,7 +69,7 @@ public class WalletRPCHandler {
         }
         RpcClientResult<BlockHeaderInfo> clientResult = RpcClientResult.getSuccess();
         try {
-            BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
+            BlockHeaderInfo blockHeader = analysisHandler.toBlockHeader((Map<String, Object>) result.getData());
             clientResult.setData(blockHeader);
         } catch (Exception e) {
             Log.error(e);
@@ -89,7 +91,7 @@ public class WalletRPCHandler {
         }
         RpcClientResult<BlockHeaderInfo> clientResult = RpcClientResult.getSuccess();
         try {
-            BlockHeaderInfo blockHeader = AnalysisHandler.toBlockHeader((Map<String, Object>) result.getData());
+            BlockHeaderInfo blockHeader = analysisHandler.toBlockHeader((Map<String, Object>) result.getData());
             clientResult.setData(blockHeader);
         } catch (Exception e) {
             Log.error(e);
@@ -106,7 +108,7 @@ public class WalletRPCHandler {
         }
         RpcClientResult<TransactionInfo> clientResult = RpcClientResult.getSuccess();
         try {
-            TransactionInfo transactionInfo = AnalysisHandler.toTransaction((Transaction) result.getData());
+            TransactionInfo transactionInfo = analysisHandler.toTransaction((Transaction) result.getData());
             if (transactionInfo.getFroms() != null && !transactionInfo.getFroms().isEmpty()) {
                 if (transactionInfo.getFroms().get(0).getAddress() == null) {
                     transactionInfo.setFroms(queryTxInput(hash));
@@ -154,7 +156,7 @@ public class WalletRPCHandler {
         RpcClientResult clientResult = RpcClientResult.getSuccess();
         try {
             Block block = (Block) result.getData();
-            BlockInfo blockInfo = AnalysisHandler.toBlock(block);
+            BlockInfo blockInfo = analysisHandler.toBlock(block);
             clientResult.setData(blockInfo);
         } catch (Exception e) {
             Log.error(e);
@@ -177,7 +179,7 @@ public class WalletRPCHandler {
         RpcClientResult clientResult = RpcClientResult.getSuccess();
         try {
             Block block = (Block) result.getData();
-            BlockInfo blockInfo = AnalysisHandler.toBlock(block);
+            BlockInfo blockInfo = analysisHandler.toBlock(block);
             clientResult.setData(blockInfo);
         } catch (Exception e) {
             Log.error(e);
@@ -194,7 +196,7 @@ public class WalletRPCHandler {
         }
         RpcClientResult clientResult = null;
         try {
-            ContractResultInfo resultDto = AnalysisHandler.toContractResult((Map<String, Object>) result.getData());
+            ContractResultInfo resultDto = analysisHandler.toContractResult((Map<String, Object>) result.getData());
             clientResult = RpcClientResult.getSuccess();
             clientResult.setData(resultDto);
         } catch (Exception e) {
@@ -204,16 +206,16 @@ public class WalletRPCHandler {
         return clientResult;
     }
 
-    public RpcClientResult<ContractInfo> getContractInfo(String contractAddress) {
-        Result result = restFulUtils.get("/contract/info/" + contractAddress, null);
+    public RpcClientResult<ContractInfo> getContractInfo(ContractInfo contractInfo) {
+        Result result = restFulUtils.get("/contract/info/" + contractInfo.getContractAddress(), null);
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
         }
         RpcClientResult clientResult = null;
         try {
-            ContractInfo contractAddressInfo = AnalysisHandler.toContractInfo((Map<String, Object>) result.getData());
+            analysisHandler.toContractInfo(contractInfo,(Map<String, Object>) result.getData());
             clientResult = RpcClientResult.getSuccess();
-            clientResult.setData(contractAddressInfo);
+            clientResult.setData(contractInfo);
         } catch (Exception e) {
             Log.error(e);
             clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);

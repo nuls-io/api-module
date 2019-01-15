@@ -34,4 +34,7 @@ public class NulsConstant {
         SEED_NODE_ADDRESS.add("TTavq5rDMcnU4FRRRBJdPFMXfYfuNULS");
         SEED_NODE_ADDRESS.add("TTaqyWKAbTSJp1PvBeiEnM1MWTytTfnm");
     }
+
+
+    public static final int CONTRACT_NOT_EXIST = 100002;
 }

@@ -45,7 +45,9 @@ public class BlockService {
     @Autowired
     private WalletRPCHandler rpcHandler;
     @Autowired
-    private NRC20Sever nrc20Sever;
+    private TokenService tokenService;
+    @Autowired
+    private ContractService contractService;
 
     //记录每个区块打包交易的所有已花费(input)
     private List<Input> inputList = new ArrayList<>();
@@ -65,10 +67,14 @@ public class BlockService {
     private List<PunishLog> punishLogList = new ArrayList<>();
     //记录每个区块新创建的智能合约信息
     private List<ContractInfo> contractInfoList = new ArrayList<>();
+    //记录智能合约的执行结果信息
+    private List<ContractResultInfo> contractResultList = new ArrayList<>();
     //记录每个区块智能合约相关的账户token信息
-    private List<AccountTokenInfo> tokenInfoList = new ArrayList<>();
+    private List<AccountTokenInfo> accountTokenList = new ArrayList<>();
     //记录智能合约相关的交易信息
     private List<ContractTxInfo> contractTxInfoList = new ArrayList<>();
+    //记录合约转账信息
+    private List<TokenTransfer> tokenTransferList = new ArrayList<>();
 
     /**
      * 存储最新区块信息
@@ -84,7 +90,7 @@ public class BlockService {
 
     boolean hasContract = false;
 
-    public boolean saveNewBlock(BlockInfo blockInfo) {
+    public boolean saveNewBlock(BlockInfo blockInfo) throws Exception {
         clear();
         long time1, time2;
         time1 = System.currentTimeMillis();
@@ -110,7 +116,7 @@ public class BlockService {
         //处理交易
         processTransactions(blockInfo.getTxs(), agentInfo, headerInfo.getHeight());
 
-        processRoundData(blockInfo);
+//        processRoundData(blockInfo);
 
         save(blockInfo, agentInfo);
         time2 = System.currentTimeMillis();
@@ -127,7 +133,7 @@ public class BlockService {
     private void processTransactions(List<TransactionInfo> txs, AgentInfo agentInfo, long blockHeight) {
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
-            if (tx.getType() > 10) {
+            if (tx.getType() >= 100) {
                 hasContract = true;
             }
 
@@ -154,7 +160,7 @@ public class BlockService {
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
                 processCreateContract(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
-
+                processCallContract(tx, blockHeight);
             }
         }
     }
@@ -441,61 +447,123 @@ public class BlockService {
     }
 
     private void processCreateContract(TransactionInfo tx, long blockHeight) {
+        ContractInfo contractInfo = (ContractInfo) tx.getTxData();
+        contractInfo.setTxCount(1);
+        contractInfo.setNew(true);
+        contractInfo.setRemark(tx.getRemark());
+
         //首先查询合约交易执行结果
-        RpcClientResult<ContractResultInfo> clientResult = rpcHandler.getContractResult(tx.getHash());
-        if (clientResult.isSuccess() == false) {
-            throw new RuntimeException(clientResult.getMsg());
-        }
-        //执行结果为失败时，直接返回
-        ContractResultInfo resultInfo = clientResult.getData();
+        RpcClientResult<ContractResultInfo> clientResult1 = rpcHandler.getContractResult(tx.getHash());
+        ContractResultInfo resultInfo = clientResult1.getData();
+        contractResultList.add(resultInfo);
+        contractInfo.setSuccess(resultInfo.getSuccess());
         if (!resultInfo.getSuccess()) {
-            return;
+            contractInfo.setErrorMsg(resultInfo.getErrorMessage());
+        } else {
+            //如果是NRC20合约，还需要处理相关账户的token信息
+            if (contractInfo.getIsNrc20() == 1) {
+                processTokenTransfers(contractInfo, resultInfo.getTokenTransfers(), tx);
+            }
         }
-
-        ContractCreateInfo contractCreateInfo = (ContractCreateInfo) tx.getTxData();
-        RpcClientResult<ContractInfo> contractInfoResult = rpcHandler.getContractInfo(contractCreateInfo.getContractAddress());
-        if (contractInfoResult.isSuccess() == false) {
-            throw new RuntimeException(clientResult.getMsg());
-        }
-        ContractInfo contractInfo = contractInfoResult.getData();
         contractInfoList.add(contractInfo);
-
-        createContractTxInfo(tx, blockHeight, contractInfo.getContractAddress());
-        //如果是NRC20合约，还需要创建合约token地址
-        if (contractInfo.getIsNrc20() == 1) {
-            processNrc20ForAccount(contractInfo.getCreater(), contractInfo.getSymbol(), contractInfo.getTotalSupply());
-        }
+        createContractTxInfo(tx, contractInfo, blockHeight);
     }
 
-    private void createContractTxInfo(TransactionInfo tx, long blockHeight, String contractAddress) {
+    /**
+     * @param tx
+     * @param contractInfo
+     * @param blockHeight
+     */
+    private void createContractTxInfo(TransactionInfo tx, ContractInfo contractInfo, long blockHeight) {
         ContractTxInfo contractTxInfo = new ContractTxInfo();
         contractTxInfo.setTxHash(tx.getHash());
         contractTxInfo.setBlockHeight(blockHeight);
-        contractTxInfo.setContractAddress(contractAddress);
+        contractTxInfo.setContractAddress(contractInfo.getContractAddress());
         contractTxInfo.setTime(tx.getCreateTime());
         contractTxInfo.setType(tx.getType());
         contractTxInfo.setFee(tx.getFee());
 
         contractTxInfoList.add(contractTxInfo);
     }
+//
+//    private void processNrc20ForAccount(String address, String symbol, String contractAddress, BigInteger value, int decimals) {
+//        AccountTokenInfo tokenInfo = nrc20Service.getAccountTokenInfo(address, symbol);
+//        if (tokenInfo == null) {
+//            AccountInfo accountInfo = queryAccountInfo(address);
+//            accountInfo.getTokens().add(symbol);
+//
+//            tokenInfo = new AccountTokenInfo(address, symbol, contractAddress);
+//            tokenInfo.setDecimals(decimals);
+//            tokenInfo.setBalance(value);
+//        }
+//        tokenInfo.setBalance(tokenInfo.getBalance().add(value));
+//        if (tokenInfo.getBalance().compareTo(BigInteger.ZERO) < 0) {
+//            throw new RuntimeException("data error: " + address + " token[" + symbol + "] balance < 0");
+//        }
+//        tokenInfoList.add(tokenInfo);
+//    }
 
-    private void processNrc20ForAccount(String address, String symbol, BigInteger value) {
-        AccountTokenInfo tokenInfo = nrc20Sever.getAccountTokenInfo(address, symbol);
+    /**
+     * 处理Nrc20合约相关的地址的token余额
+     *
+     * @param contractInfo
+     * @param value
+     */
+    private AccountTokenInfo processNrc20ForAccount(ContractInfo contractInfo, String address, BigInteger value, int type) {
+        AccountTokenInfo tokenInfo = tokenService.getAccountTokenInfo(address, contractInfo.getSymbol());
+        BigInteger balanceValue;
         if (tokenInfo == null) {
             AccountInfo accountInfo = queryAccountInfo(address);
-            accountInfo.getTokens().add(symbol);
+            accountInfo.getTokens().add(contractInfo.getSymbol());
 
-            tokenInfo = new AccountTokenInfo(address, symbol);
+            tokenInfo = new AccountTokenInfo(address, contractInfo.getContractAddress(), contractInfo.getSymbol(), contractInfo.getDecimals());
         }
-        tokenInfo.setBalance(tokenInfo.getBalance().add(value));
-        if (tokenInfo.getBalance().compareTo(BigInteger.ZERO) < 0) {
-            throw new RuntimeException("data error: " + address + " token[" + symbol + "] balance < 0");
+        balanceValue = new BigInteger(tokenInfo.getBalance());
+        if (type == 1) {
+            balanceValue = balanceValue.add(value);
+        } else {
+            balanceValue = balanceValue.subtract(value);
+
         }
-        tokenInfoList.add(tokenInfo);
+
+        if (balanceValue.compareTo(BigInteger.ZERO) < 0) {
+            throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
+        }
+        tokenInfo.setBalance(balanceValue.toString());
+        accountTokenList.add(tokenInfo);
+        return tokenInfo;
+    }
+
+    /**
+     * 处理Nrc20合约相关转账的记录
+     *
+     * @param tokenTransfers
+     */
+    private void processTokenTransfers(ContractInfo contractInfo, List<TokenTransfer> tokenTransfers, TransactionInfo tx) {
+        Set<String> ownerSet = new HashSet<>(contractInfo.getOwners());
+        AccountTokenInfo tokenInfo;
+        for (int i = 0; i < tokenTransfers.size(); i++) {
+            TokenTransfer tokenTransfer = tokenTransfers.get(i);
+            tokenTransfer.setTxHash(tx.getHash());
+            tokenTransfer.setHeight(tx.getHeight());
+            tokenTransfer.setTime(tx.getCreateTime());
+            ownerSet.add(tokenTransfer.getToAddress());
+            contractInfo.setTransferCount(contractInfo.getTransferCount() + 1);
+
+            if (tokenTransfer.getFromAddress() != null) {
+                tokenInfo = processNrc20ForAccount(contractInfo, tokenTransfer.getFromAddress(), new BigInteger(tokenTransfer.getValue()), -1);
+                tokenTransfer.setFromBalance(tokenInfo.getBalance());
+            }
+
+            tokenInfo = processNrc20ForAccount(contractInfo, tokenTransfer.getToAddress(), new BigInteger(tokenTransfer.getValue()), 1);
+            tokenTransfer.setToBalance(tokenInfo.getBalance());
+
+            tokenTransferList.add(tokenTransfer);
+        }
     }
 
 
-    private void processCallContract(TransactionInfo tx) {
+    private void processCallContract(TransactionInfo tx, long blockHeight) {
         //首先查询合约交易执行结果
         RpcClientResult<ContractResultInfo> clientResult = rpcHandler.getContractResult(tx.getHash());
         if (clientResult.isSuccess() == false) {
@@ -524,32 +592,40 @@ public class BlockService {
     /**
      * 解析区块和所有交易后，将数据存储到数据库中
      */
-    public void save(BlockInfo blockInfo, AgentInfo agentInfo) {
+    public void save(BlockInfo blockInfo, AgentInfo agentInfo) throws Exception {
         if (hasContract) {
             return;
         }
-        saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
-        blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
-        //如果区块非种子节点地址打包，则需要修改打包节点的奖励统计，放在agentInfoList里一并处理
-        if (!blockInfo.getBlockHeader().isSeedPacked()) {
-            agentInfoList.add(agentInfo);
-        }
-        //存储交易记录
-        transactionService.saveTxList(blockInfo.getTxs());
-        //存储交易和地址关系记录
-        transactionService.saveTxRelationList(txRelationInfoSet);
-        //根据input和output更新utxo表
-        utxoService.saveWithInputOutput(inputList, outputMap);
-        //修改账户信息表
-        accountService.saveAccounts(accountInfoMap);
-        //存储别名记录
-        aliasService.saveAliasList(aliasInfoList);
-        //存储共识节点列表
-        agentService.saveAgentList(agentInfoList);
-        //存储委托/取消委托记录
-        depositService.saveDepositList(depositInfoList);
-        //存储红黄牌惩罚记录
-        punishService.savePunishList(punishLogList);
+//        saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
+//        blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
+//        //如果区块非种子节点地址打包，则需要修改打包节点的奖励统计，放在agentInfoList里一并处理
+//        if (!blockInfo.getBlockHeader().isSeedPacked()) {
+//            agentInfoList.add(agentInfo);
+//        }
+//        //存储交易记录
+//        transactionService.saveTxList(blockInfo.getTxs());
+//        //存储交易和地址关系记录
+//        transactionService.saveTxRelationList(txRelationInfoSet);
+//        //根据input和output更新utxo表
+//        utxoService.saveWithInputOutput(inputList, outputMap);
+//        //修改账户信息表
+//        accountService.saveAccounts(accountInfoMap);
+//        //存储别名记录
+//        aliasService.saveAliasList(aliasInfoList);
+//        //存储共识节点列表
+//        agentService.saveAgentList(agentInfoList);
+//        //存储委托/取消委托记录
+//        depositService.saveDepositList(depositInfoList);
+//        //存储红黄牌惩罚记录
+//        punishService.savePunishList(punishLogList);
+        //存储智能合约记录
+        contractService.saveContractInfos(contractInfoList);
+        //存储智能合约交易关系记录
+        contractService.saveContractTxInfos(contractTxInfoList);
+        //存储账户token信息
+        tokenService.saveAccountTokens(accountTokenList);
+        //存储token转账信息
+        tokenService.saveTokenTransfers(tokenTransferList);
 
         //todo 存储完成后记得修改new_info最新高度 isFinish = true;
     }
@@ -595,7 +671,9 @@ public class BlockService {
         depositInfoList.clear();
         punishLogList.clear();
         contractInfoList.clear();
-        tokenInfoList.clear();
+        contractResultList.clear();
+        accountTokenList.clear();
         contractTxInfoList.clear();
+        tokenTransferList.clear();
     }
 }

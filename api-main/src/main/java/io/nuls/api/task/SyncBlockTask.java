@@ -48,7 +48,7 @@ public class SyncBlockTask implements Runnable {
      *
      * @return boolean 是否还继续同步
      */
-    private boolean syncBlock() {
+    private boolean syncBlock() throws Exception {
         long localBestHeight;
         //取出本地已经同步到最新块，然后根据高度同步下一块
         BlockHeaderInfo localBestBlockHeader = blockHeaderService.getBestBlockHeader();
@@ -57,10 +57,8 @@ public class SyncBlockTask implements Runnable {
         } else {
             localBestHeight = localBestBlockHeader.getHeight();
         }
+        localBestHeight = 66872;
         ApiContext.bestHeight = localBestHeight;
-        if (localBestHeight > 65000) {
-            return false;
-        }
         //调用RPC接口获取节点钱包下一区块
         RpcClientResult<BlockHeaderInfo> result = null;
         try {
@@ -78,7 +76,7 @@ public class SyncBlockTask implements Runnable {
         }
     }
 
-    private boolean processWithSuccessResult(RpcClientResult<BlockHeaderInfo> result, BlockHeaderInfo localBestBlockHeader) {
+    private boolean processWithSuccessResult(RpcClientResult<BlockHeaderInfo> result, BlockHeaderInfo localBestBlockHeader) throws Exception {
         BlockHeaderInfo newBlockHeader = result.getData();
         //验证区块连续性
         if (checkBlockContinuity(localBestBlockHeader, newBlockHeader)) {
@@ -112,22 +110,24 @@ public class SyncBlockTask implements Runnable {
      * @return
      */
     private boolean checkBlockContinuity(BlockHeaderInfo localBest, BlockHeaderInfo newest) {
-        if (localBest == null) {
-            if (newest.getHeight() == 0) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            if (newest.getHeight() == localBest.getHeight() + 1) {
-                if (newest.getPreHash().equals(localBest.getHash())) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        }
+        return true;
+
+//        if (localBest == null) {
+//            if (newest.getHeight() == 0) {
+//                return true;
+//            } else {
+//                return false;
+//            }
+//        } else {
+//            if (newest.getHeight() == localBest.getHeight() + 1) {
+//                if (newest.getPreHash().equals(localBest.getHash())) {
+//                    return true;
+//                } else {
+//                    return false;
+//                }
+//            } else {
+//                return false;
+//            }
+//        }
     }
 }

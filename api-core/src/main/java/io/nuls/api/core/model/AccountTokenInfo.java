@@ -4,11 +4,15 @@ import java.math.BigInteger;
 
 public class AccountTokenInfo {
 
+    private String key;
+
     private String address;
 
     private String tokenSymbol;
 
-    private BigInteger balance;
+    private String contractAddress;
+
+    private String balance;
 
     private int decimals;
 
@@ -18,10 +22,13 @@ public class AccountTokenInfo {
 
     }
 
-    public AccountTokenInfo(String address, String tokenSymbol) {
+    public AccountTokenInfo(String address, String contractAddress, String tokenSymbol, int decimals) {
+        this.setKey(address + contractAddress);
         this.address = address;
         this.tokenSymbol = tokenSymbol;
-        this.balance = BigInteger.ZERO;
+        this.contractAddress = contractAddress;
+        this.balance = "0";
+        this.decimals = decimals;
         this.isNew = true;
     }
 
@@ -41,11 +48,11 @@ public class AccountTokenInfo {
         this.tokenSymbol = tokenSymbol;
     }
 
-    public BigInteger getBalance() {
+    public String getBalance() {
         return balance;
     }
 
-    public void setBalance(BigInteger balance) {
+    public void setBalance(String balance) {
         this.balance = balance;
     }
 
@@ -63,5 +70,21 @@ public class AccountTokenInfo {
 
     public void setDecimals(int decimals) {
         this.decimals = decimals;
+    }
+
+    public String getContractAddress() {
+        return contractAddress;
+    }
+
+    public void setContractAddress(String contractAddress) {
+        this.contractAddress = contractAddress;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 }

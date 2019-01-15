@@ -25,6 +25,8 @@ package io.nuls.api.core.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.List;
+
 /**
  * @author: PierreLuo
  */
@@ -61,11 +63,9 @@ public class ContractResultInfo {
 
     private Long nonce;
 
-    private String transfers;
+    private List<NulsTransfer> nulsTransfers;
 
-    private String events;
-
-    private String tokenTransfers;
+    private List<TokenTransfer> tokenTransfers;
 
     private String tokenName;
 
@@ -199,28 +199,12 @@ public class ContractResultInfo {
         this.nonce = nonce;
     }
 
-    public String getTransfers() {
-        return transfers;
-    }
-
-    public void setTransfers(String transfers) {
-        this.transfers = transfers == null ? null : transfers.trim();
-    }
-
-    public String getEvents() {
-        return events;
-    }
-
-    public void setEvents(String events) {
-        this.events = events == null ? null : events.trim();
-    }
-
-    public String getTokenTransfers() {
+    public List<TokenTransfer> getTokenTransfers() {
         return tokenTransfers;
     }
 
-    public void setTokenTransfers(String tokenTransfers) {
-        this.tokenTransfers = tokenTransfers == null ? null : tokenTransfers.trim();
+    public void setTokenTransfers(List<TokenTransfer> tokenTransfers) {
+        this.tokenTransfers = tokenTransfers;
     }
 
     public String getTokenName() {
@@ -269,5 +253,13 @@ public class ContractResultInfo {
 
     public void setConfirmCount(Long confirmCount) {
         this.confirmCount = confirmCount;
+    }
+
+    public List<NulsTransfer> getNulsTransfers() {
+        return nulsTransfers;
+    }
+
+    public void setNulsTransfers(List<NulsTransfer> nulsTransfers) {
+        this.nulsTransfers = nulsTransfers;
     }
 }

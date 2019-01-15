@@ -9,6 +9,7 @@ public class ContractDeleteInfo extends TxData {
     private String creater;
 
     public ContractDeleteInfo() {
+
     }
 
     public String getCreateTxHash() {
