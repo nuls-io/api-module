@@ -21,7 +21,6 @@
 package io.nuls.api.controller.search;
 
 import io.nuls.api.bean.annotation.Autowired;
-import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.bridge.WalletRPCHandler;
@@ -113,7 +112,6 @@ public class SearchController {
         }
 
         AccountInfo accountInfo = accountService.getAccount(address);
-        RpcResult result = new RpcResult();
         if (accountInfo == null) {
             throw new NotFoundException();
         }

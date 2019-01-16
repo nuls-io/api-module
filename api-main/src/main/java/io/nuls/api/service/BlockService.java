@@ -87,11 +87,13 @@ public class BlockService {
 
     boolean hasContract = false;
 
+    private long time1;
+
     public boolean saveNewBlock(BlockInfo blockInfo) throws Exception {
         clear();
-        long time1, time2;
-        time1 = System.currentTimeMillis();
-
+        if (time1 == 0) {
+            time1 = System.currentTimeMillis();
+        }
         BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
 
         AgentInfo agentInfo;
@@ -118,8 +120,10 @@ public class BlockService {
         processRoundData(blockInfo);
 
         save(blockInfo, agentInfo);
-        time2 = System.currentTimeMillis();
-        Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (time2 - time1) + "ms");
+        if (blockInfo.getBlockHeader().getHeight() % 10000 == 0) {
+            Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
+            time1 = System.currentTimeMillis();
+        }
         ApiContext.bestHeight = headerInfo.getHeight();
         return true;
     }

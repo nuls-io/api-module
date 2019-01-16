@@ -151,7 +151,7 @@ public class MongoDBService {
         return collection.deleteMany(var1).getDeletedCount();
     }
 
-    public String createIndex(String collName, Document index) {
+    public String createIndex(String collName, Bson index) {
         MongoCollection<Document> collection = getCollection(collName);
         return collection.createIndex(index);
     }

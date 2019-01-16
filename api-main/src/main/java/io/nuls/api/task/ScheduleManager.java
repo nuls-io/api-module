@@ -1,9 +1,12 @@
 package io.nuls.api.task;
 
+import com.mongodb.client.ListIndexesIterable;
+import com.mongodb.client.model.Indexes;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.mongodb.MongoDBService;
+import org.bson.Document;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -38,12 +41,33 @@ public class ScheduleManager {
             mongoDBService.dropTable(MongoTableName.ROUND_INFO);
             mongoDBService.dropTable(MongoTableName.ROUND_ITEM_INFO);
             mongoDBService.dropTable(MongoTableName.STATISTICAL_INFO);
+            mongoDBService.dropTable(MongoTableName.ACCOUNT_TOKEN_INFO);
+            mongoDBService.dropTable(MongoTableName.CONTRACT_INFO);
+            mongoDBService.dropTable(MongoTableName.CONTRACT_TX_INFO);
+            mongoDBService.dropTable(MongoTableName.TOKEN_TRANSFER_INFO);
+            mongoDBService.dropTable(MongoTableName.CONTRACT_RESULT_INFO);
         }
+
+        initTables();
 
         executorService = Executors.newScheduledThreadPool(2);
         executorService.scheduleAtFixedRate(syncBlockTask, 1, 10, TimeUnit.SECONDS);
 
 
         executorService.scheduleAtFixedRate(statisticalTask, 1, 60, TimeUnit.MINUTES);
+    }
+
+    private void initTables() {
+        //判断是否需要创建collections，已存在则返回
+        ListIndexesIterable<Document> indexes = mongoDBService.getIndexes(MongoTableName.TX_RELATION_INFO);
+        if (null != indexes && indexes.iterator().hasNext()) {
+            return;
+        }
+        //创建collections
+        mongoDBService.createCollection(MongoTableName.TX_RELATION_INFO);
+
+        //创建索引
+        mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("address"));
+
     }
 }
