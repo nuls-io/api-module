@@ -46,15 +46,15 @@ public class ContractController {
     @Autowired
     private ContractService contractService;
 
-    @RpcMethod("getAddressTokens")
+    @RpcMethod("getAccountTokens")
     public RpcResult getAccountTokens(List<Object> params) {
         VerifyUtils.verifyParams(params, 3);
-        String address = (String) params.get(0);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        String address = (String) params.get(2);
         if (!AddressTool.validAddress(address)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
         }
-        int pageIndex = (int) params.get(1);
-        int pageSize = (int) params.get(2);
         if (pageIndex <= 0) {
             pageIndex = 1;
         }
