@@ -36,7 +36,7 @@ public class AppTest {
 
     @Test
     public void testGetBlock2() {
-        RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock(1422757);
+        RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock(67236);
         System.out.println(clientResult.isSuccess());
     }
 

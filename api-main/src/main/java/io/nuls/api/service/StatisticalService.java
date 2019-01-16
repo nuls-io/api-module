@@ -139,7 +139,7 @@ public class StatisticalService {
                 keyList.add(key);
                 map.put(key, value);
             }
-            value.add(document.getLong(field));
+            value.add(Long.parseLong(document.getObjectId(field) + ""));
         }
         for (String key : keyList) {
             KeyValue keyValue = new KeyValue();
