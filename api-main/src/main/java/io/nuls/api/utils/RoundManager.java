@@ -46,7 +46,7 @@ public class RoundManager {
 
     private static final long MIN_DEPOSIT = 20000000000000L;
 
-    private CurrentRound currentRound = new CurrentRound();
+    private CurrentRound currentRound;
 
     @Autowired
     private AgentService agentService;
@@ -61,10 +61,29 @@ public class RoundManager {
     private BlockHeaderService blockHeaderService;
 
     public void process(BlockInfo blockInfo) {
-        if (blockInfo.getBlockHeader().getRoundIndex() == currentRound.getIndex()) {
-            processCurrentRound(blockInfo);
-        } else {
-            processNextRound(blockInfo);
+        try {
+            if (null == this.currentRound) {
+                PocRound round = null;
+                long roundIndex = blockInfo.getBlockHeader().getRoundIndex();
+                while (round == null) {
+                    round = roundService.getRound(roundIndex--);
+                }
+                CurrentRound preRound = new CurrentRound();
+                preRound.initByPocRound(round);
+                List<PocRoundItem> list = roundService.getRoundItemList(round.getIndex());
+                preRound.setItemList(list);
+                preRound.setStartBlockHeader(blockHeaderService.getBlockHeaderInfoByHeight(round.getStartHeight()));
+                preRound.setPackerOrder(round.getMemberCount());
+                this.currentRound = preRound;
+
+            }
+            if (blockInfo.getBlockHeader().getRoundIndex() == currentRound.getIndex()) {
+                processCurrentRound(blockInfo);
+            } else {
+                processNextRound(blockInfo);
+            }
+        } catch (Exception e) {
+            Log.error(e);
         }
     }
 
@@ -154,8 +173,8 @@ public class RoundManager {
         fillPunishCount(blockInfo.getTxs(), round, true);
         this.currentRound = round;
 //        Log.warn("++++++++{}({})+++++++" + round.toString(), blockInfo.getBlockHeader().getHeight(), startHeight);
-        roundService.saveRound(round.toPocRound());
         roundService.saveRoundItemList(round.getItemList());
+        roundService.saveRound(round.toPocRound());
 
 
     }
