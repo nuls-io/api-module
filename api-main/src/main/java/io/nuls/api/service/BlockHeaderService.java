@@ -70,6 +70,20 @@ public class BlockHeaderService {
     }
 
     /**
+     * 按照hash获取区块头
+     *
+     * @param hash 摘要
+     * @return BlockHeaderInfo
+     */
+    public BlockHeaderInfo getBlockHeaderInfoByHash(String hash) {
+        Document document = mongoDBService.findOne(MongoTableName.BLOCK_HEADER, Filters.eq("hash", hash));
+        if (document == null) {
+            return null;
+        }
+        return DocumentTransferTool.toInfo(document, "height", BlockHeaderInfo.class);
+    }
+
+    /**
      * 存区块头
      *
      * @param blockHeaderInfo 区块头

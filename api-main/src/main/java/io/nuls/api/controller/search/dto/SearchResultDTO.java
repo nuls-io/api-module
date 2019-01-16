@@ -18,25 +18,30 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.controller.search;
-
-import org.junit.Test;
-
-import static org.junit.Assert.*;
+package io.nuls.api.controller.search.dto;
 
 /**
  * @author Niels
  */
-public class SearchControllerTest {
+public class SearchResultDTO {
 
-    @Test
-    public void search() {
+    private String type;
 
-        String txHash = "00200f74e456b0bcca2cd9467d9178ba0b011970532bf0ef73b14fe9fa7a0b5b08f6";
-        String blockHash = "00204508bbbac4aecea0e31100a03c5ae70ed3bca09d85311612e265f311fa353a07";
-        String height = "12345";
-        String address = "TTarYnUfsftmm7DrStandCEdd4SNiELS";
-        System.out.println(txHash.length());
-        System.out.println(address.length());
+    private Object data;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
     }
 }

@@ -18,25 +18,17 @@
  * SOFTWARE.
  */
 
-package io.nuls.api.controller.search;
+package io.nuls.api.controller.ex;
 
-import org.junit.Test;
-
-import static org.junit.Assert.*;
+import io.nuls.api.controller.model.RpcResultError;
+import io.nuls.api.utils.JsonRpcException;
 
 /**
  * @author Niels
  */
-public class SearchControllerTest {
+public class NotFoundException extends JsonRpcException {
 
-    @Test
-    public void search() {
-
-        String txHash = "00200f74e456b0bcca2cd9467d9178ba0b011970532bf0ef73b14fe9fa7a0b5b08f6";
-        String blockHash = "00204508bbbac4aecea0e31100a03c5ae70ed3bca09d85311612e265f311fa353a07";
-        String height = "12345";
-        String address = "TTarYnUfsftmm7DrStandCEdd4SNiELS";
-        System.out.println(txHash.length());
-        System.out.println(address.length());
+    public NotFoundException() {
+        super(new RpcResultError(404, "Data not found!", null));
     }
 }
