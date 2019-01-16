@@ -88,6 +88,9 @@ public class JsonRpcServer {
             }
             for (Method method : methods) {
                 RpcMethod rpc = (RpcMethod) SpringLiteContext.getFromArray(method.getDeclaredAnnotations(), RpcMethod.class);
+                if (null == rpc) {
+                    continue;
+                }
                 String methodCmd = rpc.value();
                 if (methodCmd == null || methodCmd.trim().length() == 0) {
                     Log.warn("null method:" + bean.getClass() + ":" + method.getName());

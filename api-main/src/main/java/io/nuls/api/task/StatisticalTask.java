@@ -90,7 +90,10 @@ public class StatisticalTask implements Runnable {
             statistical(start, end);
             start = end + 1;
             end = end + day;
-            header = blockHeaderService.getBestBlockHeader();
+            BlockHeaderInfo newBlockHeader = blockHeaderService.getBestBlockHeader();
+            if (null != newBlockHeader) {
+                header = newBlockHeader;
+            }
         }
     }
 

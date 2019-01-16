@@ -99,4 +99,12 @@ public class TransactionService {
         PageInfo<TransactionInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, txList);
         return pageInfo;
     }
+
+    public TransactionInfo getTx(String text) {
+        Document document = mongoDBService.findOne(MongoTableName.TX_INFO, eq("_id", text));
+        if (null == document) {
+            return null;
+        }
+        return TransactionInfo.fromDocument(document);
+    }
 }
