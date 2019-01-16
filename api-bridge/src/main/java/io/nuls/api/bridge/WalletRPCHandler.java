@@ -131,7 +131,7 @@ public class WalletRPCHandler {
         for (Map<String, Object> valueMap : inputs) {
             Input input = new Input();
             input.setAddress((String) valueMap.get("address"));
-            input.setValue((Long) valueMap.get("value"));
+            input.setValue(Long.parseLong(valueMap.get("value").toString()));
 
             byte[] fromHashBytes = Hex.decode((String) valueMap.get("fromHash"));
             int fromIndex = (Integer) valueMap.get("fromIndex");

@@ -68,23 +68,22 @@ public class AccountController {
     @RpcMethod("getAccountTxs")
     public RpcResult getAccountTxs(List<Object> params) {
         VerifyUtils.verifyParams(params, 5);
-        String address = (String) params.get(0);
+
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        String address = (String) params.get(2);
+        int type = (int) params.get(3);
+        boolean isMark = (boolean) params.get(4);
+
         if (!AddressTool.validAddress(address)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
         }
-
-        int pageIndex = (int) params.get(1);
-        int pageSize = (int) params.get(2);
         if (pageIndex <= 0) {
             pageIndex = 1;
         }
         if (pageSize <= 0 || pageSize > 100) {
             pageSize = 10;
         }
-
-        int type = (int) params.get(3);
-        boolean isMark = (boolean) params.get(4);
-
         PageInfo<TxRelationInfo> relationInfos = accountService.getAccountTxs(address, pageIndex, pageSize, type, isMark);
         RpcResult result = new RpcResult();
         result.setResult(relationInfos);

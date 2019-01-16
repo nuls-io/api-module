@@ -1,5 +1,7 @@
 package io.nuls;
 
+import io.nuls.api.bean.SpringLiteContext;
+import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
@@ -14,10 +16,12 @@ import org.junit.Test;
  */
 public class AppTest {
 
+    @Autowired
     WalletRPCHandler walletRPCHandler;
 
     @Before
     public void init() {
+
         SDKBootstrap.init("127.0.0.1", "8001");
         walletRPCHandler = new WalletRPCHandler();
     }
@@ -36,7 +40,8 @@ public class AppTest {
 
     @Test
     public void testGetBlock2() {
-        RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock(67236,"1");
+        SpringLiteContext.init("io.nuls");
+        RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock(68108,"1");
         System.out.println(clientResult.isSuccess());
     }
 

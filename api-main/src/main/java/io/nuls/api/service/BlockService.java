@@ -115,7 +115,7 @@ public class BlockService {
         //处理交易
         processTransactions(blockInfo.getTxs(), agentInfo, headerInfo.getHeight());
 
-//        processRoundData(blockInfo);
+        processRoundData(blockInfo);
 
         save(blockInfo, agentInfo);
         time2 = System.currentTimeMillis();

@@ -37,12 +37,10 @@ import io.nuls.sdk.core.model.*;
 import io.nuls.sdk.core.model.transaction.*;
 import io.nuls.sdk.core.script.TransactionSignature;
 import io.nuls.sdk.core.utils.AddressTool;
-import io.nuls.sdk.core.utils.JSONUtils;
 import io.nuls.sdk.core.utils.NulsByteBuffer;
 import io.nuls.sdk.core.utils.VarInt;
 import org.spongycastle.util.Arrays;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +118,13 @@ public class AnalysisHandler {
     private List<TransactionInfo> toTxs(List<Transaction> txList) throws Exception {
         List<TransactionInfo> txs = new ArrayList<>();
         for (int i = 0; i < txList.size(); i++) {
-            txs.add(toTransaction(txList.get(i)));
+            TransactionInfo transactionInfo = toTransaction(txList.get(i));
+            if (transactionInfo.getFroms() != null && !transactionInfo.getFroms().isEmpty()) {
+                if (transactionInfo.getFroms().get(0).getAddress() == null) {
+                    transactionInfo.setFroms(rpcHandler.queryTxInput(transactionInfo.getHash()));
+                }
+            }
+            txs.add(transactionInfo);
         }
         return txs;
     }

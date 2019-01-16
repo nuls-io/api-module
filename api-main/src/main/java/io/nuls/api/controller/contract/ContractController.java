@@ -70,14 +70,14 @@ public class ContractController {
     @RpcMethod("getTokenTransfers")
     public RpcResult getTokenTransfers(List<Object> params) {
         VerifyUtils.verifyParams(params, 4);
-        String address = (String) params.get(0);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        String address = (String) params.get(2);
+        String contractAddress = (String) params.get(3);
+
         if (!AddressTool.validAddress(address)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
         }
-        String contractAddress = (String) params.get(1);
-
-        int pageIndex = (int) params.get(2);
-        int pageSize = (int) params.get(3);
         if (pageIndex <= 0) {
             pageIndex = 1;
         }
@@ -115,13 +115,14 @@ public class ContractController {
     @RpcMethod("getContractTxList")
     public RpcResult getContractTxList(List<Object> params) {
         VerifyUtils.verifyParams(params, 4);
-        String contractAddress = (String) params.get(0);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        int type = (int) params.get(2);
+        String contractAddress = (String) params.get(3);
+
         if (!AddressTool.validAddress(contractAddress)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
         }
-        int type = (int) params.get(1);
-        int pageIndex = (int) params.get(2);
-        int pageSize = (int) params.get(3);
         if (pageIndex <= 0) {
             pageIndex = 1;
         }
