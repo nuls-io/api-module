@@ -109,7 +109,7 @@ public class AnalysisHandler {
         info.setCreateTime(blockHeader.getTime());
         info.setPackingAddress(AddressTool.getStringAddressByBytes(blockHeader.getPackingAddress()));
         info.setRoundStartTime(extendsData.getRoundStartTime());
-        info.setAgentVersion(extendsData.getCurrentVersion()==null?1:extendsData.getCurrentVersion());
+        info.setAgentVersion(extendsData.getCurrentVersion() == null ? 1 : extendsData.getCurrentVersion());
         //是否是种子节点打包的区块
         if (NulsConstant.SEED_NODE_ADDRESS.contains(info.getPackingAddress())) {
             info.setSeedPacked(true);
@@ -346,8 +346,6 @@ public class AnalysisHandler {
         ContractInfo contractInfo = new ContractInfo();
         contractInfo.setCreateTxHash(tx.getHash().getDigestHex());
         contractInfo.setContractAddress(AddressTool.getStringAddressByBytes(model.getContractAddress()));
-        contractInfo.setPrice(model.getPrice());
-        contractInfo.setGasLimit(model.getGasLimit());
         contractInfo.setBlockHeight(tx.getBlockHeight());
         contractInfo.setCreateTime(tx.getTime());
 
@@ -407,10 +405,11 @@ public class AnalysisHandler {
 
     }
 
-    public ContractResultInfo toContractResult(Map<String, Object> map) {
+    public ContractResultInfo toContractResult(String hash, Map<String, Object> map) {
         ContractResultInfo resultInfo = new ContractResultInfo();
         map = (Map<String, Object>) map.get("data");
         if (map != null) {
+            resultInfo.setTxHash(hash);
             resultInfo.setErrorMessage((String) map.get("errorMessage"));
             resultInfo.setSuccess((Boolean) map.get("success"));
             resultInfo.setResult((String) map.get("result"));
@@ -452,7 +451,7 @@ public class AnalysisHandler {
             nulsTransfer.setTxHash((String) map.get("orginTxHash"));
             nulsTransfer.setFromAddress((String) map.get("from"));
             nulsTransfer.setToAddress((String) map.get("to"));
-            nulsTransfer.setValue(Long.parseLong((String) map.get("value")));
+            nulsTransfer.setValue(Long.parseLong(map.get("value").toString()));
 
             nulsTransfers.add(nulsTransfer);
         }

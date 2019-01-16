@@ -67,6 +67,10 @@ public class ContractResultInfo {
 
     private List<TokenTransfer> tokenTransfers;
 
+    private String nulsTransferStr;
+
+    private String tokenTransferStr;
+
     private String tokenName;
 
     private String symbol;
@@ -261,5 +265,21 @@ public class ContractResultInfo {
 
     public void setNulsTransfers(List<NulsTransfer> nulsTransfers) {
         this.nulsTransfers = nulsTransfers;
+    }
+
+    public String getNulsTransferStr() {
+        return nulsTransferStr;
+    }
+
+    public void setNulsTransferStr(String nulsTransferStr) {
+        this.nulsTransferStr = nulsTransferStr;
+    }
+
+    public String getTokenTransferStr() {
+        return tokenTransferStr;
+    }
+
+    public void setTokenTransferStr(String tokenTransferStr) {
+        this.tokenTransferStr = tokenTransferStr;
     }
 }

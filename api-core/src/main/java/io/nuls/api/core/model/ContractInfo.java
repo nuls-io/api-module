@@ -42,10 +42,6 @@ public class ContractInfo extends TxData {
 
     private String errorMsg;
 
-    private long gasLimit;
-
-    private long price;
-
     private Integer isNrc20;//是否支持NRC20协议(0-否、1-是)
 
     private Integer status; // 0未认证 1通过认证 2已删除
@@ -236,22 +232,6 @@ public class ContractInfo extends TxData {
 
     public void setSuccess(boolean success) {
         this.success = success;
-    }
-
-    public long getGasLimit() {
-        return gasLimit;
-    }
-
-    public void setGasLimit(long gasLimit) {
-        this.gasLimit = gasLimit;
-    }
-
-    public long getPrice() {
-        return price;
-    }
-
-    public void setPrice(long price) {
-        this.price = price;
     }
 
     public String getErrorMsg() {

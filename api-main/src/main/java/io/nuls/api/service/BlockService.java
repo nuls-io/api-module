@@ -67,11 +67,11 @@ public class BlockService {
     //记录每个区块的红黄牌信息
     private List<PunishLog> punishLogList = new ArrayList<>();
     //记录每个区块新创建的智能合约信息
-    private List<ContractInfo> contractInfoList = new ArrayList<>();
+    private Map<String, ContractInfo> contractInfoMap = new HashMap<>();
     //记录智能合约的执行结果信息
     private List<ContractResultInfo> contractResultList = new ArrayList<>();
     //记录每个区块智能合约相关的账户token信息
-    private List<AccountTokenInfo> accountTokenList = new ArrayList<>();
+    private Map<String, AccountTokenInfo> accountTokenMap = new HashMap<>();
     //记录智能合约相关的交易信息
     private List<ContractTxInfo> contractTxInfoList = new ArrayList<>();
     //记录合约转账信息
@@ -165,12 +165,9 @@ public class BlockService {
     }
 
 
-    private void processTransactions(List<TransactionInfo> txs, AgentInfo agentInfo, long blockHeight) {
+    private void processTransactions(List<TransactionInfo> txs, AgentInfo agentInfo, long blockHeight) throws Exception {
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
-            if (tx.getType() >= 100) {
-                hasContract = true;
-            }
 
             tx.setByAgentInfo(agentInfo);
             processWithTxInputOutput(tx);
@@ -195,7 +192,7 @@ public class BlockService {
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
                 processCreateContract(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
-                processCallContract(tx, blockHeight);
+//                processCallContract(tx, blockHeight);
             }
         }
     }
@@ -500,7 +497,7 @@ public class BlockService {
                 processTokenTransfers(contractInfo, resultInfo.getTokenTransfers(), tx);
             }
         }
-        contractInfoList.add(contractInfo);
+        contractInfoMap.put(contractInfo.getContractAddress(), contractInfo);
         createContractTxInfo(tx, contractInfo, blockHeight);
     }
 
@@ -545,27 +542,27 @@ public class BlockService {
      * @param value
      */
     private AccountTokenInfo processNrc20ForAccount(ContractInfo contractInfo, String address, BigInteger value, int type) {
-        AccountTokenInfo tokenInfo = tokenService.getAccountTokenInfo(address, contractInfo.getSymbol());
+        AccountTokenInfo tokenInfo = queryAccountTokenInfo(address + contractInfo.getContractAddress());
         BigInteger balanceValue;
         if (tokenInfo == null) {
             AccountInfo accountInfo = queryAccountInfo(address);
-            accountInfo.getTokens().add(contractInfo.getSymbol());
+            accountInfo.getTokens().add(contractInfo.getContractAddress() + "," + contractInfo.getSymbol());
 
-            tokenInfo = new AccountTokenInfo(address, contractInfo.getContractAddress(), contractInfo.getSymbol(), contractInfo.getDecimals());
+            tokenInfo = new AccountTokenInfo(address, contractInfo.getContractAddress(), contractInfo.getTokenName(), contractInfo.getSymbol(), contractInfo.getDecimals());
+
+            accountTokenMap.put(tokenInfo.getKey(), tokenInfo);
         }
         balanceValue = new BigInteger(tokenInfo.getBalance());
         if (type == 1) {
             balanceValue = balanceValue.add(value);
         } else {
             balanceValue = balanceValue.subtract(value);
-
         }
 
-        if (balanceValue.compareTo(BigInteger.ZERO) < 0) {
-            throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
-        }
+//        if (balanceValue.compareTo(BigInteger.ZERO) < 0) {
+//            throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
+//        }
         tokenInfo.setBalance(balanceValue.toString());
-        accountTokenList.add(tokenInfo);
         return tokenInfo;
     }
 
@@ -575,6 +572,9 @@ public class BlockService {
      * @param tokenTransfers
      */
     private void processTokenTransfers(ContractInfo contractInfo, List<TokenTransfer> tokenTransfers, TransactionInfo tx) {
+        if (tokenTransfers == null || tokenTransfers.isEmpty()) {
+            return;
+        }
         Set<String> ownerSet = new HashSet<>(contractInfo.getOwners());
         AccountTokenInfo tokenInfo;
         for (int i = 0; i < tokenTransfers.size(); i++) {
@@ -598,40 +598,31 @@ public class BlockService {
     }
 
 
-    private void processCallContract(TransactionInfo tx, long blockHeight) {
+    private void processCallContract(TransactionInfo tx, long blockHeight) throws Exception {
         //首先查询合约交易执行结果
         RpcClientResult<ContractResultInfo> clientResult = rpcHandler.getContractResult(tx.getHash());
         if (clientResult.isSuccess() == false) {
             throw new RuntimeException(clientResult.getMsg());
         }
-        //执行结果为失败时，直接返回
+
         ContractResultInfo resultInfo = clientResult.getData();
-        if (!resultInfo.getSuccess()) {
-            return;
-        }
+        ContractInfo contractInfo = queryContractInfo(resultInfo.getContractAddress());
+        contractInfo.setTxCount(contractInfo.getTxCount() + 1);
 
-    }
+        contractResultList.add(resultInfo);
+        createContractTxInfo(tx, contractInfo, blockHeight);
 
-    private AccountInfo queryAccountInfo(String address) {
-        AccountInfo accountInfo = accountInfoMap.get(address);
-        if (accountInfo == null) {
-            accountInfo = accountService.getAccountInfoByAddress(address);
+        if (resultInfo.getSuccess()) {
+            processTokenTransfers(contractInfo, resultInfo.getTokenTransfers(), tx);
         }
-        if (accountInfo == null) {
-            accountInfo = new AccountInfo(address);
-        }
-        accountInfoMap.put(address, accountInfo);
-        return accountInfo;
     }
 
     /**
      * 解析区块和所有交易后，将数据存储到数据库中
      */
     public void save(BlockInfo blockInfo, AgentInfo agentInfo) throws Exception {
-        if (hasContract) {
-            return;
-        }
-        saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
+
+        blockHeaderService.saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
         blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
         //如果区块非种子节点地址打包，则需要修改打包节点的奖励统计，放在agentInfoList里一并处理
         if (!blockInfo.getBlockHeader().isSeedPacked()) {
@@ -654,35 +645,18 @@ public class BlockService {
         //存储红黄牌惩罚记录
         punishService.savePunishList(punishLogList);
         //存储智能合约记录
-        contractService.saveContractInfos(contractInfoList);
+        contractService.saveContractInfos(contractInfoMap);
         //存储智能合约交易关系记录
         contractService.saveContractTxInfos(contractTxInfoList);
+        //存入智能合约执行结果记录
+        contractService.saveContractResults(contractResultList);
+
         //存储账户token信息
-        tokenService.saveAccountTokens(accountTokenList);
+        tokenService.saveAccountTokens(accountTokenMap);
         //存储token转账信息
         tokenService.saveTokenTransfers(tokenTransferList);
 
         //todo 存储完成后记得修改new_info最新高度 isFinish = true;
-    }
-
-
-    /**
-     * 保存最新的高度信息
-     *
-     * @param newHeight 最新高度
-     */
-    private void saveNewHeightInfo(long newHeight) {
-        Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
-        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
-        if (document == null) {
-            document = new Document();
-            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false);
-            mongoDBService.insertOne(MongoTableName.NEW_INFO, document);
-        } else {
-            document.put("height", newHeight);
-            document.put("finish", false);
-            mongoDBService.update(MongoTableName.NEW_INFO, query, document);
-        }
     }
 
 
@@ -695,6 +669,35 @@ public class BlockService {
         return false;
     }
 
+    private AccountInfo queryAccountInfo(String address) {
+        AccountInfo accountInfo = accountInfoMap.get(address);
+        if (accountInfo == null) {
+            accountInfo = accountService.getAccountInfoByAddress(address);
+        }
+        if (accountInfo == null) {
+            accountInfo = new AccountInfo(address);
+        }
+        accountInfoMap.put(address, accountInfo);
+        return accountInfo;
+    }
+
+    private AccountTokenInfo queryAccountTokenInfo(String key) {
+        AccountTokenInfo accountTokenInfo = accountTokenMap.get(key);
+        if (accountTokenInfo == null) {
+            accountTokenInfo = tokenService.getAccountTokenInfo(key);
+        }
+        return accountTokenInfo;
+    }
+
+    private ContractInfo queryContractInfo(String contractAddress) throws Exception {
+        ContractInfo contractInfo = contractInfoMap.get(contractAddress);
+        if (contractInfo == null) {
+            contractInfo = contractService.getContractInfo(contractAddress);
+        }
+        contractInfoMap.put(contractInfo.getContractAddress(), contractInfo);
+        return contractInfo;
+    }
+
 
     private void clear() {
         inputList.clear();
@@ -705,9 +708,9 @@ public class BlockService {
         agentInfoList.clear();
         depositInfoList.clear();
         punishLogList.clear();
-        contractInfoList.clear();
+        contractInfoMap.clear();
         contractResultList.clear();
-        accountTokenList.clear();
+        accountTokenMap.clear();
         contractTxInfoList.clear();
         tokenTransferList.clear();
     }

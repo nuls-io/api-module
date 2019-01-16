@@ -196,7 +196,7 @@ public class WalletRPCHandler {
         }
         RpcClientResult clientResult = null;
         try {
-            ContractResultInfo resultDto = analysisHandler.toContractResult((Map<String, Object>) result.getData());
+            ContractResultInfo resultDto = analysisHandler.toContractResult(hash,(Map<String, Object>) result.getData());
             clientResult = RpcClientResult.getSuccess();
             clientResult.setData(resultDto);
         } catch (Exception e) {

@@ -20,11 +20,118 @@
 
 package io.nuls.api.controller.contract;
 
+import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
+import io.nuls.api.bean.annotation.RpcMethod;
+import io.nuls.api.controller.model.RpcErrorCode;
+import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.controller.model.RpcResultError;
+import io.nuls.api.controller.utils.VerifyUtils;
+import io.nuls.api.core.model.*;
+import io.nuls.api.service.ContractService;
+import io.nuls.api.service.TokenService;
+import io.nuls.api.utils.JsonRpcException;
+import io.nuls.sdk.core.utils.AddressTool;
+
+import java.util.List;
 
 /**
  * @author Niels
  */
 @Controller
 public class ContractController {
+
+    @Autowired
+    private TokenService tokenService;
+    @Autowired
+    private ContractService contractService;
+
+    @RpcMethod("getAddressTokens")
+    public RpcResult getAccountTokens(List<Object> params) {
+        VerifyUtils.verifyParams(params, 3);
+        String address = (String) params.get(0);
+        if (!AddressTool.validAddress(address)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
+        }
+        int pageIndex = (int) params.get(1);
+        int pageSize = (int) params.get(2);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        PageInfo<AccountTokenInfo> pageInfo = tokenService.getAccountTokens(address, pageIndex, pageSize);
+        RpcResult result = new RpcResult();
+        result.setResult(pageInfo);
+        return result;
+    }
+
+    @RpcMethod("getTokenTransfers")
+    public RpcResult getTokenTransfers(List<Object> params) {
+        VerifyUtils.verifyParams(params, 4);
+        String address = (String) params.get(0);
+        if (!AddressTool.validAddress(address)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
+        }
+        String contractAddress = (String) params.get(1);
+
+        int pageIndex = (int) params.get(2);
+        int pageSize = (int) params.get(3);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        PageInfo<TokenTransfer> pageInfo = tokenService.getTokenTransfers(address, contractAddress, pageIndex, pageSize);
+        RpcResult result = new RpcResult();
+        result.setResult(pageInfo);
+        return result;
+
+    }
+
+    @RpcMethod("getContract")
+    public RpcResult getContract(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        String contractAddress = (String) params.get(0);
+        if (!AddressTool.validAddress(contractAddress)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+        }
+        RpcResult rpcResult = new RpcResult();
+        try {
+            ContractInfo contractInfo = contractService.getContractInfo(contractAddress);
+            if (contractInfo == null) {
+                rpcResult.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
+            } else {
+                rpcResult.setResult(contractInfo);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return rpcResult;
+    }
+
+    @RpcMethod("getContractTxList")
+    public RpcResult getContractTxList(List<Object> params) {
+        VerifyUtils.verifyParams(params, 4);
+        String contractAddress = (String) params.get(0);
+        if (!AddressTool.validAddress(contractAddress)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+        }
+        int type = (int) params.get(1);
+        int pageIndex = (int) params.get(2);
+        int pageSize = (int) params.get(3);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        PageInfo<ContractTxInfo> pageInfo = contractService.getContractTxList(contractAddress, type, pageIndex, pageSize);
+        RpcResult result = new RpcResult();
+        result.setResult(pageInfo);
+        return result;
+    }
+
 }

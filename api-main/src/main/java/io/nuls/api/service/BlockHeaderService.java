@@ -36,6 +36,26 @@ public class BlockHeaderService {
     }
 
     /**
+     * 保存最新的高度信息
+     *
+     * @param newHeight 最新高度
+     */
+    public void saveNewHeightInfo(long newHeight) {
+        Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
+        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
+        if (document == null) {
+            document = new Document();
+            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false);
+            mongoDBService.insertOne(MongoTableName.NEW_INFO, document);
+        } else {
+            document.put("height", newHeight);
+            document.put("finish", false);
+            mongoDBService.update(MongoTableName.NEW_INFO, query, document);
+        }
+    }
+
+
+    /**
      * 按照高度获取区块头
      *
      * @param height 高度
@@ -71,7 +91,7 @@ public class BlockHeaderService {
             if (filter == null) {
                 filter = Filters.gt("txCount", 1);
             } else {
-                filter = Filters.and(filter,Filters.gt("txCount", 1));
+                filter = Filters.and(filter, Filters.gt("txCount", 1));
             }
         }
         long totalCount = mongoDBService.getCount(MongoTableName.BLOCK_HEADER, filter);

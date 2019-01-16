@@ -34,7 +34,8 @@ public class MongoTableName {
     public static final String CONTRACT_TX_INFO = "contract_tx_info";
     //智能合约token转账记录表
     public static final String TOKEN_TRANSFER_INFO = "token_transfer_info";
-
+    //智能合约结果记录
+    public static final String CONTRACT_RESULT_INFO = "contract_result_info";
 
     public static final String STATISTICAL_INFO = "statistical_info";
 

@@ -128,4 +128,8 @@ public class SyncBlockTask implements Runnable {
             }
         }
     }
+
+//    private boolean checkBlockContinuity(BlockHeaderInfo localBest, BlockHeaderInfo newest) {
+//        return false;
+//    }
 }

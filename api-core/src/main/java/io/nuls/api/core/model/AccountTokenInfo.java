@@ -8,6 +8,8 @@ public class AccountTokenInfo {
 
     private String address;
 
+    private String tokenName;
+
     private String tokenSymbol;
 
     private String contractAddress;
@@ -22,9 +24,10 @@ public class AccountTokenInfo {
 
     }
 
-    public AccountTokenInfo(String address, String contractAddress, String tokenSymbol, int decimals) {
+    public AccountTokenInfo(String address, String contractAddress, String tokenName, String tokenSymbol, int decimals) {
         this.setKey(address + contractAddress);
         this.address = address;
+        this.tokenName = tokenName;
         this.tokenSymbol = tokenSymbol;
         this.contractAddress = contractAddress;
         this.balance = "0";
@@ -86,5 +89,13 @@ public class AccountTokenInfo {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getTokenName() {
+        return tokenName;
+    }
+
+    public void setTokenName(String tokenName) {
+        this.tokenName = tokenName;
     }
 }
