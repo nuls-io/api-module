@@ -157,6 +157,7 @@ public class WalletRPCHandler {
         try {
             Block block = (Block) result.getData();
             BlockInfo blockInfo = analysisHandler.toBlock(block);
+            blockInfo.getBlockHeader().setHash(hash);
             clientResult.setData(blockInfo);
         } catch (Exception e) {
             Log.error(e);
@@ -171,7 +172,7 @@ public class WalletRPCHandler {
      * @param height 区块height
      * @return 区块信息
      */
-    public RpcClientResult<BlockInfo> getBlock(long height) {
+    public RpcClientResult<BlockInfo> getBlock(long height, String hash) {
         Result result = NulsSDKTool.getBlockWithBytes(height);
         if (result.isFailed()) {
             return RpcClientResult.errorResult(result);
@@ -180,6 +181,7 @@ public class WalletRPCHandler {
         try {
             Block block = (Block) result.getData();
             BlockInfo blockInfo = analysisHandler.toBlock(block);
+            blockInfo.getBlockHeader().setHash(hash);
             clientResult.setData(blockInfo);
         } catch (Exception e) {
             Log.error(e);
@@ -196,7 +198,7 @@ public class WalletRPCHandler {
         }
         RpcClientResult clientResult = null;
         try {
-            ContractResultInfo resultDto = analysisHandler.toContractResult(hash,(Map<String, Object>) result.getData());
+            ContractResultInfo resultDto = analysisHandler.toContractResult(hash, (Map<String, Object>) result.getData());
             clientResult = RpcClientResult.getSuccess();
             clientResult.setData(resultDto);
         } catch (Exception e) {
@@ -213,7 +215,7 @@ public class WalletRPCHandler {
         }
         RpcClientResult clientResult = null;
         try {
-            analysisHandler.toContractInfo(contractInfo,(Map<String, Object>) result.getData());
+            analysisHandler.toContractInfo(contractInfo, (Map<String, Object>) result.getData());
             clientResult = RpcClientResult.getSuccess();
             clientResult.setData(contractInfo);
         } catch (Exception e) {

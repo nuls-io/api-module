@@ -18,7 +18,7 @@ public class AppTest {
 
     @Before
     public void init() {
-        SDKBootstrap.init("192.168.1.37", "8001");
+        SDKBootstrap.init("127.0.0.1", "8001");
         walletRPCHandler = new WalletRPCHandler();
     }
 
@@ -36,7 +36,7 @@ public class AppTest {
 
     @Test
     public void testGetBlock2() {
-        RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock(1422757);
+        RpcClientResult<BlockInfo> clientResult = walletRPCHandler.getBlock(67236,"1");
         System.out.println(clientResult.isSuccess());
     }
 

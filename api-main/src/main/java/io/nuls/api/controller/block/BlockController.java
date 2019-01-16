@@ -39,6 +39,8 @@ import io.nuls.sdk.core.utils.StringUtils;
 
 import java.util.List;
 
+import static io.nuls.api.controller.model.RpcErrorCode.DATA_NOT_EXISTS;
+
 /**
  * @author Niels
  */
@@ -119,7 +121,11 @@ public class BlockController {
         if (height < 0) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[height] should not be less than 0"));
         }
-        RpcClientResult<BlockInfo> result = rpcHandler.getBlock(height);
+        BlockHeaderInfo blockHeaderInfo = blockHeaderService.getBlockHeaderInfoByHeight(height);
+        if (blockHeaderInfo == null) {
+            throw new JsonRpcException(new RpcResultError(DATA_NOT_EXISTS.getCode(), DATA_NOT_EXISTS.getMessage(), null));
+        }
+        RpcClientResult<BlockInfo> result = rpcHandler.getBlock(blockHeaderInfo.getHash());
         BlockInfo block = result.getData();
         if (result.isFailed()) {
             throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
@@ -150,7 +156,7 @@ public class BlockController {
             filterEmptyBlocks = (boolean) params.get(3);
         }
 
-        PageInfo<BlockHeaderInfo> pageInfo = blockHeaderService.pageQuery(pageIndex, pageSize, packingAddress,filterEmptyBlocks);
+        PageInfo<BlockHeaderInfo> pageInfo = blockHeaderService.pageQuery(pageIndex, pageSize, packingAddress, filterEmptyBlocks);
         RpcResult result = new RpcResult();
         result.setResult(pageInfo);
         return result;
