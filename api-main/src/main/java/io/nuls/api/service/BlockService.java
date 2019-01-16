@@ -1,11 +1,9 @@
 package io.nuls.api.service;
 
-import com.mongodb.client.model.Filters;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.core.ApiContext;
-import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.mongodb.MongoDBService;
@@ -13,8 +11,6 @@ import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.utils.DoubleUtils;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -192,7 +188,7 @@ public class BlockService {
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
                 processCreateContract(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
-//                processCallContract(tx, blockHeight);
+                processCallContract(tx, blockHeight);
             }
         }
     }
@@ -478,7 +474,7 @@ public class BlockService {
         }
     }
 
-    private void processCreateContract(TransactionInfo tx, long blockHeight) {
+    private void processCreateContract(TransactionInfo tx, long blockHeight) throws Exception {
         ContractInfo contractInfo = (ContractInfo) tx.getTxData();
         contractInfo.setTxCount(1);
         contractInfo.setNew(true);
@@ -489,16 +485,17 @@ public class BlockService {
         ContractResultInfo resultInfo = clientResult1.getData();
         contractResultList.add(resultInfo);
         contractInfo.setSuccess(resultInfo.getSuccess());
+        contractInfoMap.put(contractInfo.getContractAddress(), contractInfo);
+        createContractTxInfo(tx, contractInfo, blockHeight);
+
         if (!resultInfo.getSuccess()) {
             contractInfo.setErrorMsg(resultInfo.getErrorMessage());
         } else {
             //如果是NRC20合约，还需要处理相关账户的token信息
             if (contractInfo.getIsNrc20() == 1) {
-                processTokenTransfers(contractInfo, resultInfo.getTokenTransfers(), tx);
+                processTokenTransfers(resultInfo.getTokenTransfers(), tx);
             }
         }
-        contractInfoMap.put(contractInfo.getContractAddress(), contractInfo);
-        createContractTxInfo(tx, contractInfo, blockHeight);
     }
 
     /**
@@ -559,9 +556,9 @@ public class BlockService {
             balanceValue = balanceValue.subtract(value);
         }
 
-//        if (balanceValue.compareTo(BigInteger.ZERO) < 0) {
-//            throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
-//        }
+        if (balanceValue.compareTo(BigInteger.ZERO) < 0) {
+            throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
+        }
         tokenInfo.setBalance(balanceValue.toString());
         return tokenInfo;
     }
@@ -571,18 +568,21 @@ public class BlockService {
      *
      * @param tokenTransfers
      */
-    private void processTokenTransfers(ContractInfo contractInfo, List<TokenTransfer> tokenTransfers, TransactionInfo tx) {
+    private void processTokenTransfers(List<TokenTransfer> tokenTransfers, TransactionInfo tx) throws Exception {
         if (tokenTransfers == null || tokenTransfers.isEmpty()) {
             return;
         }
-        Set<String> ownerSet = new HashSet<>(contractInfo.getOwners());
         AccountTokenInfo tokenInfo;
         for (int i = 0; i < tokenTransfers.size(); i++) {
             TokenTransfer tokenTransfer = tokenTransfers.get(i);
             tokenTransfer.setTxHash(tx.getHash());
             tokenTransfer.setHeight(tx.getHeight());
             tokenTransfer.setTime(tx.getCreateTime());
-            ownerSet.add(tokenTransfer.getToAddress());
+
+            ContractInfo contractInfo = queryContractInfo(tokenTransfer.getContractAddress());
+            if (contractInfo.getOwners().contains(tokenTransfer.getToAddress())) {
+                contractInfo.getOwners().add(tokenTransfer.getToAddress());
+            }
             contractInfo.setTransferCount(contractInfo.getTransferCount() + 1);
 
             if (tokenTransfer.getFromAddress() != null) {
@@ -613,7 +613,7 @@ public class BlockService {
         createContractTxInfo(tx, contractInfo, blockHeight);
 
         if (resultInfo.getSuccess()) {
-            processTokenTransfers(contractInfo, resultInfo.getTokenTransfers(), tx);
+            processTokenTransfers(resultInfo.getTokenTransfers(), tx);
         }
     }
 
