@@ -122,7 +122,7 @@ public class BlockService {
 
         save(blockInfo, agentInfo);
 
-        if (i % 10000 == 0) {
+        if (i % 1000 == 0) {
             Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
             time1 = System.currentTimeMillis();
         }

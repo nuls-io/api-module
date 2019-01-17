@@ -25,12 +25,14 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import io.nuls.api.core.constant.MongoTableName;
-import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -42,9 +44,10 @@ public class MongoDBServiceTest {
         // 连接到 mongodb 服务
         MongoClient mongoClient = new MongoClient("localhost", 27017);
 
+
         // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService service = new MongoDBService(mongoDatabase);
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
 //        service.createCollection("relations");
 
         long start = System.currentTimeMillis();
@@ -72,7 +75,7 @@ public class MongoDBServiceTest {
 
         // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService service = new MongoDBService(mongoDatabase);
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
 
 
         String result = service.createIndex("relations", new Document("height", 1));
@@ -87,7 +90,7 @@ public class MongoDBServiceTest {
 
         // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService service = new MongoDBService(mongoDatabase);
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
         MongoCollection<Document> collection = service.getCollection("relations");
         System.out.println(collection.estimatedDocumentCount());
     }
@@ -100,7 +103,7 @@ public class MongoDBServiceTest {
 
         // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService service = new MongoDBService(mongoDatabase);
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < 100000000; i++) {
@@ -119,7 +122,7 @@ public class MongoDBServiceTest {
 
         // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService service = new MongoDBService(mongoDatabase);
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
 
         service.findOne("relations", eq("height", 1000));
     }
@@ -132,7 +135,7 @@ public class MongoDBServiceTest {
 
         // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService service = new MongoDBService(mongoDatabase);
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
 
 //        Document document = new Document();
 ////        document.append("_id", "bestHeight").append("height", 6);
@@ -152,7 +155,7 @@ public class MongoDBServiceTest {
 
         // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService service = new MongoDBService(mongoDatabase);
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
 
         Document document = service.findOne("newInfo", Filters.eq("_id", "bestHeight"));
         System.out.println(document);
@@ -174,7 +177,7 @@ public class MongoDBServiceTest {
         // 连接到数据库
         MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService service = new MongoDBService(mongoDatabase);
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
 
 //        service.insertOne(MongoTableName.BLOCK_RELATION, document);
         Document document1 = service.findOne(MongoTableName.BLOCK_HEADER, Filters.eq("preHash", "bbbbb"));

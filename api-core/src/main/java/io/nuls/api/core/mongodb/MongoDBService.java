@@ -20,6 +20,7 @@
 
 package io.nuls.api.core.mongodb;
 
+import com.mongodb.MongoClient;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.*;
 import com.mongodb.client.model.IndexModel;
@@ -36,9 +37,11 @@ import java.util.Map;
  */
 public class MongoDBService {
 
-    private MongoDatabase db;
+    private final MongoClient client;
+    private final MongoDatabase db;
 
-    public MongoDBService(MongoDatabase db) {
+    public MongoDBService(MongoClient client, MongoDatabase db) {
+        this.client = client;
         this.db = db;
         if (null == db) {
             throw new RuntimeException();
@@ -223,6 +226,10 @@ public class MongoDBService {
     public BulkWriteResult bulkWrite(String collName, List<? extends WriteModel<? extends Document>> modelList) {
         MongoCollection<Document> collection = getCollection(collName);
         return collection.bulkWrite(modelList);
+    }
+
+    public ClientSession startSession() {
+        return client.startSession();
     }
 
 }
