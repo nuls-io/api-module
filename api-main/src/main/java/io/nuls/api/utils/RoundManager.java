@@ -46,7 +46,7 @@ public class RoundManager {
 
     private static final long MIN_DEPOSIT = 20000000000000L;
 
-    private CurrentRound currentRound;
+    private CurrentRound currentRound = new CurrentRound();
 
     @Autowired
     private AgentService agentService;
@@ -62,19 +62,21 @@ public class RoundManager {
 
     public void process(BlockInfo blockInfo) {
         try {
-            if (null == this.currentRound) {
+            if (null == this.currentRound.getItemList()) {
                 PocRound round = null;
                 long roundIndex = blockInfo.getBlockHeader().getRoundIndex();
-                while (round == null) {
+                while (round == null && blockInfo.getBlockHeader().getHeight() > 0) {
                     round = roundService.getRound(roundIndex--);
                 }
-                CurrentRound preRound = new CurrentRound();
-                preRound.initByPocRound(round);
-                List<PocRoundItem> list = roundService.getRoundItemList(round.getIndex());
-                preRound.setItemList(list);
-                preRound.setStartBlockHeader(blockHeaderService.getBlockHeaderInfoByHeight(round.getStartHeight()));
-                preRound.setPackerOrder(round.getMemberCount());
-                this.currentRound = preRound;
+                if(round != null) {
+                    CurrentRound preRound = new CurrentRound();
+                    preRound.initByPocRound(round);
+                    List<PocRoundItem> list = roundService.getRoundItemList(round.getIndex());
+                    preRound.setItemList(list);
+                    preRound.setStartBlockHeader(blockHeaderService.getBlockHeaderInfoByHeight(round.getStartHeight()));
+                    preRound.setPackerOrder(round.getMemberCount());
+                    this.currentRound = preRound;
+                }
 
             }
             if (blockInfo.getBlockHeader().getRoundIndex() == currentRound.getIndex()) {

@@ -120,10 +120,8 @@ public class BlockService {
         processRoundData(blockInfo);
 
         save(blockInfo, agentInfo);
-        if (blockInfo.getBlockHeader().getHeight() % 10000 == 0) {
-            Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
-            time1 = System.currentTimeMillis();
-        }
+        Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
         ApiContext.bestHeight = headerInfo.getHeight();
         return true;
     }
@@ -161,7 +159,7 @@ public class BlockService {
 
 
     private void processRoundData(BlockInfo blockInfo) {
-        roundManager.process(blockInfo);
+//        roundManager.process(blockInfo);
     }
 
 
