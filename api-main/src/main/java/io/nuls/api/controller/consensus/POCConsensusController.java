@@ -108,11 +108,14 @@ public class POCConsensusController {
         agentInfo.setLostRate(DoubleUtils.div(count, count + agentInfo.getTotalPackingCount()));
 
         List<PocRoundItem> itemList = roundManager.getCurrentRound().getItemList();
+
         PocRoundItem roundItem = null;
-        for (PocRoundItem item : itemList) {
-            if (item.getPackingAddress().equals(agentInfo.getPackingAddress())) {
-                roundItem = item;
-                break;
+        if (null != itemList) {
+            for (PocRoundItem item : itemList) {
+                if (item.getPackingAddress().equals(agentInfo.getPackingAddress())) {
+                    roundItem = item;
+                    break;
+                }
             }
         }
         if (null == roundItem) {
@@ -141,6 +144,7 @@ public class POCConsensusController {
         List list = this.statisticalService.getStatisticalList(type, "nodeCount");
         return new RpcResult().setResult(list);
     }
+
     @RpcMethod("getAnnulizedRewardStatistical")
     public RpcResult getAnnulizedRewardStatistical(List<Object> params) {
         VerifyUtils.verifyParams(params, 1);

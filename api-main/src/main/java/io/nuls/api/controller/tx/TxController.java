@@ -34,6 +34,8 @@ import io.nuls.api.core.model.TransactionInfo;
 import io.nuls.api.service.TransactionService;
 import io.nuls.api.service.StatisticalService;
 import io.nuls.api.utils.JsonRpcException;
+import io.nuls.sdk.accountledger.model.Transaction;
+import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.utils.StringUtils;
 
 import java.util.List;
@@ -93,6 +95,9 @@ public class TxController {
         boolean includeCoinBase = false;
         if (params.size() > 3) {
             includeCoinBase = (boolean) params.get(3);
+        }
+        if (TransactionConstant.TX_TYPE_COINBASE == type && !includeCoinBase) {
+            includeCoinBase = true;
         }
         PageInfo<TransactionInfo> pageInfo = txService.getTxList(pageIndex, pageSize, type, includeCoinBase);
         RpcResult rpcResult = new RpcResult();
