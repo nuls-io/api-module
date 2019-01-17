@@ -88,6 +88,7 @@ public class BlockService {
     boolean hasContract = false;
 
     private long time1;
+    int i = 0;
 
     public boolean saveNewBlock(BlockInfo blockInfo) throws Exception {
         clear();
@@ -120,8 +121,12 @@ public class BlockService {
         processRoundData(blockInfo);
 
         save(blockInfo, agentInfo);
-        Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
-        time1 = System.currentTimeMillis();
+
+        if (i % 10000 == 0) {
+            Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
+            time1 = System.currentTimeMillis();
+        }
+        i++;
         ApiContext.bestHeight = headerInfo.getHeight();
         return true;
     }
@@ -159,7 +164,7 @@ public class BlockService {
 
 
     private void processRoundData(BlockInfo blockInfo) {
-//        roundManager.process(blockInfo);
+        roundManager.process(blockInfo);
     }
 
 
@@ -548,8 +553,6 @@ public class BlockService {
             accountInfo.getTokens().add(contractInfo.getContractAddress() + "," + contractInfo.getSymbol());
 
             tokenInfo = new AccountTokenInfo(address, contractInfo.getContractAddress(), contractInfo.getTokenName(), contractInfo.getSymbol(), contractInfo.getDecimals());
-
-            accountTokenMap.put(tokenInfo.getKey(), tokenInfo);
         }
         balanceValue = new BigInteger(tokenInfo.getBalance());
         if (type == 1) {
@@ -562,6 +565,10 @@ public class BlockService {
             throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
         }
         tokenInfo.setBalance(balanceValue.toString());
+        if (!accountTokenMap.containsKey(tokenInfo.getKey())) {
+            accountTokenMap.put(tokenInfo.getKey(), tokenInfo);
+        }
+
         return tokenInfo;
     }
 
@@ -674,7 +681,7 @@ public class BlockService {
     private AccountInfo queryAccountInfo(String address) {
         AccountInfo accountInfo = accountInfoMap.get(address);
         if (accountInfo == null) {
-            accountInfo = accountService.getAccountInfoByAddress(address);
+            accountInfo = accountService.getAccountInfo(address);
         }
         if (accountInfo == null) {
             accountInfo = new AccountInfo(address);

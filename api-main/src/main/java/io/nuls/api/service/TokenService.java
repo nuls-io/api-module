@@ -31,7 +31,7 @@ public class TokenService {
         if (document == null) {
             return null;
         }
-        AccountTokenInfo tokenInfo = DocumentTransferTool.toInfo(document, AccountTokenInfo.class);
+        AccountTokenInfo tokenInfo = DocumentTransferTool.toInfo(document,"key", AccountTokenInfo.class);
         return tokenInfo;
     }
 

@@ -40,6 +40,8 @@ public class ContractInfo extends TxData {
 
     private boolean success;
 
+    private long balance;
+
     private String errorMsg;
 
     private Integer isNrc20;//是否支持NRC20协议(0-否、1-是)
@@ -76,10 +78,6 @@ public class ContractInfo extends TxData {
 
     public ContractInfo() {
         owners = new ArrayList<>();
-    }
-
-    public boolean isToken() {
-        return isNrc20 == 0 ? false : true;
     }
 
     public String getContractAddress() {
@@ -248,5 +246,13 @@ public class ContractInfo extends TxData {
 
     public void setMethodStr(String methodStr) {
         this.methodStr = methodStr;
+    }
+
+    public long getBalance() {
+        return balance;
+    }
+
+    public void setBalance(long balance) {
+        this.balance = balance;
     }
 }

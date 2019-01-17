@@ -135,4 +135,18 @@ public class ContractController {
         return result;
     }
 
+    @RpcMethod("getContractList")
+    public RpcResult getContractList(List<Object> params) {
+        VerifyUtils.verifyParams(params, 3);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        boolean onlyNrc20 = (boolean) params.get(2);
+        boolean isHidden = (boolean) params.get(3);
+
+        PageInfo<ContractInfo> pageInfo = contractService.getContractList(pageIndex, pageSize, onlyNrc20, isHidden);
+        RpcResult result = new RpcResult();
+        result.setResult(pageInfo);
+        return result;
+    }
+
 }

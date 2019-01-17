@@ -20,6 +20,8 @@ public class ContractService {
 
     @Autowired
     private MongoDBService mongoDBService;
+    @Autowired
+    private AccountService accountService;
 
     public ContractInfo getContractInfo(String contractAddress) throws Exception {
         Document document = mongoDBService.findOne(MongoTableName.CONTRACT_INFO, Filters.eq("_id", contractAddress));
@@ -38,6 +40,12 @@ public class ContractService {
         }
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (ContractInfo contractInfo : contractInfoMap.values()) {
+            AccountInfo accountInfo = accountService.getAccountInfo(contractInfo.getContractAddress());
+            if (accountInfo == null) {
+                contractInfo.setBalance(0);
+            } else {
+                contractInfo.setBalance(accountInfo.getTotalBalance());
+            }
             Document document = DocumentTransferTool.toDocument(contractInfo, "contractAddress");
             document.remove("methods");
             String methodStr = null;
@@ -110,6 +118,27 @@ public class ContractService {
             contractTxInfos.add(DocumentTransferTool.toInfo(document, ContractTxInfo.class));
         }
         PageInfo<ContractTxInfo> pageInfo = new PageInfo<>(pageNumber, pageSize, totalCount, contractTxInfos);
+        return pageInfo;
+    }
+
+    public PageInfo<ContractInfo> getContractList(int pageNumber, int pageSize, boolean onlyNrc20, boolean isHidden) {
+        Bson filter = null;
+        if (onlyNrc20) {
+            filter = Filters.eq("isNrc20", 1);
+        } else if (isHidden) {
+            filter = Filters.ne("isNrc20", 1);
+        }
+        Bson sort = Sorts.descending("createTime");
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.CONTRACT_INFO, filter, sort, pageNumber, pageSize);
+        List<ContractInfo> contractInfos = new ArrayList<>();
+        long totalCount = mongoDBService.getCount(MongoTableName.CONTRACT_INFO, filter);
+
+        for (Document document : docsList) {
+            ContractInfo contractInfo = DocumentTransferTool.toInfo(document, "contractAddress", ContractInfo.class);
+            contractInfo.setMethodStr("");
+            contractInfos.add(contractInfo);
+        }
+        PageInfo<ContractInfo> pageInfo = new PageInfo<>(pageNumber, pageSize, totalCount, contractInfos);
         return pageInfo;
     }
 }

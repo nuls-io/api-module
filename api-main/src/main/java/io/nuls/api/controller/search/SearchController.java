@@ -111,7 +111,7 @@ public class SearchController {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
         }
 
-        AccountInfo accountInfo = accountService.getAccount(address);
+        AccountInfo accountInfo = accountService.getAccountInfo(address);
         if (accountInfo == null) {
             throw new NotFoundException();
         }

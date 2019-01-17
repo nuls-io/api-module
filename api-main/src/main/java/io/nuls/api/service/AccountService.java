@@ -38,7 +38,7 @@ public class AccountService {
         mongoDBService.bulkWrite(MongoTableName.ACCOUNT_INFO, modelList);
     }
 
-    public AccountInfo getAccountInfoByAddress(String address) {
+    public AccountInfo getAccountInfo(String address) {
         Document document = mongoDBService.findOne(MongoTableName.ACCOUNT_INFO, Filters.eq("_id", address));
         if (document == null) {
             return null;
@@ -76,16 +76,5 @@ public class AccountService {
         }
         PageInfo<TxRelationInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, txRelationInfoList);
         return pageInfo;
-    }
-
-    public AccountInfo getAccount(String address) {
-        Bson filter = Filters.eq("_id", address);
-        Document document = mongoDBService.findOne(MongoTableName.ACCOUNT_INFO, filter);
-        if (document == null) {
-            return null;
-        }
-        AccountInfo accountInfo = DocumentTransferTool.toInfo(document, "address", AccountInfo.class);
-        return accountInfo;
-
     }
 }

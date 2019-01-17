@@ -98,7 +98,7 @@ public class AccountController {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
         }
 
-        AccountInfo accountInfo = accountService.getAccount(address);
+        AccountInfo accountInfo = accountService.getAccountInfo(address);
         RpcResult result = new RpcResult();
         if (accountInfo == null) {
             return result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
