@@ -1,5 +1,6 @@
 package io.nuls.api.task;
 
+import com.mongodb.client.ClientSession;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.bridge.WalletRPCHandler;
@@ -7,10 +8,12 @@ import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
+import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.service.BlockHeaderService;
 import io.nuls.api.service.BlockService;
 import io.nuls.sdk.core.contast.KernelErrorCode;
 import io.nuls.sdk.core.utils.Log;
+import org.checkerframework.checker.units.qual.A;
 
 /**
  * 区块同步定时任务
@@ -25,6 +28,9 @@ public class SyncBlockTask implements Runnable {
     private BlockService blockService;
     @Autowired
     private BlockHeaderService blockHeaderService;
+
+    @Autowired
+    private MongoDBService mongoDBService;
 
     @Override
     public void run() {
@@ -67,12 +73,24 @@ public class SyncBlockTask implements Runnable {
             Log.error("--------获取下一区块头信息异常:", e);
             return false;
         }
-
-        //根据返回结果，做相应的处理
-        if (result.isSuccess()) {
-            return processWithSuccessResult(result, localBestBlockHeader);
-        } else {
-            return processWithFailResult(result, localBestBlockHeader);
+        ClientSession session = mongoDBService.startSession();
+        try {
+            session.startTransaction();
+            boolean success;
+            //根据返回结果，做相应的处理
+            if (result.isSuccess()) {
+                success = processWithSuccessResult(result, localBestBlockHeader);
+            } else {
+                success = processWithFailResult(result, localBestBlockHeader);
+            }
+            session.commitTransaction();
+            return success;
+        } catch (Exception e) {
+            Log.error(e);
+            session.abortTransaction();
+            return false;
+        } finally {
+            session.close();
         }
     }
 

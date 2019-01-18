@@ -77,7 +77,7 @@ public class ApiModuleBootstrap {
         SDKBootstrap.init(walletIp, walletPort, Integer.parseInt(walletChainId));
         MongoClient mongoClient = new MongoClient(dbIp, dbPort);
         MongoDatabase mongoDatabase = mongoClient.getDatabase(dbName);
-        MongoDBService dbService = new MongoDBService(mongoDatabase);
+        MongoDBService dbService = new MongoDBService(mongoClient, mongoDatabase);
         SpringLiteContext.putBean("dbService", dbService);
 
         SpringLiteContext.init("io.nuls");

@@ -47,7 +47,7 @@ public class MongoDBServiceTest1 {
 
         MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService dbService = new MongoDBService(mongoDatabase);
+        MongoDBService dbService = new MongoDBService(mongoClient, mongoDatabase);
 
         MongoCollection collection = dbService.getCollection("relations");
 
@@ -72,7 +72,7 @@ public class MongoDBServiceTest1 {
 
         MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
-        MongoDBService dbService = new MongoDBService(mongoDatabase);
+        MongoDBService dbService = new MongoDBService(mongoClient, mongoDatabase);
         List<IndexModel> indexes = new ArrayList<>();
         IndexModel indexModel = new IndexModel(new Document().append("time", 1));
         indexes.add(indexModel);

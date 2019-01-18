@@ -120,7 +120,7 @@ public class BlockService {
 
         save(blockInfo, agentInfo);
 
-        if (i % 10000 == -1) {
+        if (i % 1000 == 0) {
             Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
             time1 = System.currentTimeMillis();
         }
@@ -657,6 +657,7 @@ public class BlockService {
         contractService.saveContractTxInfos(contractTxInfoList);
         //存入智能合约执行结果记录
         contractService.saveContractResults(contractResultList);
+
         //存储账户token信息
         tokenService.saveAccountTokens(accountTokenMap);
         //存储token转账信息
