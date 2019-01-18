@@ -75,7 +75,7 @@ public class SyncBlockTask implements Runnable {
         }
         ClientSession session = mongoDBService.startSession();
         try {
-            session.startTransaction();
+//            session.startTransaction();
             boolean success;
             //根据返回结果，做相应的处理
             if (result.isSuccess()) {
@@ -83,14 +83,14 @@ public class SyncBlockTask implements Runnable {
             } else {
                 success = processWithFailResult(result, localBestBlockHeader);
             }
-            session.commitTransaction();
+//            session.commitTransaction();
             return success;
         } catch (Exception e) {
             Log.error(e);
-            session.abortTransaction();
+//            session.abortTransaction();
             return false;
         } finally {
-            session.close();
+//            session.close();
         }
     }
 
