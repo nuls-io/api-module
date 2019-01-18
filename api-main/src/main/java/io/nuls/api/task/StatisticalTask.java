@@ -120,7 +120,7 @@ public class StatisticalTask implements Runnable {
         info.setNodeCount(nodeCount);
         info.setConsensusLocked(consensusLocked);
         info.setDate(calendar.get(Calendar.DATE));
-        info.setMonth(calendar.get(Calendar.MONTH));
+        info.setMonth(calendar.get(Calendar.MONTH) + 1);
         info.setYear(calendar.get(Calendar.YEAR));
         try {
             this.statisticalService.insert(info);
