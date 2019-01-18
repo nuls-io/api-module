@@ -20,6 +20,15 @@ public class NulsConstant {
     //取消委托共识
     public static final int CANCEL_CONSENSUS = 1;
 
+    public static final int CONTRACT_STATUS_NORMAL = 0;
+
+    public static final int CONTRACT_STATUS_FAIL = -1;
+
+    public static final int CONTRACT_STATUS_APPROVING = 1;
+
+    public static final int CONTRACT_STATUS_PASSED = 2;
+
+    //种子节点地址
     public static final Set<String> SEED_NODE_ADDRESS = new HashSet<>();
 
     static {

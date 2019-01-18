@@ -85,8 +85,6 @@ public class BlockService {
      * @return boolean 是否保存成功
      */
 
-    boolean hasContract = false;
-
     private long time1;
     int i = 0;
 
@@ -196,6 +194,10 @@ public class BlockService {
                 processCreateContract(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
                 processCallContract(tx, blockHeight);
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_DELETE_CONTRACT) {
+                //todo
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
+
             }
         }
     }
@@ -487,6 +489,13 @@ public class BlockService {
         contractInfo.setNew(true);
         contractInfo.setRemark(tx.getRemark());
 
+        AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
+        accountInfo.setTxCount(accountInfo.getTxCount() + 1);
+        accountInfo.setTotalOut(accountInfo.getTotalOut() + tx.getFee());
+        accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
+        accountInfo.setHeight(blockHeight);
+
+
         //首先查询合约交易执行结果
         RpcClientResult<ContractResultInfo> clientResult1 = rpcHandler.getContractResult(tx.getHash());
         ContractResultInfo resultInfo = clientResult1.getData();
@@ -497,6 +506,7 @@ public class BlockService {
 
         if (!resultInfo.getSuccess()) {
             contractInfo.setErrorMsg(resultInfo.getErrorMessage());
+            contractInfo.setStatus(-1);
         } else {
             //如果是NRC20合约，还需要处理相关账户的token信息
             if (contractInfo.getIsNrc20() == 1) {
@@ -521,23 +531,6 @@ public class BlockService {
 
         contractTxInfoList.add(contractTxInfo);
     }
-//
-//    private void processNrc20ForAccount(String address, String symbol, String contractAddress, BigInteger value, int decimals) {
-//        AccountTokenInfo tokenInfo = nrc20Service.getAccountTokenInfo(address, symbol);
-//        if (tokenInfo == null) {
-//            AccountInfo accountInfo = queryAccountInfo(address);
-//            accountInfo.getTokens().add(symbol);
-//
-//            tokenInfo = new AccountTokenInfo(address, symbol, contractAddress);
-//            tokenInfo.setDecimals(decimals);
-//            tokenInfo.setBalance(value);
-//        }
-//        tokenInfo.setBalance(tokenInfo.getBalance().add(value));
-//        if (tokenInfo.getBalance().compareTo(BigInteger.ZERO) < 0) {
-//            throw new RuntimeException("data error: " + address + " token[" + symbol + "] balance < 0");
-//        }
-//        tokenInfoList.add(tokenInfo);
-//    }
 
     /**
      * 处理Nrc20合约相关的地址的token余额
@@ -626,17 +619,22 @@ public class BlockService {
         }
     }
 
+
+    private void processContractTransfer(TransactionInfo tx, long blockHeight) {
+    }
+
+
     /**
      * 解析区块和所有交易后，将数据存储到数据库中
      */
     public void save(BlockInfo blockInfo, AgentInfo agentInfo) throws Exception {
-
-        blockHeaderService.saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
-        blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
         //如果区块非种子节点地址打包，则需要修改打包节点的奖励统计，放在agentInfoList里一并处理
         if (!blockInfo.getBlockHeader().isSeedPacked()) {
             agentInfoList.add(agentInfo);
         }
+
+        blockHeaderService.saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
+        blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
         //存储交易记录
         transactionService.saveTxList(blockInfo.getTxs());
         //存储交易和地址关系记录
