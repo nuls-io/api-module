@@ -21,11 +21,15 @@
 package io.nuls.api.core.mongodb;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import io.nuls.api.core.constant.MongoTableName;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import org.junit.Test;
 
@@ -35,16 +39,20 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.mongodb.client.model.Filters.eq;
+import static org.bson.codecs.configuration.CodecRegistries.*;
 
 public class MongoDBServiceTest {
 
     @Test
     public void testInsert() {
-
+        CodecRegistry codecRegistry = fromRegistries(MongoClient.getDefaultCodecRegistry(), fromProviders(
+                PojoCodecProvider.builder().register("com.mongodb.models").build()));
+        MongoClientOptions.Builder options = new MongoClientOptions.Builder().codecRegistry(codecRegistry);
+        MongoClientURI uri = new MongoClientURI("mongodb://localhost/test?retryWrites=true", options);
         // 连接到 mongodb 服务
-        MongoClient mongoClient = new MongoClient("localhost", 27017);
+        MongoClient mongoClient = new MongoClient(uri);
 
-
+        mongoClient.startSession();
         // 连接到数据库
         MongoDatabase mongoDatabase = mongoClient.getDatabase("test");
         MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
