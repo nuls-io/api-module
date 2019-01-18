@@ -73,7 +73,7 @@ public class SyncBlockTask implements Runnable {
             Log.error("--------获取下一区块头信息异常:", e);
             return false;
         }
-        ClientSession session = mongoDBService.startSession();
+//        ClientSession session = mongoDBService.startSession();
         try {
 //            session.startTransaction();
             boolean success;
