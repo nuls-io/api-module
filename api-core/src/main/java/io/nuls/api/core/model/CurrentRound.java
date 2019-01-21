@@ -81,11 +81,13 @@ public class CurrentRound extends PocRound {
         stringBuilder.append(", startTime:" + DateUtils.format(new Date(this.getStartTime()), "YYYY-mm-DD HH:MM:SS"));
         stringBuilder.append("\n");
         int index = 1;
-        for (PocRoundItem item : this.getItemList()) {
-            stringBuilder.append(index++);
-            stringBuilder.append(" , ");
-            stringBuilder.append(item.getSeedAddress() == null ? item.getPackingAddress() : item.getSeedAddress());
-            stringBuilder.append("\n");
+        if (null != this.getItemList()) {
+            for (PocRoundItem item : this.getItemList()) {
+                stringBuilder.append(index++);
+                stringBuilder.append(" , ");
+                stringBuilder.append(item.getSeedAddress() == null ? item.getPackingAddress() : item.getSeedAddress());
+                stringBuilder.append("\n");
+            }
         }
         return stringBuilder.toString();
     }

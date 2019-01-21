@@ -68,7 +68,7 @@ public class RoundManager {
                 while (round == null && blockInfo.getBlockHeader().getHeight() > 0) {
                     round = roundService.getRound(roundIndex--);
                 }
-                if(round != null) {
+                if (round != null) {
                     CurrentRound preRound = new CurrentRound();
                     preRound.initByPocRound(round);
                     List<PocRoundItem> list = roundService.getRoundItemList(round.getIndex());
@@ -160,6 +160,7 @@ public class RoundManager {
                 item.setPackingAddress(agentInfo.getPackingAddress());
             } else {
                 item.setSeedAddress(sorter.getSeedAddress());
+                item.setPackingAddress(sorter.getSeedAddress());
 
             }
             itemList.add(item);
