@@ -46,10 +46,12 @@ public class PunishService {
      * @param address
      * @return
      */
-    public List<PunishLog> getPunishLogList(int type, String address, long currentRoundIndex) {
-        Bson filter = and(eq("type", type), eq("address", address));
+    public List<PunishLog> getPunishLogList(int type, String address) {
+        Bson filter = null;
         if (type == 0) {
-            filter = and(filter, gte("roundIndex", currentRoundIndex));
+            filter = eq("address", address);
+        } else {
+            filter = and(eq("type", type), eq("address", address));
         }
         List<Document> documentList = mongoDBService.query(MongoTableName.PUNISH_INFO, filter, Sorts.descending("height"));
         List<PunishLog> punishLogList = new ArrayList<>();

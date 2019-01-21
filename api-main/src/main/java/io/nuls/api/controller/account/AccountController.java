@@ -28,9 +28,13 @@ import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.AccountInfo;
+import io.nuls.api.core.model.Output;
 import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.TxRelationInfo;
 import io.nuls.api.service.AccountService;
+import io.nuls.api.service.BlockHeaderService;
+import io.nuls.api.service.UTXOService;
+import io.nuls.api.utils.CalcUtil;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.StringUtils;
@@ -45,6 +49,10 @@ public class AccountController {
 
     @Autowired
     private AccountService accountService;
+    @Autowired
+    private UTXOService utxoService;
+    @Autowired
+    private BlockHeaderService blockHeaderService;
 
     @RpcMethod("getAccountList")
     public RpcResult getAccountList(List<Object> params) {
@@ -103,6 +111,10 @@ public class AccountController {
         if (accountInfo == null) {
             return result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
         }
+
+        List<Output> outputs = utxoService.getAccountUtxos(address);
+        CalcUtil.calcBalance(accountInfo, outputs, blockHeaderService.getBestBlockHeight());
+
         return result.setResult(accountInfo);
     }
 }

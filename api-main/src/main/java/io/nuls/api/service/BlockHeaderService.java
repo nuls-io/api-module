@@ -36,6 +36,19 @@ public class BlockHeaderService {
     }
 
     /**
+     * 获取最新高度
+     * @return
+     */
+    public long getBestBlockHeight() {
+        Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
+        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
+        if(document == null) {
+            return 0;
+        }
+        return document.getLong("height");
+    }
+
+    /**
      * 保存最新的高度信息
      *
      * @param newHeight 最新高度

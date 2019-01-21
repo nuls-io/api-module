@@ -33,6 +33,7 @@ import io.nuls.api.utils.ConfigLoader;
 import io.nuls.sdk.core.SDKBootstrap;
 import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.core.utils.StringUtils;
+import io.nuls.sdk.core.utils.TimeService;
 
 import java.util.Properties;
 
@@ -82,6 +83,7 @@ public class ApiModuleBootstrap {
         }
         RestFulUtils.getInstance().setServerUri("http://" + walletIp + ":" + walletPort + "/" + walletUrl);
         SDKBootstrap.init(walletIp, walletPort, Integer.parseInt(walletChainId));
+//        TimeService.getInstance().start();
         MongoClient mongoClient = new MongoClient(dbIp, dbPort);
         MongoDatabase mongoDatabase = mongoClient.getDatabase(dbName);
         MongoDBService dbService = new MongoDBService(mongoClient, mongoDatabase);

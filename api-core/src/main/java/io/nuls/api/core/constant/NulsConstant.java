@@ -28,6 +28,8 @@ public class NulsConstant {
 
     public static final int CONTRACT_STATUS_PASSED = 2;
 
+    public static long BlOCKHEIGHT_TIME_DIVIDE = 1000000000000L;
+
     //种子节点地址
     public static final Set<String> SEED_NODE_ADDRESS = new HashSet<>();
 

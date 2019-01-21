@@ -1,5 +1,6 @@
 package io.nuls.api.service;
 
+import afu.org.checkerframework.checker.oigj.qual.O;
 import com.mongodb.client.model.DeleteOneModel;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
@@ -12,6 +13,7 @@ import io.nuls.api.core.model.Output;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,5 +47,18 @@ public class UTXOService {
         }
 
         mongoDBService.bulkWrite(MongoTableName.UTXO_INFO, modelList);
+    }
+
+
+    public List<Output> getAccountUtxos(String address) {
+        List<Output> outputs = new ArrayList<>();
+        Bson filter = Filters.eq("address", address);
+        List<Document> docsList = this.mongoDBService.query(MongoTableName.UTXO_INFO, filter);
+        if (docsList != null) {
+            for (Document document : docsList) {
+                outputs.add(DocumentTransferTool.toInfo(document, "key", Output.class));
+            }
+        }
+        return outputs;
     }
 }

@@ -158,7 +158,7 @@ public class POCConsensusController {
         VerifyUtils.verifyParams(params, 2);
         int type = (int) params.get(0);
         String agentAddress = (String) params.get(1);
-        List<PunishLog> list = punishService.getPunishLogList(type, agentAddress, roundManager.getCurrentRound().getIndex());
+        List<PunishLog> list = punishService.getPunishLogList(type, agentAddress);
         return new RpcResult().setResult(list);
     }
 
