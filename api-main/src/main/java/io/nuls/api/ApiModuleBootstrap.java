@@ -24,6 +24,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import io.nuls.api.bean.SpringLiteContext;
 import io.nuls.api.core.ApiContext;
+import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.jsonrpc.JsonRpcServer;
@@ -70,6 +71,12 @@ public class ApiModuleBootstrap {
             dbName = prop.getProperty("db.name");
             dbIp = prop.getProperty("db.ip");
             dbPort = Integer.parseInt(prop.getProperty("db.port"));
+
+            String[] seeds = prop.getProperty("wallet.consensus.seeds").split(",");
+            for (String seed : seeds) {
+                NulsConstant.SEED_NODE_ADDRESS.add(seed);
+            }
+
         } catch (Exception e) {
             Log.error(e);
         }
