@@ -1,6 +1,5 @@
 package io.nuls.api.task;
 
-import com.mongodb.client.ClientSession;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.bridge.WalletRPCHandler;
@@ -13,7 +12,6 @@ import io.nuls.api.service.BlockHeaderService;
 import io.nuls.api.service.BlockService;
 import io.nuls.sdk.core.contast.KernelErrorCode;
 import io.nuls.sdk.core.utils.Log;
-import org.checkerframework.checker.units.qual.A;
 
 /**
  * 区块同步定时任务
@@ -73,9 +71,9 @@ public class SyncBlockTask implements Runnable {
             Log.error("--------获取下一区块头信息异常:", e);
             return false;
         }
-        ClientSession session = mongoDBService.startSession();
+//        ClientSession session = mongoDBService.startSession();
         try {
-            session.startTransaction();
+//            session.startTransaction();
             boolean success;
             //根据返回结果，做相应的处理
             if (result.isSuccess()) {
@@ -83,14 +81,14 @@ public class SyncBlockTask implements Runnable {
             } else {
                 success = processWithFailResult(result, localBestBlockHeader);
             }
-            session.commitTransaction();
+//            session.commitTransaction();
             return success;
         } catch (Exception e) {
             Log.error(e);
-            session.abortTransaction();
+//            session.abortTransaction();
             return false;
         } finally {
-            session.close();
+//            session.close();
         }
     }
 

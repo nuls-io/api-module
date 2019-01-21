@@ -120,10 +120,10 @@ public class BlockService {
 
         save(blockInfo, agentInfo);
 
-        if (i % 1000 == 0) {
-            Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
-            time1 = System.currentTimeMillis();
-        }
+//        if (i % 1000 == 0) {
+        Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
+//        }
         i++;
         ApiContext.bestHeight = headerInfo.getHeight();
         return true;
@@ -195,9 +195,9 @@ public class BlockService {
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
                 processCallContract(tx, blockHeight);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_DELETE_CONTRACT) {
-                //todo
-            } else if (tx.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
 
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
+                processContractTransfer(tx, blockHeight);
             }
         }
     }
@@ -433,7 +433,6 @@ public class BlockService {
         }
     }
 
-
     public void processYellowPunishTx(TransactionInfo tx, long blockHeight) {
         for (TxData txData : tx.getTxDataList()) {
             PunishLog punishLog = (PunishLog) txData;
@@ -494,7 +493,7 @@ public class BlockService {
         accountInfo.setTotalOut(accountInfo.getTotalOut() + tx.getFee());
         accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
         accountInfo.setHeight(blockHeight);
-
+        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, 0, accountInfo.getTotalBalance()));
 
         //首先查询合约交易执行结果
         RpcClientResult<ContractResultInfo> clientResult1 = rpcHandler.getContractResult(tx.getHash());
@@ -601,6 +600,7 @@ public class BlockService {
 
 
     private void processCallContract(TransactionInfo tx, long blockHeight) throws Exception {
+        processTransferTx(tx, blockHeight);
         //首先查询合约交易执行结果
         RpcClientResult<ContractResultInfo> clientResult = rpcHandler.getContractResult(tx.getHash());
         if (clientResult.isSuccess() == false) {
@@ -620,7 +620,11 @@ public class BlockService {
     }
 
 
-    private void processContractTransfer(TransactionInfo tx, long blockHeight) {
+    private void processContractTransfer(TransactionInfo tx, long blockHeight) throws Exception {
+        processTransferTx(tx, blockHeight);
+        ContractTransferInfo transferInfo = (ContractTransferInfo) tx.getTxData();
+        ContractInfo contractInfo = queryContractInfo(transferInfo.getContractAddress());
+        contractInfo.setTxCount(contractInfo.getTxCount() + 1);
     }
 
 
@@ -634,6 +638,7 @@ public class BlockService {
         }
 
         blockHeaderService.saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
+        //存储区块头信息
         blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
         //存储交易记录
         transactionService.saveTxList(blockInfo.getTxs());
@@ -641,8 +646,6 @@ public class BlockService {
         transactionService.saveTxRelationList(txRelationInfoSet);
         //根据input和output更新utxo表
         utxoService.saveWithInputOutput(inputList, outputMap);
-        //修改账户信息表
-        accountService.saveAccounts(accountInfoMap);
         //存储别名记录
         aliasService.saveAliasList(aliasInfoList);
         //存储共识节点列表
@@ -651,19 +654,25 @@ public class BlockService {
         depositService.saveDepositList(depositInfoList);
         //存储红黄牌惩罚记录
         punishService.savePunishList(punishLogList);
-        //存储智能合约记录
-        contractService.saveContractInfos(contractInfoMap);
         //存储智能合约交易关系记录
         contractService.saveContractTxInfos(contractTxInfoList);
         //存入智能合约执行结果记录
         contractService.saveContractResults(contractResultList);
-
-        //存储账户token信息
-        tokenService.saveAccountTokens(accountTokenMap);
         //存储token转账信息
         tokenService.saveTokenTransfers(tokenTransferList);
 
-        //todo 存储完成后记得修改new_info最新高度 isFinish = true;
+        /*
+            涉及到统计类的表放在最后来存储，便于回滚
+            凡是统计类的表，都加上一个height字段，说明是统计到什么地方
+         */
+        //修改账户信息表
+        accountService.saveAccounts(accountInfoMap);
+        //存储智能合约记录
+        contractService.saveContractInfos(contractInfoMap);
+        //存储账户token信息
+        tokenService.saveAccountTokens(accountTokenMap);
+        //完成解析
+        blockHeaderService.syncComplete(blockInfo.getBlockHeader().getHeight());
     }
 
 

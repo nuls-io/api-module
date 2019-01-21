@@ -54,6 +54,15 @@ public class BlockHeaderService {
         }
     }
 
+    public void syncComplete(long newHeight) {
+        Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
+        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
+        if (document.getLong("height") == newHeight) {
+            document.put("finish", true);
+            mongoDBService.update(MongoTableName.NEW_INFO, query, document);
+        }
+    }
+
 
     /**
      * 按照高度获取区块头
