@@ -90,6 +90,7 @@ public class StatisticalTask implements Runnable {
             statistical(start, end);
             start = end + 1;
             end = end + day;
+            System.out.println(start + "------------" + end);
             BlockHeaderInfo newBlockHeader = blockHeaderService.getBestBlockHeader();
             if (null != newBlockHeader) {
                 header = newBlockHeader;
@@ -100,8 +101,10 @@ public class StatisticalTask implements Runnable {
     private void statistical(long start, long end) {
         long txCount = statisticalService.calcTxCount(start, end);
         long consensusLocked = 0;
-        List<AgentInfo> agentList = agentService.getAgentList(ApiContext.bestHeight);
-        List<DepositInfo> depositList = depositService.getDepositList(ApiContext.bestHeight);
+        long height = blockHeaderService.getMaxHeight(end);
+        System.out.println("max_height:::::" + height);
+        List<AgentInfo> agentList = agentService.getAgentList(height);
+        List<DepositInfo> depositList = depositService.getDepositList(height);
         int nodeCount = agentList.size();
         for (AgentInfo agent : agentList) {
             consensusLocked += agent.getDeposit();
@@ -109,7 +112,10 @@ public class StatisticalTask implements Runnable {
         for (DepositInfo deposit : depositList) {
             consensusLocked += deposit.getAmount();
         }
-        double annualizedReward = DoubleUtils.mul(100, DoubleUtils.div(500000000000000L, consensusLocked, 4), 2);
+        double annualizedReward = 0L;
+        if (consensusLocked != 0) {
+            annualizedReward = DoubleUtils.mul(100, DoubleUtils.div(500000000000000L, consensusLocked, 4), 2);
+        }
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(end);

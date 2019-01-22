@@ -23,12 +23,12 @@ package io.nuls.api.core.mongodb;
 import com.mongodb.MongoClient;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.*;
-import com.mongodb.client.model.IndexModel;
-import com.mongodb.client.model.WriteModel;
+import com.mongodb.client.model.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -232,4 +232,19 @@ public class MongoDBService {
         return client.startSession();
     }
 
+    public Long getMax(String collName, String field, Bson filter) {
+
+
+        MongoCollection<Document> collection = getCollection(collName);
+        MongoCursor<Document> documentMongoCursor = collection.find(filter).sort(Sorts.descending(field)).limit(1).iterator();
+        if (documentMongoCursor.hasNext()) {
+            Document document = documentMongoCursor.next();
+            if (null == document) {
+                return null;
+            }
+            return Long.parseLong(document.get(field) + "");
+        }
+
+        return null;
+    }
 }
