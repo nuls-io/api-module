@@ -78,6 +78,16 @@ public class ApiModuleBootstrap {
                 NulsConstant.SEED_NODE_ADDRESS.add(seed);
             }
 
+            String[] developerSeeds = prop.getProperty("wallet.consensus.developer.nodes").split(",");
+            for (String seed : developerSeeds) {
+                NulsConstant.DEVELOPER_NODE_ADDRESS.add(seed);
+            }
+
+            String[] ambassdorSeeds = prop.getProperty("wallet.consensus.ambassador.nodes").split(",");
+            for (String seed : ambassdorSeeds) {
+                NulsConstant.AMBASSADOR_NODE_ADDRESS.add(seed);
+            }
+
         } catch (Exception e) {
             Log.error(e);
         }

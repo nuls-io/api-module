@@ -155,8 +155,8 @@ public class RoundManager {
             item.setId(item.getRoundIndex() + "_" + item.getOrder());
             if (null == sorter.getSeedAddress()) {
                 AgentInfo agentInfo = map.get(sorter.getAgentId());
-                item.setAgentName(agentInfo.getAlias() == null ?
-                        agentInfo.getTxHash().substring(agentInfo.getTxHash().length() - 8) : agentInfo.getAlias());
+                item.setAgentName(agentInfo.getAgentAlias() == null ?
+                        agentInfo.getTxHash().substring(agentInfo.getTxHash().length() - 8) : agentInfo.getAgentAlias());
                 item.setPackingAddress(agentInfo.getPackingAddress());
             } else {
                 item.setSeedAddress(sorter.getSeedAddress());

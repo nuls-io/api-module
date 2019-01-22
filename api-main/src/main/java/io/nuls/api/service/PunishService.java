@@ -56,7 +56,7 @@ public class PunishService {
         }
 
         long totalCount = mongoDBService.getCount(MongoTableName.PUNISH_INFO, filter);
-        List<Document> documentList = mongoDBService.pageQuery(MongoTableName.PUNISH_INFO, filter, Sorts.descending("height"), pageIndex, pageSize);
+        List<Document> documentList = mongoDBService.pageQuery(MongoTableName.PUNISH_INFO, Sorts.descending("height"), pageIndex, pageSize);
         List<PunishLog> punishLogList = new ArrayList<>();
         for (Document document : documentList) {
             punishLogList.add(DocumentTransferTool.toInfo(document, PunishLog.class));
