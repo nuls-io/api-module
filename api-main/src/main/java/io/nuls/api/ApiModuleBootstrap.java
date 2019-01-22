@@ -83,7 +83,7 @@ public class ApiModuleBootstrap {
         }
         RestFulUtils.getInstance().setServerUri("http://" + walletIp + ":" + walletPort + "/" + walletUrl);
         SDKBootstrap.init(walletIp, walletPort, Integer.parseInt(walletChainId));
-//        TimeService.getInstance().start();
+        TimeService.getInstance().start();
         MongoClient mongoClient = new MongoClient(dbIp, dbPort);
         MongoDatabase mongoDatabase = mongoClient.getDatabase(dbName);
         MongoDBService dbService = new MongoDBService(mongoClient, mongoDatabase);

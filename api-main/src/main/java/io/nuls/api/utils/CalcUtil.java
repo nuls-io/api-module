@@ -17,8 +17,7 @@ public class CalcUtil {
         long timeLockUtxo = 0;
         long consensusUtxo = 0;
         long balance = 0;
-//        long currentTime = TimeService.currentTimeMillis();\
-        long currentTime = System.currentTimeMillis();
+        long currentTime = TimeService.currentTimeMillis();
         for (Output output : outputs) {
             if (output.getLockTime() == null || output.getLockTime() == 0) {
                 balance += output.getValue();

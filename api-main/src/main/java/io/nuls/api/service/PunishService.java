@@ -5,6 +5,7 @@ import com.mongodb.client.model.Sorts;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
+import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.PunishLog;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
@@ -46,19 +47,22 @@ public class PunishService {
      * @param address
      * @return
      */
-    public List<PunishLog> getPunishLogList(int type, String address) {
-        Bson filter = null;
+    public PageInfo<PunishLog> getPunishLogList(int type, String address, int pageIndex, int pageSize) {
+        Bson filter;
         if (type == 0) {
             filter = eq("address", address);
         } else {
             filter = and(eq("type", type), eq("address", address));
         }
-        List<Document> documentList = mongoDBService.query(MongoTableName.PUNISH_INFO, filter, Sorts.descending("height"));
+
+        long totalCount = mongoDBService.getCount(MongoTableName.PUNISH_INFO, filter);
+        List<Document> documentList = mongoDBService.pageQuery(MongoTableName.PUNISH_INFO, filter, Sorts.descending("height"), pageIndex, pageSize);
         List<PunishLog> punishLogList = new ArrayList<>();
         for (Document document : documentList) {
             punishLogList.add(DocumentTransferTool.toInfo(document, PunishLog.class));
         }
-        return punishLogList;
+        PageInfo<PunishLog> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, punishLogList);
+        return pageInfo;
     }
 
     public long getYellowCount(String agentAddress) {

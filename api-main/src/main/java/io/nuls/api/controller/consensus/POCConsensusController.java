@@ -155,10 +155,12 @@ public class POCConsensusController {
 
     @RpcMethod("getPunishList")
     public RpcResult getPunishList(List<Object> params) {
-        VerifyUtils.verifyParams(params, 2);
-        int type = (int) params.get(0);
-        String agentAddress = (String) params.get(1);
-        List<PunishLog> list = punishService.getPunishLogList(type, agentAddress);
+        VerifyUtils.verifyParams(params, 4);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        int type = (int) params.get(2);
+        String agentAddress = (String) params.get(3);
+        PageInfo<PunishLog> list = punishService.getPunishLogList(type, agentAddress, pageIndex, pageSize);
         return new RpcResult().setResult(list);
     }
 
