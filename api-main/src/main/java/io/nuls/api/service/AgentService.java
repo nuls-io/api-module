@@ -1,14 +1,18 @@
 package io.nuls.api.service;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.client.model.*;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
+import io.nuls.api.core.constant.NulsConstant;
+import io.nuls.api.core.model.AccountInfo;
 import io.nuls.api.core.model.AgentInfo;
+import io.nuls.api.core.model.AliasInfo;
+import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.sdk.core.model.Agent;
+import io.nuls.sdk.core.model.Alias;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -22,7 +26,8 @@ public class AgentService {
     private MongoDBService mongoDBService;
     @Autowired
     private AliasService aliasService;
-
+    @Autowired
+    private AccountService accountService;
 
     public AgentInfo getAgentByPackingAddress(String packingAddress) {
         Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("packingAddress", packingAddress));
@@ -30,6 +35,10 @@ public class AgentService {
             return null;
         }
         AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+        if (alias != null) {
+            agentInfo.setAgentAlias(alias.getAlias());
+        }
         return agentInfo;
     }
 
@@ -39,6 +48,10 @@ public class AgentService {
             return null;
         }
         AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+        if (alias != null) {
+            agentInfo.setAgentAlias(alias.getAlias());
+        }
         return agentInfo;
     }
 
@@ -48,6 +61,10 @@ public class AgentService {
             return null;
         }
         AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+        if (alias != null) {
+            agentInfo.setAgentAlias(alias.getAlias());
+        }
         return agentInfo;
     }
 
@@ -57,6 +74,10 @@ public class AgentService {
             return null;
         }
         AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+        if (alias != null) {
+            agentInfo.setAgentAlias(alias.getAlias());
+        }
         return agentInfo;
     }
 
@@ -71,6 +92,10 @@ public class AgentService {
             return null;
         }
         AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+        if (alias != null) {
+            agentInfo.setAgentAlias(alias.getAlias());
+        }
         return agentInfo;
     }
 
@@ -97,10 +122,39 @@ public class AgentService {
         List<Document> list = this.mongoDBService.query(MongoTableName.AGENT_INFO, bson);
         List<AgentInfo> resultList = new ArrayList<>();
         for (Document document : list) {
-            resultList.add(DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class));
+            AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+            AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+            if (alias != null) {
+                agentInfo.setAgentAlias(alias.getAlias());
+            }
+            resultList.add(agentInfo);
         }
 
         return resultList;
+    }
+
+    public PageInfo<AgentInfo> getAgentList(int type, int pageNumber, int pageSize) {
+        Bson filter = null;
+        if (type == 1) {
+            filter = Filters.nin("agentAddress", NulsConstant.DEVELOPER_NODE_ADDRESS.addAll(NulsConstant.AMBASSADOR_NODE_ADDRESS));
+        } else if (type == 2) {
+            filter = Filters.in("agentAddress", NulsConstant.DEVELOPER_NODE_ADDRESS);
+        } else if (type == 3) {
+            filter = Filters.in("agentAddress", NulsConstant.AMBASSADOR_NODE_ADDRESS);
+        }
+        long totalCount = this.mongoDBService.getCount(MongoTableName.AGENT_INFO, filter);
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.AGENT_INFO, filter, Sorts.descending("createTime"), pageNumber, pageSize);
+        List<AgentInfo> agentInfoList = new ArrayList<>();
+        for (Document document : docsList) {
+            AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+            AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+            if (alias != null) {
+                agentInfo.setAgentAlias(alias.getAlias());
+            }
+            agentInfoList.add(agentInfo);
+        }
+        PageInfo<AgentInfo> pageInfo = new PageInfo<>(pageNumber, pageSize, totalCount, agentInfoList);
+        return pageInfo;
     }
 
     public long agentsCount(long startHeight) {

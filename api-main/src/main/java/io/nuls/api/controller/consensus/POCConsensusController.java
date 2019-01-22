@@ -44,19 +44,14 @@ public class POCConsensusController {
 
     @Autowired
     private RoundManager roundManager;
-
     @Autowired
     private AgentService agentService;
-
     @Autowired
     private PunishService punishService;
-
     @Autowired
     private DepositService depositService;
-
     @Autowired
     private RoundService roundService;
-
     @Autowired
     private StatisticalService statisticalService;
 
@@ -92,9 +87,17 @@ public class POCConsensusController {
 
     @RpcMethod("getConsensusNodes")
     public RpcResult getConsensusNodes(List<Object> params) {
-        VerifyUtils.verifyParams(params, 1);
-        //todo 条件过滤，状态修改，字段填充
-        List<AgentInfo> list = agentService.getAgentList(ApiContext.bestHeight);
+        VerifyUtils.verifyParams(params, 3);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        int type = (int) params.get(2);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        PageInfo<AgentInfo> list = agentService.getAgentList(type, pageIndex, pageSize);
         return new RpcResult().setResult(list);
     }
 
@@ -104,6 +107,7 @@ public class POCConsensusController {
         String agentHash = (String) params.get(0);
 
         AgentInfo agentInfo = agentService.getAgentByAgentHash(agentHash);
+
         long count = punishService.getYellowCount(agentInfo.getAgentAddress());
         agentInfo.setLostRate(DoubleUtils.div(count, count + agentInfo.getTotalPackingCount()));
 
@@ -160,15 +164,29 @@ public class POCConsensusController {
         int pageSize = (int) params.get(1);
         int type = (int) params.get(2);
         String agentAddress = (String) params.get(3);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
         PageInfo<PunishLog> list = punishService.getPunishLogList(type, agentAddress, pageIndex, pageSize);
         return new RpcResult().setResult(list);
     }
 
     @RpcMethod("getConsensusDeposit")
     public RpcResult getConsensusDeposit(List<Object> params) {
-        VerifyUtils.verifyParams(params, 1);
-        String agentHash = (String) params.get(0);
-        List<DepositInfo> list = this.depositService.getDepositListByAgentHash(agentHash);
+        VerifyUtils.verifyParams(params, 3);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        String agentHash = (String) params.get(2);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        PageInfo<DepositInfo> list = this.depositService.getDepositListByAgentHash(agentHash, pageIndex, pageSize);
         return new RpcResult().setResult(list);
     }
 
@@ -180,9 +198,17 @@ public class POCConsensusController {
 
     @RpcMethod("getConsensusCancelDeposit")
     public RpcResult getConsensusCancelDeposit(List<Object> params) {
-        VerifyUtils.verifyParams(params, 1);
-        String agentHash = (String) params.get(0);
-        List<DepositInfo> list = this.depositService.getCancelDepositListByAgentHash(agentHash);
+        VerifyUtils.verifyParams(params, 3);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        String agentHash = (String) params.get(2);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        PageInfo<DepositInfo> list = this.depositService.getCancelDepositListByAgentHash(agentHash, pageIndex, pageSize);
         return new RpcResult().setResult(list);
     }
 
