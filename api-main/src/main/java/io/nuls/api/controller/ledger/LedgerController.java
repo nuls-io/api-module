@@ -20,9 +20,13 @@
 
 package io.nuls.api.controller.ledger;
 
+import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.core.model.AccountInfo;
+import io.nuls.api.core.model.PageInfo;
+import io.nuls.api.service.AccountService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +37,9 @@ import java.util.Map;
  */
 @Controller
 public class LedgerController {
+
+    @Autowired
+    private AccountService accountService;
 
     @RpcMethod("getCoinInfo")
     public RpcResult getCoinInfo(List<Object> params) {
@@ -47,8 +54,12 @@ public class LedgerController {
 
     @RpcMethod("getCoinRanking")
     public RpcResult getCoinRanking(List<Object> params) {
-        //todo
-        return null;
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        int sortType = (int) params.get(2);
+
+        PageInfo<AccountInfo> pageInfo = accountService.getCoinRanking(pageIndex, pageSize, sortType);
+        return new RpcResult().setResult(pageInfo);
     }
 
     @RpcMethod("getAccountTxs")
