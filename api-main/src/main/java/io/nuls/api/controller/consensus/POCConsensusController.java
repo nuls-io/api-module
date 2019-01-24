@@ -37,7 +37,6 @@ import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.DoubleUtils;
 import io.nuls.sdk.core.utils.StringUtils;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.HashMap;
 import java.util.List;

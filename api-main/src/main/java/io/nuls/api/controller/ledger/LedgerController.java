@@ -60,21 +60,4 @@ public class LedgerController {
         return new RpcResult().setResult(pageInfo);
     }
 
-    @RpcMethod("getAccountTxs")
-    public RpcResult getAccountTxs(List<Object> params) {
-        //todo
-        return null;
-    }
-
-    @RpcMethod("getAccountAssets")
-    public RpcResult getAccountAssets(List<Object> params) {
-        //todo
-        return null;
-    }
-
-    @RpcMethod("getAccountsTokenTxs")
-    public RpcResult getAccountsTokenTxs(List<Object> params) {
-        //todo
-        return null;
-    }
 }
