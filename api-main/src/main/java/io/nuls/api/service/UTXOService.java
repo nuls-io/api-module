@@ -1,6 +1,5 @@
 package io.nuls.api.service;
 
-import afu.org.checkerframework.checker.oigj.qual.O;
 import com.mongodb.client.model.DeleteOneModel;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
