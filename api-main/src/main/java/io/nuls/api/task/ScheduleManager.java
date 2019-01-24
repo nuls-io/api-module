@@ -24,6 +24,9 @@ public class ScheduleManager {
     private StatisticalTask statisticalTask;
 
     @Autowired
+    private StatisticalNulsTask statisticalNulsTask;
+
+    @Autowired
     private MongoDBService mongoDBService;
 
     public void start(boolean clearDB) {
@@ -50,10 +53,11 @@ public class ScheduleManager {
 
         initTables();
 
-        executorService = Executors.newScheduledThreadPool(2);
+        executorService = Executors.newScheduledThreadPool(3);
         executorService.scheduleAtFixedRate(syncBlockTask, 1, 10, TimeUnit.SECONDS);
-
+        executorService.scheduleAtFixedRate(statisticalNulsTask, 1, 20, TimeUnit.MINUTES);
         executorService.scheduleAtFixedRate(statisticalTask, 1, 60, TimeUnit.MINUTES);
+
     }
 
     private void initTables() {

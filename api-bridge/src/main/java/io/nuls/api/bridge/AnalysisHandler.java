@@ -28,6 +28,7 @@ package io.nuls.api.bridge;
 
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
+import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.sdk.core.contast.TransactionConstant;
@@ -109,7 +110,7 @@ public class AnalysisHandler {
         info.setRoundStartTime(extendsData.getRoundStartTime());
         info.setAgentVersion(extendsData.getCurrentVersion() == null ? 1 : extendsData.getCurrentVersion());
         //是否是种子节点打包的区块
-        if (NulsConstant.SEED_NODE_ADDRESS.contains(info.getPackingAddress())) {
+        if (ApiContext.SEED_NODE_ADDRESS.contains(info.getPackingAddress())) {
             info.setSeedPacked(true);
         }
         return info;
@@ -512,6 +513,14 @@ public class AnalysisHandler {
         }
         contractInfo.setMethods(methodList);
         return contractInfo;
+    }
+
+    public AgentInfo toAgentInfo(Map<String, Object> map) {
+        AgentInfo agentInfo = new AgentInfo();
+        agentInfo.setTxHash((String) map.get("agentHash"));
+        agentInfo.setCreditValue((Double) map.get("creditVal"));
+        agentInfo.setDepositCount((Integer) map.get("memberCount"));
+        return agentInfo;
     }
 
     /**

@@ -23,6 +23,8 @@ package io.nuls.api.controller.consensus;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
+import io.nuls.api.bridge.AnalysisHandler;
+import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
@@ -35,6 +37,7 @@ import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.DoubleUtils;
 import io.nuls.sdk.core.utils.StringUtils;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +48,6 @@ import java.util.Map;
  */
 @Controller
 public class POCConsensusController {
-
 
     @Autowired
     private RoundManager roundManager;
@@ -59,6 +61,8 @@ public class POCConsensusController {
     private RoundService roundService;
     @Autowired
     private StatisticalService statisticalService;
+    @Autowired
+    private WalletRPCHandler walletRPCHandler;
 
     @RpcMethod("getBestRoundItemList")
     public RpcResult getBestRoundItemList(List<Object> params) {
@@ -71,12 +75,11 @@ public class POCConsensusController {
 
     @RpcMethod("getConsensusNodeCount")
     public RpcResult getConsensusNodeCount(List<Object> params) {
-        String[] seeds = ApiContext.config.getProperty("wallet.consensus.seeds").split(",");
         Map<String, Long> resultMap = new HashMap<>();
-        resultMap.put("seedsCount", (long) seeds.length);
-        resultMap.put("consensusCount", (long) (roundManager.getCurrentRound().getMemberCount() - seeds.length));
+        resultMap.put("seedsCount", (long) ApiContext.SEED_NODE_ADDRESS.size());
+        resultMap.put("consensusCount", (long) (roundManager.getCurrentRound().getMemberCount() - ApiContext.SEED_NODE_ADDRESS.size()));
         long count = agentService.agentsCount(ApiContext.bestHeight);
-        resultMap.put("totalCount", count + seeds.length);
+        resultMap.put("totalCount", count + ApiContext.SEED_NODE_ADDRESS.size());
         RpcResult result = new RpcResult();
         result.setResult(resultMap);
         return result;
@@ -103,6 +106,13 @@ public class POCConsensusController {
             pageSize = 10;
         }
         PageInfo<AgentInfo> list = agentService.getAgentList(type, pageIndex, pageSize);
+        for (AgentInfo agentInfo : list.getList()) {
+            RpcClientResult<AgentInfo> clientResult = walletRPCHandler.getAgent(agentInfo.getTxHash());
+            if (clientResult.isSuccess()) {
+                agentInfo.setCreditValue(clientResult.getData().getCreditValue());
+                agentInfo.setDepositCount(clientResult.getData().getDepositCount());
+            }
+        }
         return new RpcResult().setResult(list);
     }
 
@@ -169,7 +179,7 @@ public class POCConsensusController {
         int pageSize = (int) params.get(1);
         int type = (int) params.get(2);
         String agentAddress = (String) params.get(3);
-        if(!AddressTool.validAddress(agentAddress)) {
+        if (!AddressTool.validAddress(agentAddress)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
         }
         if (pageIndex <= 0) {
@@ -188,7 +198,7 @@ public class POCConsensusController {
         int pageIndex = (int) params.get(0);
         int pageSize = (int) params.get(1);
         String agentHash = (String) params.get(2);
-        if(StringUtils.isBlank(agentHash)) {
+        if (StringUtils.isBlank(agentHash)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[agentHash] is inValid"));
         }
         if (pageIndex <= 0) {
@@ -214,7 +224,7 @@ public class POCConsensusController {
         int pageSize = (int) params.get(1);
         String agentHash = (String) params.get(2);
         int type = (int) params.get(3);
-        if(StringUtils.isBlank(agentHash)) {
+        if (StringUtils.isBlank(agentHash)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[agentHash] is inValid"));
         }
         if (pageIndex <= 0) {
@@ -254,6 +264,9 @@ public class POCConsensusController {
         long roundIndex = Long.parseLong(params.get(0) + "");
         CurrentRound round = new CurrentRound();
         PocRound pocRound = roundService.getRound(roundIndex);
+        if (pocRound == null) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
+        }
         List<PocRoundItem> itemList = roundService.getRoundItemList(roundIndex);
         round.setItemList(itemList);
         round.initByPocRound(pocRound);

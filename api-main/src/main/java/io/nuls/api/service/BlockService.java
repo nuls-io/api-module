@@ -318,7 +318,12 @@ public class BlockService {
             accountInfo.setTotalBalance(accountInfo.getTotalBalance() + value);
             txRelationInfoSet.add(new TxRelationInfo(entry.getKey(), tx, value, accountInfo.getTotalBalance()));
         }
-        aliasInfoList.add((AliasInfo) tx.getTxData());
+        AliasInfo aliasInfo = (AliasInfo) tx.getTxData();
+        AccountInfo accountInfo = queryAccountInfo(aliasInfo.getAddress());
+        if (accountInfo != null) {
+            accountInfo.setAlias(aliasInfo.getAlias());
+        }
+        aliasInfoList.add(aliasInfo);
     }
 
     /**

@@ -24,6 +24,7 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.AccountInfo;
 import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.service.AccountService;
@@ -46,13 +47,7 @@ public class LedgerController {
 
     @RpcMethod("getCoinInfo")
     public RpcResult getCoinInfo(List<Object> params) {
-        //todo 尚未实现
-        Map<String, Long> map = new HashMap<>();
-        map.put("total", accountService.getAllAccountBalance());
-        map.put("circulation", agentService.getConsensusCoinTotal());
-        map.put("consensusTotal", 3000000000000000L);
-
-        return new RpcResult().setResult(map);
+        return new RpcResult().setResult(ApiContext.NULS_MAP);
     }
 
     @RpcMethod("getCoinRanking")

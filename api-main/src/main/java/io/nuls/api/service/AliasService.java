@@ -45,7 +45,6 @@ public class AliasService {
             Document document = DocumentTransferTool.toDocument(aliasInfo, "address");
             documentList.add(document);
         }
-
         mongoDBService.insertMany(MongoTableName.ALIAS_INFO, documentList);
     }
 }

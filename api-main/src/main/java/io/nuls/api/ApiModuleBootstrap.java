@@ -73,21 +73,7 @@ public class ApiModuleBootstrap {
             dbIp = prop.getProperty("db.ip");
             dbPort = Integer.parseInt(prop.getProperty("db.port"));
 
-            String[] seeds = prop.getProperty("wallet.consensus.seeds").split(",");
-            for (String seed : seeds) {
-                NulsConstant.SEED_NODE_ADDRESS.add(seed);
-            }
-
-            String[] developerSeeds = prop.getProperty("wallet.consensus.developer.nodes").split(",");
-            for (String seed : developerSeeds) {
-                NulsConstant.DEVELOPER_NODE_ADDRESS.add(seed);
-            }
-
-            String[] ambassdorSeeds = prop.getProperty("wallet.consensus.ambassador.nodes").split(",");
-            for (String seed : ambassdorSeeds) {
-                NulsConstant.AMBASSADOR_NODE_ADDRESS.add(seed);
-            }
-
+            loadWalletAddress(prop);
         } catch (Exception e) {
             Log.error(e);
         }
@@ -110,5 +96,28 @@ public class ApiModuleBootstrap {
         server.startServer(ip, port);
 
         Log.info("api module is started!");
+    }
+
+    private static void loadWalletAddress(Properties prop) {
+        String[] seeds = prop.getProperty("wallet.consensus.seeds").split(",");
+        for (String address : seeds) {
+            ApiContext.SEED_NODE_ADDRESS.add(address);
+        }
+        String[] developerSeeds = prop.getProperty("wallet.consensus.developer.nodes").split(",");
+        for (String address : developerSeeds) {
+            ApiContext.DEVELOPER_NODE_ADDRESS.add(address);
+        }
+        String[] ambassdorSeeds = prop.getProperty("wallet.consensus.ambassador.nodes").split(",");
+        for (String address : ambassdorSeeds) {
+            ApiContext.AMBASSADOR_NODE_ADDRESS.add(address);
+        }
+        String[] mappingAddress = prop.getProperty("mappingAddress").split(",");
+        for (String address : mappingAddress) {
+            ApiContext.MAPPING_ADDRESS.add(address);
+        }
+        ApiContext.BUSINESS_ADDRESS = prop.getProperty("businessAddress");
+        ApiContext.TEAM_ADDRESS = prop.getProperty("teamAddress");
+        ApiContext.COMMUNITY_ADDRESS = prop.getProperty("communityAddress");
+        ApiContext.DESTROY_ADDRESS = prop.getProperty("destroyAddress");
     }
 }

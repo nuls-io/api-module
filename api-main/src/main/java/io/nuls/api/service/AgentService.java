@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.*;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
+import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.AccountInfo;
@@ -140,11 +141,11 @@ public class AgentService {
     public PageInfo<AgentInfo> getAgentList(int type, int pageNumber, int pageSize) {
         Bson filter = null;
         if (type == 1) {
-            filter = Filters.nin("agentAddress", NulsConstant.DEVELOPER_NODE_ADDRESS.addAll(NulsConstant.AMBASSADOR_NODE_ADDRESS));
+            filter = Filters.nin("agentAddress", ApiContext.DEVELOPER_NODE_ADDRESS.addAll(ApiContext.AMBASSADOR_NODE_ADDRESS));
         } else if (type == 2) {
-            filter = Filters.in("agentAddress", NulsConstant.DEVELOPER_NODE_ADDRESS);
+            filter = Filters.in("agentAddress", ApiContext.DEVELOPER_NODE_ADDRESS);
         } else if (type == 3) {
-            filter = Filters.in("agentAddress", NulsConstant.AMBASSADOR_NODE_ADDRESS);
+            filter = Filters.in("agentAddress", ApiContext.AMBASSADOR_NODE_ADDRESS);
         }
         long totalCount = this.mongoDBService.getCount(MongoTableName.AGENT_INFO, filter);
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.AGENT_INFO, filter, Sorts.descending("createTime"), pageNumber, pageSize);

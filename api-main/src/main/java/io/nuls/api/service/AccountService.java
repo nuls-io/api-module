@@ -76,6 +76,8 @@ public class AccountService {
             filter = Filters.and(addressFilter, Filters.ne("type", 1));
         } else if (type > 0) {
             filter = Filters.and(addressFilter, Filters.eq("type", type));
+        } else {
+            filter = addressFilter;
         }
 
         long totalCount = mongoDBService.getCount(MongoTableName.TX_RELATION_INFO, filter);
@@ -119,6 +121,14 @@ public class AccountService {
             totalBalance = cursor.next().getLong("total");
         }
         return totalBalance;
+    }
+
+    public long getAccountTotalBalance(String address) {
+        AccountInfo accountInfo = getAccountInfo(address);
+        if (accountInfo == null) {
+            return 0;
+        }
+        return accountInfo.getTotalBalance();
     }
 
 }

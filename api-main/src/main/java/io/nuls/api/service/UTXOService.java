@@ -12,6 +12,7 @@ import io.nuls.api.core.model.Input;
 import io.nuls.api.core.model.Output;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.sdk.core.model.Balance;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -61,4 +62,5 @@ public class UTXOService {
         }
         return outputs;
     }
+
 }
