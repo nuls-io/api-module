@@ -3,9 +3,7 @@ package io.nuls.api.core.model;
 import io.nuls.sdk.core.model.Address;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class AccountInfo {
 

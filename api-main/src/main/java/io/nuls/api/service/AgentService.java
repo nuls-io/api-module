@@ -1,5 +1,8 @@
 package io.nuls.api.service;
 
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.*;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
@@ -17,6 +20,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -160,5 +164,20 @@ public class AgentService {
     public long agentsCount(long startHeight) {
         Bson bson = Filters.and(Filters.lte("blockHeight", startHeight), Filters.or(Filters.eq("deleteHeight", 0), Filters.gt("deleteHeight", startHeight)));
         return this.mongoDBService.getCount(MongoTableName.AGENT_INFO, bson);
+    }
+
+    public long getConsensusCoinTotal() {
+        MongoCollection<Document> collection = mongoDBService.getCollection(MongoTableName.AGENT_INFO);
+        AggregateIterable<Document> ai = collection.aggregate(Arrays.asList(
+                Aggregates.group(null, Accumulators.sum("deposit", "$deposit"), Accumulators.sum("totalDeposit", "$totalDeposit"))
+        ));
+        MongoCursor<Document> cursor = ai.iterator();
+        long totalBalance = 0;
+        while (cursor.hasNext()) {
+            Document document = cursor.next();
+            totalBalance += document.getLong("deposit");
+            totalBalance += document.getLong("totalDeposit");
+        }
+        return totalBalance;
     }
 }

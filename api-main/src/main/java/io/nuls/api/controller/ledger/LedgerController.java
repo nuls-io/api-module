@@ -27,6 +27,7 @@ import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.core.model.AccountInfo;
 import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.service.AccountService;
+import io.nuls.api.service.AgentService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,13 +41,15 @@ public class LedgerController {
 
     @Autowired
     private AccountService accountService;
+    @Autowired
+    private AgentService agentService;
 
     @RpcMethod("getCoinInfo")
     public RpcResult getCoinInfo(List<Object> params) {
         //todo 尚未实现
         Map<String, Long> map = new HashMap<>();
-        map.put("total", 10000000000000000L);
-        map.put("circulation", 4000000000000000L);
+        map.put("total", accountService.getAllAccountBalance());
+        map.put("circulation", agentService.getConsensusCoinTotal());
         map.put("consensusTotal", 3000000000000000L);
 
         return new RpcResult().setResult(map);

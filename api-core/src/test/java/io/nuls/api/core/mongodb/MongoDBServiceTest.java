@@ -23,8 +23,12 @@ package io.nuls.api.core.mongodb;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import io.nuls.api.core.constant.MongoTableName;
 import org.bson.Document;
@@ -33,10 +37,7 @@ import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.mongodb.client.model.Filters.eq;
 import static org.bson.codecs.configuration.CodecRegistries.*;
@@ -135,6 +136,26 @@ public class MongoDBServiceTest {
         service.findOne("relations", eq("height", 1000));
     }
 
+    @Test
+    public void testSum() {
+
+        MongoClient mongoClient = new MongoClient("localhost", 27017);
+
+        // 连接到数据库
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("nuls");
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
+        MongoCollection<Document> collection = service.getCollection(MongoTableName.ACCOUNT_INFO);
+
+
+        AggregateIterable<Document> ai = collection.aggregate(Arrays.asList(
+                Aggregates.group(null, Accumulators.sum("total", "$totalBalance"))
+        ));
+        MongoCursor<Document> cursor = ai.iterator();
+        while (cursor.hasNext()) {
+            System.out.println(cursor.next());
+        }
+    }
+
 
     @Test
     public void testFind() {
@@ -198,7 +219,6 @@ public class MongoDBServiceTest {
         MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
         MongoDatabase mongoDatabase = mongoClient.getDatabase("nuls");
         MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
-        service.sum(MongoTableName.ACCOUNT_INFO, "totalBalance", null);
         //Document document = service.findOne(MongoTableName.ACCOUNT_INFO, Filters.eq("_id", "TTaqFxuD1xc6gpixUiMVQsjMZ5fdYJ2o"));
         //System.out.println(document);
     }

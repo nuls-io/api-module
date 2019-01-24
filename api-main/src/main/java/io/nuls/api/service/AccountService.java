@@ -1,5 +1,8 @@
 package io.nuls.api.service;
 
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.*;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
@@ -15,6 +18,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -102,6 +106,19 @@ public class AccountService {
         }
         PageInfo<AccountInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, accountInfoList);
         return pageInfo;
+    }
+
+    public long getAllAccountBalance() {
+        MongoCollection<Document> collection = mongoDBService.getCollection(MongoTableName.ACCOUNT_INFO);
+        AggregateIterable<Document> ai = collection.aggregate(Arrays.asList(
+                Aggregates.group(null, Accumulators.sum("total", "$totalBalance"))
+        ));
+        MongoCursor<Document> cursor = ai.iterator();
+        long totalBalance = 0;
+        while (cursor.hasNext()) {
+            totalBalance = cursor.next().getLong("total");
+        }
+        return totalBalance;
     }
 
 }

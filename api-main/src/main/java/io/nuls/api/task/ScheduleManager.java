@@ -53,7 +53,6 @@ public class ScheduleManager {
         executorService = Executors.newScheduledThreadPool(2);
         executorService.scheduleAtFixedRate(syncBlockTask, 1, 10, TimeUnit.SECONDS);
 
-
         executorService.scheduleAtFixedRate(statisticalTask, 1, 60, TimeUnit.MINUTES);
     }
 

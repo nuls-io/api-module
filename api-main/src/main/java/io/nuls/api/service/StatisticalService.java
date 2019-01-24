@@ -73,7 +73,7 @@ public class StatisticalService {
 
     public long calcTxCount(long start, long end) {
 
-        long count = this.mongoDBService.getCount(MongoTableName.TX_INFO, and(gt("createTime", start), lte("createTime", end)));
+        long count = this.mongoDBService.getCount(MongoTableName.TX_INFO, and(gte("createTime", start), lte("createTime", end)));
 
         return count;
     }

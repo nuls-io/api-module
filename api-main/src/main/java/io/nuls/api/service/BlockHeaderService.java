@@ -37,12 +37,13 @@ public class BlockHeaderService {
 
     /**
      * 获取最新高度
+     *
      * @return
      */
     public long getBestBlockHeight() {
         Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
-        if(document == null) {
+        if (document == null) {
             return 0;
         }
         return document.getLong("height");
@@ -138,5 +139,10 @@ public class BlockHeaderService {
         }
         PageInfo<BlockHeaderInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, list);
         return pageInfo;
+    }
+
+    public long getMaxHeight(long endTime) {
+
+        return this.mongoDBService.getMax(MongoTableName.BLOCK_HEADER, "_id", Filters.lte("createTime", endTime));
     }
 }
