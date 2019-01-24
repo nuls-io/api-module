@@ -101,6 +101,7 @@ public class BlockService {
             agentInfo = new AgentInfo();
             agentInfo.setPackingAddress(headerInfo.getPackingAddress());
             agentInfo.setAgentId(headerInfo.getPackingAddress());
+            agentInfo.setRewardAddress(agentInfo.getPackingAddress());
         } else {
             //根据区块头的打包地址，查询打包节点的节点信息，做关联存储使用
             agentInfo = agentService.getAgentByPackingAddress(headerInfo.getPackingAddress());

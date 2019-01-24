@@ -60,8 +60,13 @@ public class DepositService {
         return pageInfo;
     }
 
-    public PageInfo<DepositInfo> getCancelDepositListByAgentHash(String hash, int pageIndex, int pageSize) {
-        Bson bson = Filters.and(Filters.eq("agentHash", hash));
+    public PageInfo<DepositInfo> getCancelDepositListByAgentHash(String hash, int type, int pageIndex, int pageSize) {
+        Bson bson;
+        if (type != 2) {
+            bson = Filters.and(Filters.eq("agentHash", hash), Filters.eq("type", type));
+        } else {
+            bson = Filters.eq("agentHash", hash);
+        }
         List<Document> documentList = mongoDBService.pageQuery(MongoTableName.DEPOSIT_INFO, bson, Sorts.descending("createTime"), pageIndex, pageSize);
         long totalCount = mongoDBService.getCount(MongoTableName.DEPOSIT_INFO, bson);
 

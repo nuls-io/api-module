@@ -23,12 +23,13 @@ package io.nuls.api.core.mongodb;
 import com.mongodb.MongoClient;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.*;
-import com.mongodb.client.model.*;
+import com.mongodb.client.model.IndexModel;
+import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.WriteModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 

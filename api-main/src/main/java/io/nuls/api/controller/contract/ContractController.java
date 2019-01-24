@@ -156,7 +156,12 @@ public class ContractController {
         int pageSize = (int) params.get(1);
         boolean onlyNrc20 = (boolean) params.get(2);
         boolean isHidden = (boolean) params.get(3);
-
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
         PageInfo<ContractInfo> pageInfo = contractService.getContractList(pageIndex, pageSize, onlyNrc20, isHidden);
         RpcResult result = new RpcResult();
         result.setResult(pageInfo);

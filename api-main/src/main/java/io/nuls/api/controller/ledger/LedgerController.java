@@ -20,9 +20,14 @@
 
 package io.nuls.api.controller.ledger;
 
+import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.controller.model.RpcResult;
+import io.nuls.api.core.model.AccountInfo;
+import io.nuls.api.core.model.PageInfo;
+import io.nuls.api.service.AccountService;
+import io.nuls.api.service.AgentService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,12 +39,17 @@ import java.util.Map;
 @Controller
 public class LedgerController {
 
+    @Autowired
+    private AccountService accountService;
+    @Autowired
+    private AgentService agentService;
+
     @RpcMethod("getCoinInfo")
     public RpcResult getCoinInfo(List<Object> params) {
         //todo 尚未实现
         Map<String, Long> map = new HashMap<>();
-        map.put("total", 10000000000000000L);
-        map.put("circulation", 4000000000000000L);
+        map.put("total", accountService.getAllAccountBalance());
+        map.put("circulation", agentService.getConsensusCoinTotal());
         map.put("consensusTotal", 3000000000000000L);
 
         return new RpcResult().setResult(map);
@@ -47,8 +57,12 @@ public class LedgerController {
 
     @RpcMethod("getCoinRanking")
     public RpcResult getCoinRanking(List<Object> params) {
-        //todo
-        return null;
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        int sortType = (int) params.get(2);
+
+        PageInfo<AccountInfo> pageInfo = accountService.getCoinRanking(pageIndex, pageSize, sortType);
+        return new RpcResult().setResult(pageInfo);
     }
 
     @RpcMethod("getAccountTxs")
