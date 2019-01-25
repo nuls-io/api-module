@@ -47,7 +47,7 @@ public class StatisticalService {
     public long getBestId() {
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, Filters.eq("_id", MongoTableName.LAST_STATISTICAL_TIME));
         if (null == document) {
-            return 0;
+            return -1;
         }
         return document.getLong("value");
     }

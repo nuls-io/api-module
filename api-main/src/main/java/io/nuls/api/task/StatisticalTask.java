@@ -75,7 +75,7 @@ public class StatisticalTask implements Runnable {
         long day = 24 * 3600000;
         long start = bestId + 1;
         long end = 0;
-        if (bestId == 0) {
+        if (bestId == -1) {
             BlockHeaderInfo header0 = blockHeaderService.getBlockHeaderInfoByHeight(0);
             start = header0.getCreateTime();
             end = start + day;
