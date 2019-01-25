@@ -30,12 +30,5 @@ public class NulsConstant {
 
     public static long BlOCKHEIGHT_TIME_DIVIDE = 1000000000000L;
 
-    //种子节点地址
-    public static final Set<String> SEED_NODE_ADDRESS = new HashSet<>();
-    //开发者节点地址
-    public static final Set<String> DEVELOPER_NODE_ADDRESS = new HashSet<>();
-    //大使节点地址
-    public static final Set<String> AMBASSADOR_NODE_ADDRESS = new HashSet<>();
-
     public static final int CONTRACT_NOT_EXIST = 100002;
 }

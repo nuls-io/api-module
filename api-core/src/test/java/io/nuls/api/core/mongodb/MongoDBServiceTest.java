@@ -216,7 +216,11 @@ public class MongoDBServiceTest {
 
     @Test
     public void testPageQuery() {
-
+        MongoClient mongoClient = new MongoClient("127.0.0.1", 27017);
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("nuls");
+        MongoDBService service = new MongoDBService(mongoClient, mongoDatabase);
+        //Document document = service.findOne(MongoTableName.ACCOUNT_INFO, Filters.eq("_id", "TTaqFxuD1xc6gpixUiMVQsjMZ5fdYJ2o"));
+        //System.out.println(document);
     }
 
 }

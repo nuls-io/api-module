@@ -50,13 +50,13 @@ public class PunishService {
     public PageInfo<PunishLog> getPunishLogList(int type, String address, int pageIndex, int pageSize) {
         Bson filter;
         if (type == 0) {
-            filter = eq("address", address);
+            filter = Filters.eq("address", address);
         } else {
-            filter = and(eq("type", type), eq("address", address));
+            filter = Filters.and(eq("type", type), eq("address", address));
         }
 
         long totalCount = mongoDBService.getCount(MongoTableName.PUNISH_INFO, filter);
-        List<Document> documentList = mongoDBService.pageQuery(MongoTableName.PUNISH_INFO, Sorts.descending("height"), pageIndex, pageSize);
+        List<Document> documentList = mongoDBService.pageQuery(MongoTableName.PUNISH_INFO, filter, Sorts.descending("time"), pageIndex, pageSize);
         List<PunishLog> punishLogList = new ArrayList<>();
         for (Document document : documentList) {
             punishLogList.add(DocumentTransferTool.toInfo(document, PunishLog.class));

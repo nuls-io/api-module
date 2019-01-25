@@ -225,4 +225,21 @@ public class WalletRPCHandler {
         return clientResult;
 
     }
+
+    public RpcClientResult<AgentInfo> getAgent(String agentHash) {
+        Result result = restFulUtils.get("/consensus/agent/" + agentHash, null);
+        if (result.isFailed()) {
+            return RpcClientResult.errorResult(result);
+        }
+        RpcClientResult clientResult = null;
+        try {
+            AgentInfo agentInfo = analysisHandler.toAgentInfo((Map<String, Object>) result.getData());
+            clientResult = RpcClientResult.getSuccess();
+            clientResult.setData(agentInfo);
+        } catch (Exception e) {
+            Log.error(e);
+            clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
+        }
+        return clientResult;
+    }
 }

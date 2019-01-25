@@ -31,7 +31,10 @@ public enum RpcErrorCode {
     DATA_NOT_EXISTS(404, "Data is not exists!"),
 
     //交易解析错误
-    TX_PARSE_ERROR(999, "Transaction parse error!");
+    TX_PARSE_ERROR(999, "Transaction parse error!"),
+
+    //脚本执行错误
+    TX_SHELL_ERROR(755, "Shell execute error!");
 
 
     private int code;

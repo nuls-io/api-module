@@ -23,17 +23,29 @@ package io.nuls.api.controller.contract;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
+import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.*;
+import io.nuls.api.core.util.Log;
 import io.nuls.api.service.ContractService;
 import io.nuls.api.service.TokenService;
 import io.nuls.api.utils.JsonRpcException;
+import io.nuls.api.utils.RunShellUtil;
+import io.nuls.sdk.core.model.CreateContractData;
+import io.nuls.sdk.core.model.Result;
+import io.nuls.sdk.core.model.transaction.CreateContractTransaction;
 import io.nuls.sdk.core.utils.AddressTool;
+import io.nuls.contract.validation.service.CompareJar;
+import io.nuls.sdk.tool.NulsSDKTool;
+import org.apache.commons.io.IOUtils;
 
+import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Niels
@@ -41,6 +53,8 @@ import java.util.List;
 @Controller
 public class ContractController {
 
+    @Autowired
+    private WalletRPCHandler rpcHandler;
     @Autowired
     private TokenService tokenService;
     @Autowired
@@ -142,10 +156,78 @@ public class ContractController {
         int pageSize = (int) params.get(1);
         boolean onlyNrc20 = (boolean) params.get(2);
         boolean isHidden = (boolean) params.get(3);
-
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
         PageInfo<ContractInfo> pageInfo = contractService.getContractList(pageIndex, pageSize, onlyNrc20, isHidden);
         RpcResult result = new RpcResult();
         result.setResult(pageInfo);
+        return result;
+    }
+
+    private static final String BASE = "/Users/pierreluo/Nuls/temp/code/";
+
+    @RpcMethod("validateContractCode")
+    public RpcResult validateContractCode(List<Object> params) {
+        RpcResult result = new RpcResult();
+        InputStream in = null;
+        OutputStream out = null;
+        InputStream jarIn = null;
+        try {
+            VerifyUtils.verifyParams(params, 2);
+            String contractAddress = (String) params.get(0);
+            if (!AddressTool.validAddress(contractAddress)) {
+                throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+            }
+            in = (InputStream) params.get(1);
+            out = new FileOutputStream(BASE + contractAddress +".zip");
+            IOUtils.copy(in, out);
+            // 编译代码
+            List<String> resultList = RunShellUtil.run(BASE + "compile.sh", contractAddress);
+            if(!resultList.isEmpty()) {
+                String error = resultList.stream().collect(Collectors.joining());
+                Log.error(error);
+                result.setError(new RpcResultError(RpcErrorCode.TX_SHELL_ERROR));
+                return result;
+            }
+            File jarFile = new File(BASE + contractAddress +".jar");
+            jarIn = new FileInputStream(jarFile);
+            byte[] validateContractCode = IOUtils.toByteArray(jarIn);
+
+            // 获取智能合约的代码
+            List<Object> paras = new ArrayList<>();
+            paras.add(contractAddress);
+            RpcResult contract = getContract(paras);
+            Object obj = contract.getResult();
+            if(obj == null) {
+                result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
+                return result;
+            }
+            ContractInfo contractInfo = (ContractInfo) obj;
+            String createTxHash = contractInfo.getCreateTxHash();
+            Result result1 = NulsSDKTool.getTxWithBytes(createTxHash);
+            if (result1.isFailed()) {
+                result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
+                return result;
+            }
+            CreateContractTransaction tx = (CreateContractTransaction) result1.getData();
+            CreateContractData txData = tx.getTxData();
+            byte[] contractCode = txData.getCode();
+
+            boolean bool = CompareJar.compareJarBytes(contractCode, validateContractCode);
+            result.setResult(bool);
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.setError(new RpcResultError(RpcErrorCode.TX_SHELL_ERROR));
+            result.setResult(e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(jarIn);
+            IOUtils.closeQuietly(out);
+            IOUtils.closeQuietly(in);
+        }
         return result;
     }
 

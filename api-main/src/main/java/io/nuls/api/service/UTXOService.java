@@ -1,6 +1,5 @@
 package io.nuls.api.service;
 
-import afu.org.checkerframework.checker.oigj.qual.O;
 import com.mongodb.client.model.DeleteOneModel;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
@@ -12,6 +11,7 @@ import io.nuls.api.core.model.Input;
 import io.nuls.api.core.model.Output;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.sdk.core.model.Balance;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -61,4 +61,5 @@ public class UTXOService {
         }
         return outputs;
     }
+
 }

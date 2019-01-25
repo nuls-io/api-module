@@ -90,7 +90,6 @@ public class StatisticalTask implements Runnable {
             statistical(start, end);
             start = end + 1;
             end = end + day;
-            System.out.println(start + "------------" + end);
             BlockHeaderInfo newBlockHeader = blockHeaderService.getBestBlockHeader();
             if (null != newBlockHeader) {
                 header = newBlockHeader;
@@ -102,7 +101,6 @@ public class StatisticalTask implements Runnable {
         long txCount = statisticalService.calcTxCount(start, end);
         long consensusLocked = 0;
         long height = blockHeaderService.getMaxHeight(end);
-        System.out.println("max_height:::::" + height);
         List<AgentInfo> agentList = agentService.getAgentList(height);
         List<DepositInfo> depositList = depositService.getDepositList(height);
         int nodeCount = agentList.size();

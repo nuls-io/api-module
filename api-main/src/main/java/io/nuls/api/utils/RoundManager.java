@@ -122,9 +122,7 @@ public class RoundManager {
             }
         }
 
-        String seeds = ApiContext.config.getProperty("wallet.consensus.seeds");
-        String[] seedAddresses = seeds.split(",");
-        for (String address : seedAddresses) {
+        for (String address : ApiContext.SEED_NODE_ADDRESS) {
             AgentSorter sorter = new AgentSorter();
             sorter.setSeedAddress(address);
             byte[] hash = ArraysTool.concatenate(AddressTool.getAddress(address), SerializeUtils.uint64ToByteArray(blockInfo.getBlockHeader().getRoundStartTime()));
