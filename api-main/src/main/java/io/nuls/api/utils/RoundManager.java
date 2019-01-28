@@ -150,6 +150,13 @@ public class RoundManager {
             PocRoundItem item = new PocRoundItem();
             item.setRoundIndex(header.getRoundIndex());
             item.setOrder(index++);
+            if (item.getOrder() == header.getPackingIndexOfRound()) {
+                item.setTime(header.getCreateTime());
+                item.setBlockHeight(header.getHeight());
+                item.setBlockHash(header.getHash());
+                item.setTxCount(header.getTxCount());
+                item.setReward(header.getReward());
+            }
             item.setId(item.getRoundIndex() + "_" + item.getOrder());
             if (null == sorter.getSeedAddress()) {
                 AgentInfo agentInfo = map.get(sorter.getAgentId());
@@ -206,9 +213,12 @@ public class RoundManager {
         currentRound.setPackerOrder(indexOfRound < currentRound.getMemberCount() ? indexOfRound + 1 : indexOfRound);
 //        System.out.println("+++++++++" + blockInfo.getBlockHeader().getHeight());
         PocRoundItem item = currentRound.getItemList().get(indexOfRound - 1);
-        item.setBlockHeight(blockInfo.getBlockHeader().getHeight());
-        item.setReward(blockInfo.getBlockHeader().getReward());
-        item.setTxCount(blockInfo.getBlockHeader().getTxCount());
+        BlockHeaderInfo header = blockInfo.getBlockHeader();
+        item.setTime(header.getCreateTime());
+        item.setBlockHeight(header.getHeight());
+        item.setBlockHash(header.getHash());
+        item.setTxCount(header.getTxCount());
+        item.setReward(header.getReward());
 
         roundService.updateRoundItem(item);
         this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() + 1);

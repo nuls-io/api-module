@@ -43,6 +43,10 @@ public class PocRoundItem {
 
     private String packingAddress;
 
+    private long time;
+
+    private String blockHash;
+
     public String getId() {
         return id;
     }
@@ -114,4 +118,21 @@ public class PocRoundItem {
     public void setPackingAddress(String packingAddress) {
         this.packingAddress = packingAddress;
     }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    public String getBlockHash() {
+        return blockHash;
+    }
+
+    public void setBlockHash(String blockHash) {
+        this.blockHash = blockHash;
+    }
+
 }
