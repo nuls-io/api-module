@@ -42,18 +42,18 @@ public class RunShellUtil {
         try {
             ProcessBuilder pb = new ProcessBuilder(cmd);
             Process ps = pb.start();
-            System.out.println("开始执行脚本文件....");
+            Log.debug("开始执行脚本文件....");
             try {
                 ps.waitFor(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                System.out.println("执行脚本超时5秒....");
+                Log.error("执行脚本超时5秒....");
             }
             //获取输出
             BufferedReader br = new BufferedReader(new InputStreamReader(ps.getInputStream()));
             String line;
             while ((line = br.readLine()) != null) {
                 resultList.add(line);
-                System.out.println(line);
+                Log.debug(line);
             }
             ps.destroyForcibly();
         } catch (Exception e) {

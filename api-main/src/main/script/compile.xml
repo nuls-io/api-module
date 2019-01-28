@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- name是当前工程的名称，default是默认执行的任务，basedir是工作目录（.代表当前根目录） -->
+<project name="HelloWorld" default="compile" basedir=".">
+    <!-- property类似于程序中定义简单的变量 -->
+    <property name="src" value="${dest}"/>
+    <property name="compile.debug" value="true"/>
+    <property name="compile.deprecation" value="false"/>
+    <property name="compile.optimize" value="true"/>
+
+    <path id="sdk.path">
+        <!-- 项目部署路径动态传入 -->
+        <pathelement location="${deploy_home}/contract/sdk-contract-vm-1.1.4.6.jar" />
+    </path>
+
+    <!-- 初始化 -->
+    <target name="init">
+      <mkdir dir="${dest}/classes"/>
+    </target>
+
+    <!-- 编译 -->
+    <target name="compile" depends="init">
+        <javac srcdir="${src}" destdir="${dest}/classes" source="1.6" target="1.6"
+            debug="${compile.debug}" deprecation="${compile.deprecation}" optimize="${compile.optimize}">
+            <classpath refid="sdk.path" />
+        </javac>
+    </target>
+
+</project>
