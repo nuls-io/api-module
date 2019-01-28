@@ -49,6 +49,7 @@ public class ScheduleManager {
             mongoDBService.dropTable(MongoTableName.CONTRACT_TX_INFO);
             mongoDBService.dropTable(MongoTableName.TOKEN_TRANSFER_INFO);
             mongoDBService.dropTable(MongoTableName.CONTRACT_RESULT_INFO);
+            mongoDBService.dropTable(MongoTableName.COINDATA_INFO);
         }
 
         initTables();

@@ -41,7 +41,12 @@ public class SyncBlockTask implements Runnable {
          */
         Document document = blockHeaderService.getBestBlockHeightInfo();
         if (document != null && !document.getBoolean("finish")) {
-            rollbackBlock.rollbackBlock(document.getLong("height"));
+            try {
+                rollbackBlock.rollbackBlock(document.getLong("height"));
+            } catch (Exception e) {
+                Log.error(e);
+                return;
+            }
         }
 
         boolean running = true;

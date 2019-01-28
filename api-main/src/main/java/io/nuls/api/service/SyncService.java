@@ -163,12 +163,8 @@ public class SyncService {
             }
         }
         agentInfo.setTotalReward(agentInfo.getTotalReward() + agentReward + otherReward);
-//        if (agentInfo.getCommissionRate() < 100) {
-//            long value = otherReward * agentInfo.getCommissionRate() / (100 - agentInfo.getCommissionRate());
-//            agentInfo.setCommissionReward(agentInfo.getCommissionReward() + value);
-//        } else {
-//            agentInfo.setCommissionReward((long) (agentReward * DoubleUtils.div(agentInfo.getDeposit(), agentInfo.getDeposit() + agentInfo.getTotalDeposit())));
-//        }
+        agentInfo.setAgentReward(agentInfo.getAgentReward() + agentReward);
+        agentInfo.setCommissionReward(agentInfo.getCommissionRate() + otherReward);
     }
 
     private void processRoundData(BlockInfo blockInfo) {

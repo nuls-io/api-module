@@ -259,13 +259,13 @@ public class AnalysisHandler {
         info.setPackingAddress(AddressTool.getStringAddressByBytes(model.getPackingAddress()));
         info.setRewardAddress(AddressTool.getStringAddressByBytes(model.getRewardAddress()));
         info.setDeposit(model.getDeposit().getValue());
+        info.setBlockHeight(tx.getBlockHeight());
         info.setCommissionRate(Double.valueOf(model.getCommissionRate()).intValue());
         info.setStatus(model.getStatus());
         info.setDepositCount(model.getMemberCount());
         info.setTotalDeposit(model.getTotalDeposit());
         info.setCreditValue(model.getCreditVal());
         info.setCreateTime(tx.getTime());
-        info.setTxHash(tx.getHash().getDigestHex());
         info.setNew(true);
         return info;
     }
@@ -517,6 +517,7 @@ public class AnalysisHandler {
         agentInfo.setTxHash((String) map.get("agentHash"));
         agentInfo.setCreditValue((Double) map.get("creditVal"));
         agentInfo.setDepositCount((Integer) map.get("memberCount"));
+        agentInfo.setTotalDeposit(Long.parseLong(map.get("totalDeposit").toString()));
         return agentInfo;
     }
 

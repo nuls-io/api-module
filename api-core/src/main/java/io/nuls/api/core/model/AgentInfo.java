@@ -36,15 +36,19 @@ public class AgentInfo extends TxData {
 
     private String deleteHash;
 
+    private long blockHeight;
+
     private long deleteHeight;
 
     private long totalReward;
 
+    private long commissionReward;
+
+    private long agentReward;
+
     private boolean isNew;
 
     private long roundPackingTime;
-
-    private long commissionReward;
 
     private int version;
 
@@ -235,5 +239,21 @@ public class AgentInfo extends TxData {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public long getBlockHeight() {
+        return blockHeight;
+    }
+
+    public void setBlockHeight(long blockHeight) {
+        this.blockHeight = blockHeight;
+    }
+
+    public long getAgentReward() {
+        return agentReward;
+    }
+
+    public void setAgentReward(long agentReward) {
+        this.agentReward = agentReward;
     }
 }

@@ -73,10 +73,9 @@ public class RollbackService {
     /**
      * 回滚区块和区块内的所有交易和交易产生的数据
      */
-    public boolean rollbackBlock(long blockHeight) {
-        BlockHeaderInfo blockHeader = blockHeaderService.getBlockHeaderInfoByHeight(blockHeight);
-        RpcClientResult<BlockInfo> rpcClientResult = rpcHandler.getBlock(blockHeader.getHash());
-        BlockInfo blockInfo = rpcClientResult.getData();
+    public boolean rollbackBlock(long blockHeight) throws Exception {
+
+        BlockInfo blockInfo = queryBlock(blockHeight);
 
         BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
 
@@ -128,19 +127,15 @@ public class RollbackService {
         long agentReward = 0L, other = 0L;
         for (Output output : list) {
             if (output.getAddress().equals(agentInfo.getRewardAddress())) {
-                agentReward -= output.getValue();
+                agentReward += output.getValue();
             } else {
                 other += output.getValue();
             }
         }
 
         agentInfo.setTotalReward(agentInfo.getTotalReward() - agentReward - other);
-//        if (agentInfo.getCommissionRate() < 100) {
-//            long value = other * agentInfo.getCommissionRate() / (100 - agentInfo.getCommissionRate());
-//            agentInfo.setCommissionReward(agentInfo.getCommissionReward() + value);
-//        } else {
-//            agentInfo.setCommissionReward((long) (agentReward * DoubleUtils.div(agentInfo.getDeposit(), agentInfo.getDeposit() + agentInfo.getTotalDeposit())));
-//        }
+        agentInfo.setAgentReward(agentInfo.getAgentReward() - agentReward);
+        agentInfo.setCommissionReward(agentInfo.getCommissionReward() - other);
     }
 
     private void processTxs(List<TransactionInfo> txs) {
