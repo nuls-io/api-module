@@ -260,7 +260,6 @@ public class AnalysisHandler {
         info.setRewardAddress(AddressTool.getStringAddressByBytes(model.getRewardAddress()));
         info.setDeposit(model.getDeposit().getValue());
         info.setCommissionRate(Double.valueOf(model.getCommissionRate()).intValue());
-        info.setBlockHeight(tx.getBlockHeight());
         info.setStatus(model.getStatus());
         info.setDepositCount(model.getMemberCount());
         info.setTotalDeposit(model.getTotalDeposit());
@@ -281,7 +280,6 @@ public class AnalysisHandler {
         info.setAgentHash(deposit.getAgentHash().getDigestHex());
         info.setAddress(AddressTool.getStringAddressByBytes(deposit.getAddress()));
         info.setTxHash(tx.getHash().getDigestHex());
-        info.setBlockHeight(tx.getBlockHeight());
         info.setCreateTime(tx.getTime());
         info.setFee(tx.getFee().getValue());
         return info;
@@ -293,7 +291,6 @@ public class AnalysisHandler {
         DepositInfo deposit = new DepositInfo();
         deposit.setTxHash(cancelDeposit.getJoinTxHash().getDigestHex());
         deposit.setFee(tx.getFee().getValue());
-        deposit.setBlockHeight(tx.getBlockHeight());
         deposit.setCreateTime(tx.getTime());
         deposit.setType(NulsConstant.CANCEL_CONSENSUS);
         return deposit;

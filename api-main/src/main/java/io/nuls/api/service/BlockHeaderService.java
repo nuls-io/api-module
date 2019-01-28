@@ -49,6 +49,12 @@ public class BlockHeaderService {
         return document.getLong("height");
     }
 
+    public Document getBestBlockHeightInfo() {
+        Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
+        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
+        return document;
+    }
+
     /**
      * 保存最新的高度信息
      *
@@ -64,8 +70,16 @@ public class BlockHeaderService {
         } else {
             document.put("height", newHeight);
             document.put("finish", false);
+            document.put("step", 0);
             mongoDBService.update(MongoTableName.NEW_INFO, query, document);
         }
+    }
+
+    public void updateStep(long height, int step) {
+        Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
+        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
+        document.put("step", step);
+        mongoDBService.update(MongoTableName.NEW_INFO, query, document);
     }
 
     public void syncComplete(long newHeight) {
@@ -132,7 +146,7 @@ public class BlockHeaderService {
             }
         }
         long totalCount = mongoDBService.getCount(MongoTableName.BLOCK_HEADER, filter);
-        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.BLOCK_HEADER, filter, Sorts.descending("height"), pageIndex, pageSize);
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.BLOCK_HEADER, filter, Sorts.descending("_id"), pageIndex, pageSize);
         List<BlockHeaderInfo> list = new ArrayList<>();
         for (Document document : docsList) {
             list.add(DocumentTransferTool.toInfo(document, "height", BlockHeaderInfo.class));

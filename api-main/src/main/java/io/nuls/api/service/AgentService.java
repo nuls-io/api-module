@@ -86,6 +86,19 @@ public class AgentService {
         return agentInfo;
     }
 
+    public AgentInfo getAgentByDeleteHash(String deleteHash) {
+        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("deleteHash", deleteHash));
+        if (document == null) {
+            return null;
+        }
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+        if (alias != null) {
+            agentInfo.setAgentAlias(alias.getAlias());
+        }
+        return agentInfo;
+    }
+
     /**
      * @param address agentAddress or packingAddress
      * @return

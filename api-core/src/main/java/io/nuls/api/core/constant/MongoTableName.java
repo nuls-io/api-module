@@ -22,6 +22,8 @@ public class MongoTableName {
     public static final String PUNISH_INFO = "punish_info";
     //UTXO记录
     public static final String UTXO_INFO = "utxo_info";
+    //coinData记录
+    public static final String COINDATA_INFO = "coin_data_info";
 
     public static final String ROUND_INFO = "round_table";
 

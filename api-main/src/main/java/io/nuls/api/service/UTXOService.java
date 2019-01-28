@@ -9,9 +9,9 @@ import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.model.Input;
 import io.nuls.api.core.model.Output;
+import io.nuls.api.core.model.TxCoinData;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
-import io.nuls.sdk.core.model.Balance;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -32,7 +32,7 @@ public class UTXOService {
      * @param inputs
      * @param outputMap
      */
-    public void saveWithInputOutput(List<Input> inputs, Map<String, Output> outputMap) {
+    public void saveOutputs(List<Input> inputs, Map<String, Output> outputMap) {
         if (inputs.isEmpty() && outputMap.isEmpty()) {
             return;
         }
@@ -60,6 +60,27 @@ public class UTXOService {
             }
         }
         return outputs;
+    }
+
+    public void saveCoinDatas(List<TxCoinData> coinDataList) {
+        if (coinDataList.isEmpty()) {
+            return;
+        }
+        List<Document> documentList = new ArrayList<>();
+        for (TxCoinData coinData : coinDataList) {
+            Document document = DocumentTransferTool.toDocument(coinData, "txHash");
+            documentList.add(document);
+        }
+        mongoDBService.insertMany(MongoTableName.COINDATA_INFO, documentList);
+    }
+
+    public TxCoinData getTxCoinData(String txHash) {
+        Document document = mongoDBService.findOne(MongoTableName.COINDATA_INFO, Filters.eq("_id", txHash));
+        if (document == null) {
+            return null;
+        }
+        TxCoinData coinData = DocumentTransferTool.toInfo(document, "txHash", TxCoinData.class);
+        return coinData;
     }
 
 }

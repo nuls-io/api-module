@@ -20,8 +20,6 @@ public class AgentInfo extends TxData {
 
     private long createTime;
 
-    private long blockHeight;
-
     private int status;
 
     private long totalDeposit;
@@ -125,14 +123,6 @@ public class AgentInfo extends TxData {
 
     public void setCreateTime(long createTime) {
         this.createTime = createTime;
-    }
-
-    public long getBlockHeight() {
-        return blockHeight;
-    }
-
-    public void setBlockHeight(long blockHeight) {
-        this.blockHeight = blockHeight;
     }
 
     public int getStatus() {

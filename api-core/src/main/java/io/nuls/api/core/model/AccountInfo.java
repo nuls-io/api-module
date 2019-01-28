@@ -27,9 +27,6 @@ public class AccountInfo {
 
     private long totalBalance;
 
-    //记录最新更改账户统计信息的高度
-    private long height;
-
     private List<String> tokens;
 
     //是否是根据最新区块的交易新创建的账户，只为业务使用，不存储该字段
@@ -117,14 +114,6 @@ public class AccountInfo {
 
     public void setBalance(long balance) {
         this.balance = balance;
-    }
-
-    public long getHeight() {
-        return height;
-    }
-
-    public void setHeight(long height) {
-        this.height = height;
     }
 
     public boolean isNew() {

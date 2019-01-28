@@ -9,9 +9,11 @@ import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.service.BlockHeaderService;
-import io.nuls.api.service.BlockService;
+import io.nuls.api.service.RollbackService;
+import io.nuls.api.service.SyncService;
 import io.nuls.sdk.core.contast.KernelErrorCode;
 import io.nuls.sdk.core.utils.Log;
+import org.bson.Document;
 
 /**
  * 区块同步定时任务
@@ -23,15 +25,25 @@ public class SyncBlockTask implements Runnable {
     @Autowired
     private WalletRPCHandler walletRPCHandler;
     @Autowired
-    private BlockService blockService;
-    @Autowired
     private BlockHeaderService blockHeaderService;
-
+    @Autowired
+    private SyncService syncService;
+    @Autowired
+    private RollbackService rollbackBlock;
     @Autowired
     private MongoDBService mongoDBService;
 
     @Override
     public void run() {
+        /*
+         * 首先检查上一同步区块时，是否有完整解析和存储区块信息，
+         * 如果不完整，先需要回滚掉上个区块的数据，再重新同步
+         */
+        Document document = blockHeaderService.getBestBlockHeightInfo();
+        if (document != null && !document.getBoolean("finish")) {
+            rollbackBlock.rollbackBlock(document.getLong("height"));
+        }
+
         boolean running = true;
         while (running) {
             try {
@@ -52,7 +64,7 @@ public class SyncBlockTask implements Runnable {
      *
      * @return boolean 是否还继续同步
      */
-    private boolean syncBlock() throws Exception {
+    private boolean syncBlock() {
         long localBestHeight;
         //取出本地已经同步到最新块，然后根据高度同步下一块
         BlockHeaderInfo localBestBlockHeader = blockHeaderService.getBestBlockHeader();
@@ -98,12 +110,12 @@ public class SyncBlockTask implements Runnable {
         if (checkBlockContinuity(localBestBlockHeader, newBlockHeader)) {
             RpcClientResult<BlockInfo> blockResult = walletRPCHandler.getBlock(newBlockHeader.getHash());
             if (blockResult.isSuccess()) {
-                return blockService.saveNewBlock(blockResult.getData());
+                return syncService.saveNewBlock(blockResult.getData());
             } else {
                 Log.error("--------sync new block error:" + blockResult.getMsg());
             }
         } else {
-            return blockService.rollbackBlock();
+            return rollbackBlock.rollbackBlock(localBestBlockHeader.getHeight());
         }
         return false;
     }

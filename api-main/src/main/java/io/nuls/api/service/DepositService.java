@@ -30,7 +30,6 @@ public class DepositService {
         return depositInfo;
     }
 
-
     public List<DepositInfo> getDepositListByAgentHash(String hash) {
         List<DepositInfo> depositInfos = new ArrayList<>();
         Bson bson = Filters.and(Filters.eq("agentHash", hash), Filters.eq("deleteHash", null), Filters.eq("type", 0));
@@ -46,8 +45,7 @@ public class DepositService {
     }
 
     public PageInfo<DepositInfo> getDepositListByAgentHash(String hash, int pageIndex, int pageSize) {
-
-        Bson bson = Filters.and(Filters.eq("agentHash", hash), Filters.eq("deleteHash", null), Filters.eq("type", 0));
+        Bson bson = Filters.and(Filters.eq("agentHash", hash), Filters.eq("deleteHash", null));
         List<Document> documentList = mongoDBService.pageQuery(MongoTableName.DEPOSIT_INFO, bson, Sorts.descending("createTime"), pageIndex, pageSize);
         long totalCount = mongoDBService.getCount(MongoTableName.DEPOSIT_INFO, bson);
 
@@ -59,6 +57,19 @@ public class DepositService {
         PageInfo<DepositInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, depositInfos);
         return pageInfo;
     }
+
+    public List<DepositInfo> getDepositListByHash(String hash) {
+        Bson bson = Filters.and(Filters.eq("txHash", hash));
+        List<Document> documentList = mongoDBService.query(MongoTableName.DEPOSIT_INFO, bson);
+
+        List<DepositInfo> depositInfos = new ArrayList<>();
+        for (Document document : documentList) {
+            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, DepositInfo.class);
+            depositInfos.add(depositInfo);
+        }
+        return depositInfos;
+    }
+
 
     public PageInfo<DepositInfo> getCancelDepositListByAgentHash(String hash, int type, int pageIndex, int pageSize) {
         Bson bson;

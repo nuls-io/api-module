@@ -85,17 +85,17 @@ public class SearchController {
         return new RpcResult().setResult(result);
     }
 
-    private SearchResultDTO getResultByHash(String text) {
+    private SearchResultDTO getResultByHash(String hash) {
 
-        BlockHeaderInfo blockHeaderInfo = blockHeaderService.getBlockHeaderInfoByHash(text);
+        BlockHeaderInfo blockHeaderInfo = blockHeaderService.getBlockHeaderInfoByHash(hash);
         if (blockHeaderInfo != null) {
             return getBlockInfo(blockHeaderInfo);
         }
-        TransactionInfo tx = transactionService.getTx(text);
+        TransactionInfo tx = transactionService.getTx(hash);
         if (null == tx) {
             throw new NotFoundException();
         }
-        RpcClientResult<TransactionInfo> rpcClientResult = rpcHandler.getTx(text);
+        RpcClientResult<TransactionInfo> rpcClientResult = rpcHandler.getTx(hash);
         if (rpcClientResult.isSuccess()) {
             tx = rpcClientResult.getData();
         }

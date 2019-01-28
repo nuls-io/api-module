@@ -100,8 +100,8 @@ public class TransactionService {
         return pageInfo;
     }
 
-    public TransactionInfo getTx(String text) {
-        Document document = mongoDBService.findOne(MongoTableName.TX_INFO, eq("_id", text));
+    public TransactionInfo getTx(String hash) {
+        Document document = mongoDBService.findOne(MongoTableName.TX_INFO, eq("_id", hash));
         if (null == document) {
             return null;
         }

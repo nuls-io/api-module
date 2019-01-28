@@ -4,6 +4,8 @@ public class Output {
 
     private String key;
 
+    private String txHash;
+
     private String address;
 
     private Long lockTime;
@@ -40,5 +42,13 @@ public class Output {
 
     public void setValue(Long value) {
         this.value = value;
+    }
+
+    public String getTxHash() {
+        return txHash;
+    }
+
+    public void setTxHash(String txHash) {
+        this.txHash = txHash;
     }
 }

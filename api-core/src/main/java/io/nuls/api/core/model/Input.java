@@ -4,6 +4,8 @@ public class Input {
 
     private String key;
 
+    private String txHash;
+
     private String address;
 
     private Long value;
@@ -30,5 +32,13 @@ public class Input {
 
     public void setValue(Long value) {
         this.value = value;
+    }
+
+    public String getTxHash() {
+        return txHash;
+    }
+
+    public void setTxHash(String txHash) {
+        this.txHash = txHash;
     }
 }
