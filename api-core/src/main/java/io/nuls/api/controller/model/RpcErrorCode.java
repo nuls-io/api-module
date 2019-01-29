@@ -27,6 +27,12 @@ public enum RpcErrorCode {
     // 参数不对
     PARAMS_ERROR(1000, "Parameters is wrong!"),
 
+    // 合约未验证
+    CONTRACT_NOT_VALIDATION_ERROR(100, "Contract code not certified!"),
+
+    // 合约已验证
+    CONTRACT_VALIDATION_ERROR(100, "The contract code has been certified!"),
+
     //数据未找到
     DATA_NOT_EXISTS(404, "Data is not exists!"),
 

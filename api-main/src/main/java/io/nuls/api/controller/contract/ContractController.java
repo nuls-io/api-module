@@ -198,7 +198,7 @@ public class ContractController {
     @RpcMethod("validateContractCode")
     public RpcResult validateContractCode(List<Object> params) {
         //TODO 是否加锁串行验证?
-        
+
         RpcResult result = new RpcResult();
         OutputStream out = null;
         InputStream jarIn = null;
@@ -209,7 +209,18 @@ public class ContractController {
                 result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
                 return result;
             }
-            //TODO 检查认证状态，未认证的合约继续下一步
+            // 检查认证状态，未认证的合约继续下一步
+            ContractInfo contractInfo = contractService.getContractInfo(contractAddress);
+            if (contractInfo == null) {
+                result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
+                return result;
+            }
+            Integer status = contractInfo.getStatus();
+            // 已进入以下状态 -> 正在审核 or 通过验证 or 已删除
+            if(status > 0) {
+                result.setError(new RpcResultError(RpcErrorCode.CONTRACT_VALIDATION_ERROR));
+                return result;
+            }
 
             // 生成文件
             String fileDataURL = (String) params.get(1);
@@ -237,15 +248,6 @@ public class ContractController {
             byte[] validateContractCode = IOUtils.toByteArray(jarIn);
 
             // 获取智能合约的代码
-            List<Object> paras = new ArrayList<>();
-            paras.add(contractAddress);
-            RpcResult contract = getContract(paras);
-            Object obj = contract.getResult();
-            if(obj == null) {
-                result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
-                return result;
-            }
-            ContractInfo contractInfo = (ContractInfo) obj;
             String createTxHash = contractInfo.getCreateTxHash();
             Result result1 = NulsSDKTool.getTxWithBytes(createTxHash);
             if (result1.isFailed()) {
@@ -260,7 +262,9 @@ public class ContractController {
             boolean bool = CompareJar.compareJarBytes(contractCode, validateContractCode);
             result.setResult(bool);
 
-            //TODO 合约认证通过后，更新合约认证状态
+            // 合约认证通过后，更新合约认证状态
+            contractInfo.setStatus(2);
+            contractService.updateContractInfo(contractInfo);
             
         } catch (Exception e) {
             Log.error(e);
@@ -275,32 +279,49 @@ public class ContractController {
     @RpcMethod("getContractCodeTree")
     public RpcResult getContractCodeTree(List<Object> params) {
         RpcResult result = new RpcResult();
-        VerifyUtils.verifyParams(params, 1);
-        String contractAddress = (String) params.get(0);
-        if (!AddressTool.validAddress(contractAddress)) {
-            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
-            return result;
+
+
+        try {
+            VerifyUtils.verifyParams(params, 1);
+            String contractAddress = (String) params.get(0);
+            if (!AddressTool.validAddress(contractAddress)) {
+                result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+                return result;
+            }
+            ContractInfo contractInfo = contractService.getContractInfo(contractAddress);
+            if (contractInfo == null) {
+                result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
+                return result;
+            }
+            Integer status = contractInfo.getStatus();
+            // 检查认证状态，通过认证的合约继续下一步
+            if(status != 2) {
+                result.setError(new RpcResultError(RpcErrorCode.CONTRACT_NOT_VALIDATION_ERROR));
+                return result;
+            }
+
+            // 提取文件目录树
+            File src = new File(VALIDATE_HOME + contractAddress + File.separator + "src");
+            ContractCode root = new ContractCode();
+            ContractCodeNode rootNode = new ContractCodeNode();
+            if(!src.isDirectory()) {
+                result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "root path is inValid"));
+                return result;
+            }
+            List<ContractCodeNode> children = new ArrayList<>();
+            rootNode.setName(src.getName());
+            rootNode.setPath(extractFilePath(src));
+            rootNode.setDir(true);
+            rootNode.setChildren(children);
+            root.setRoot(rootNode);
+            File[] files = src.listFiles();
+            recursive(src.listFiles(), children);
+
+            result.setResult(root);
+        } catch (Exception e) {
+            Log.error(e);
+            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
         }
-        //TODO 检查认证状态，通过认证的合约继续下一步
-
-
-        File src = new File(VALIDATE_HOME + contractAddress + File.separator + "src");
-        ContractCode root = new ContractCode();
-        ContractCodeNode rootNode = new ContractCodeNode();
-        if(!src.isDirectory()) {
-            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "root path is inValid"));
-            return result;
-        }
-        List<ContractCodeNode> children = new ArrayList<>();
-        rootNode.setName(src.getName());
-        rootNode.setPath(extractFilePath(src));
-        rootNode.setDir(true);
-        rootNode.setChildren(children);
-        root.setRoot(rootNode);
-        File[] files = src.listFiles();
-        recursive(src.listFiles(), children);
-
-        result.setResult(root);
         return result;
     }
 
@@ -344,8 +365,19 @@ public class ContractController {
                 result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
                 return result;
             }
-            //TODO 检查认证状态，通过认证的合约继续下一步
+            // 检查认证状态，通过认证的合约继续下一步
+            ContractInfo contractInfo = contractService.getContractInfo(contractAddress);
+            if (contractInfo == null) {
+                result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
+                return result;
+            }
+            Integer status = contractInfo.getStatus();
+            if(status != 2) {
+                result.setError(new RpcResultError(RpcErrorCode.CONTRACT_NOT_VALIDATION_ERROR));
+                return result;
+            }
 
+            // 提取文件内容
             String filePath = (String) params.get(1);
             File file = new File(filePath);
             in = new FileInputStream(file);
@@ -359,6 +391,9 @@ public class ContractController {
             Log.error(e);
             result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
         } catch (IOException e) {
+            Log.error(e);
+            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
+        } catch (Exception e) {
             Log.error(e);
             result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
         } finally {
