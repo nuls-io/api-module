@@ -168,6 +168,7 @@ public class ContractController {
         return result;
     }
 
+    //TODO 配置项目部署路径
     private static final String BASE = "/Users/pierreluo/Nuls/temp/code/";
 
     @RpcMethod("validateContractCode")
@@ -193,7 +194,7 @@ public class ContractController {
                 result.setError(new RpcResultError(RpcErrorCode.TX_SHELL_ERROR));
                 return result;
             }
-            File jarFile = new File(BASE + contractAddress +".jar");
+            File jarFile = new File(BASE + File.separator + contractAddress + File.separator + contractAddress +".jar");
             jarIn = new FileInputStream(jarFile);
             byte[] validateContractCode = IOUtils.toByteArray(jarIn);
 
