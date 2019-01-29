@@ -110,7 +110,7 @@ public class AnalysisHandler {
         info.setRoundStartTime(extendsData.getRoundStartTime());
         info.setAgentVersion(extendsData.getCurrentVersion() == null ? 1 : extendsData.getCurrentVersion());
         //是否是种子节点打包的区块
-        if (ApiContext.SEED_NODE_ADDRESS.contains(info.getPackingAddress())) {
+        if (ApiContext.SEED_NODE_ADDRESS.contains(info.getPackingAddress()) || info.getHeight() == 0) {
             info.setSeedPacked(true);
         }
         return info;
