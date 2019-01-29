@@ -691,6 +691,8 @@ public class SyncService {
         depositService.saveDepositList(depositInfoList);
         //存储红黄牌惩罚记录
         punishService.savePunishList(punishLogList);
+
+
         //存储智能合约交易关系记录
         contractService.saveContractTxInfos(contractTxInfoList);
         //存入智能合约执行结果记录
@@ -704,17 +706,17 @@ public class SyncService {
          */
         //修改账户信息表
         accountService.saveAccounts(accountInfoMap);
-        blockHeaderService.updateStep(blockInfo.getBlockHeader().getHeight(), 1);
+        blockHeaderService.updateStep(1);
         //存储智能合约记录
         contractService.saveContractInfos(contractInfoMap);
-        blockHeaderService.updateStep(blockInfo.getBlockHeader().getHeight(), 2);
+        blockHeaderService.updateStep(2);
         //存储共识节点列表
         agentService.saveAgentList(agentInfoList);
-        blockHeaderService.updateStep(blockInfo.getBlockHeader().getHeight(), 3);
+        blockHeaderService.updateStep(3);
         //存储账户token信息
         tokenService.saveAccountTokens(accountTokenMap);
         //完成解析
-        blockHeaderService.syncComplete(blockInfo.getBlockHeader().getHeight());
+        blockHeaderService.syncComplete();
     }
 
     private AccountInfo queryAccountInfo(String address) {

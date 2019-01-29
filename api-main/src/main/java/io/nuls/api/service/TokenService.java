@@ -77,6 +77,13 @@ public class TokenService {
         mongoDBService.insertMany(MongoTableName.TOKEN_TRANSFER_INFO, documentList);
     }
 
+    public void rollbackTokenTransfers(List<String> tokenTxHashs, long height) {
+        if (tokenTxHashs.isEmpty()) {
+            return;
+        }
+        mongoDBService.delete(MongoTableName.TOKEN_TRANSFER_INFO, Filters.eq("height", height));
+    }
+
     public PageInfo<TokenTransfer> getTokenTransfers(String address, String contractAddress, int pageIndex, int pageSize) {
         Bson addressFilter = Filters.or(Filters.eq("fromAddress", address), Filters.eq("toAddress", address));
         Bson filter;

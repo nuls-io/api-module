@@ -134,6 +134,22 @@ public class AgentService {
         mongoDBService.bulkWrite(MongoTableName.AGENT_INFO, modelList);
     }
 
+    public void rollbackAgentList(List<AgentInfo> agentInfoList) {
+        if (agentInfoList.isEmpty()) {
+            return;
+        }
+        List<WriteModel<Document>> modelList = new ArrayList<>();
+        for (AgentInfo agentInfo : agentInfoList) {
+            if (agentInfo.isNew()) {
+                modelList.add(new DeleteOneModel(Filters.eq("_id", agentInfo.getAgentId())));
+            } else {
+                Document document = DocumentTransferTool.toDocument(agentInfo, "agentId");
+                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", agentInfo.getAgentId()), document));
+            }
+        }
+        mongoDBService.bulkWrite(MongoTableName.AGENT_INFO, modelList);
+    }
+
     public List<AgentInfo> getAgentList(long startHeight) {
         Bson bson = Filters.and(Filters.lte("blockHeight", startHeight), Filters.or(Filters.eq("deleteHeight", 0), Filters.gt("deleteHeight", startHeight)));
 

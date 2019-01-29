@@ -70,4 +70,13 @@ public class PunishService {
         long count = mongoDBService.getCount(MongoTableName.PUNISH_INFO, filter);
         return count;
     }
+
+    public PunishLog getRedPunishLog(String txHash) {
+        Document document = mongoDBService.findOne(MongoTableName.PUNISH_INFO, Filters.eq("txHash", txHash));
+        if (document == null) {
+            return null;
+        }
+        PunishLog punishLog = DocumentTransferTool.toInfo(document, PunishLog.class);
+        return punishLog;
+    }
 }

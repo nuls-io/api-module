@@ -75,20 +75,19 @@ public class BlockHeaderService {
         }
     }
 
-    public void updateStep(long height, int step) {
+    public void updateStep(int step) {
         Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
         document.put("step", step);
+        document.put("finish", false);
         mongoDBService.update(MongoTableName.NEW_INFO, query, document);
     }
 
-    public void syncComplete(long newHeight) {
+    public void syncComplete() {
         Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
-        if (document.getLong("height") == newHeight) {
-            document.put("finish", true);
-            mongoDBService.update(MongoTableName.NEW_INFO, query, document);
-        }
+        document.put("finish", true);
+        mongoDBService.update(MongoTableName.NEW_INFO, query, document);
     }
 
 
@@ -128,6 +127,11 @@ public class BlockHeaderService {
     public void saveBLockHeaderInfo(BlockHeaderInfo blockHeaderInfo) {
         Document document = DocumentTransferTool.toDocument(blockHeaderInfo, "height");
         mongoDBService.insertOne(MongoTableName.BLOCK_HEADER, document);
+    }
+
+
+    public void deleteBlockHeader(long height) {
+        mongoDBService.delete(MongoTableName.BLOCK_HEADER, Filters.eq("_id", height));
     }
 
     /**

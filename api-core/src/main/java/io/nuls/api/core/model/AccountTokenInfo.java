@@ -1,7 +1,5 @@
 package io.nuls.api.core.model;
 
-import java.math.BigInteger;
-
 public class AccountTokenInfo {
 
     private String key;

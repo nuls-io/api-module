@@ -52,12 +52,6 @@ public class ContractService {
         }
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (ContractInfo contractInfo : contractInfoMap.values()) {
-            AccountInfo accountInfo = accountService.getAccountInfo(contractInfo.getContractAddress());
-            if (accountInfo == null) {
-                contractInfo.setBalance(0);
-            } else {
-                contractInfo.setBalance(accountInfo.getTotalBalance());
-            }
             Document document = DocumentTransferTool.toDocument(contractInfo, "contractAddress");
             document.remove("methods");
             String methodStr = null;
@@ -74,6 +68,36 @@ public class ContractService {
         mongoDBService.bulkWrite(MongoTableName.CONTRACT_INFO, modelList);
     }
 
+    public void updateContractInfo(ContractInfo contractInfo) {
+        Document document = DocumentTransferTool.toDocument(contractInfo, "contractAddress");
+        mongoDBService.updateOne(MongoTableName.CONTRACT_INFO, Filters.eq("_id", contractInfo.getContractAddress()), document);
+    }
+
+
+    public void rollbackContractInfos(Map<String, ContractInfo> contractInfoMap) throws Exception {
+        if (contractInfoMap.isEmpty()) {
+            return;
+        }
+        List<WriteModel<Document>> modelList = new ArrayList<>();
+        for (ContractInfo contractInfo : contractInfoMap.values()) {
+            Document document = DocumentTransferTool.toDocument(contractInfo, "contractAddress");
+            document.remove("methods");
+            String methodStr = null;
+            if (contractInfo.getMethods() != null) {
+                methodStr = JSONUtils.obj2json(contractInfo.getMethods());
+            }
+            document.put("methodStr", methodStr);
+
+            if (contractInfo.isNew()) {
+                modelList.add(new DeleteOneModel<>(Filters.eq("_id", contractInfo.getContractAddress())));
+            } else {
+                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", contractInfo.getContractAddress()), document));
+            }
+        }
+        mongoDBService.bulkWrite(MongoTableName.CONTRACT_INFO, modelList);
+    }
+
+
     public void saveContractTxInfos(List<ContractTxInfo> contractTxInfos) {
         if (contractTxInfos.isEmpty()) {
             return;
@@ -84,6 +108,13 @@ public class ContractService {
             documentList.add(document);
         }
         mongoDBService.insertMany(MongoTableName.CONTRACT_TX_INFO, documentList);
+    }
+
+    public void rollbackContractTxInfos(List<String> contractTxHashList) {
+        if (contractTxHashList.isEmpty()) {
+            return;
+        }
+        mongoDBService.delete(MongoTableName.CONTRACT_TX_INFO, Filters.in("txHash", contractTxHashList));
     }
 
 
@@ -112,6 +143,13 @@ public class ContractService {
             documentList.add(document);
         }
         mongoDBService.insertMany(MongoTableName.CONTRACT_RESULT_INFO, documentList);
+    }
+
+    public void rollbackContractResults(List<String> contractTxHashList) {
+        if (contractTxHashList.isEmpty()) {
+            return;
+        }
+        mongoDBService.delete(MongoTableName.CONTRACT_RESULT_INFO, Filters.in("_id", contractTxHashList));
     }
 
 

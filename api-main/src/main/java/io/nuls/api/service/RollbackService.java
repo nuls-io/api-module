@@ -59,9 +59,6 @@ public class RollbackService {
     //记录每个区块委托共识的信息
     private List<DepositInfo> depositInfoList = new ArrayList<>();
 
-
-    //记录每个区块的红黄牌信息
-    private List<PunishLog> punishLogList = new ArrayList<>();
     //记录每个区块新创建的智能合约信息
     private Map<String, ContractInfo> contractInfoMap = new HashMap<>();
     //记录智能合约的执行结果信息
@@ -70,12 +67,12 @@ public class RollbackService {
     private Map<String, AccountTokenInfo> accountTokenMap = new HashMap<>();
     //记录智能合约相关的交易信息
     private List<ContractTxInfo> contractTxInfoList = new ArrayList<>();
-    //记录合约转账信息
-    private List<TokenTransfer> tokenTransferList = new ArrayList<>();
 
     private List<String> punishTxHashList = new ArrayList<>();
 
     private List<String> contractTxHashList = new ArrayList<>();
+
+    private List<String> tokenTransferHashList = new ArrayList<>();
 
     /**
      * 回滚区块和区块内的所有交易和交易产生的数据
@@ -86,6 +83,9 @@ public class RollbackService {
         findAddProcessAgentOfBlock(blockInfo);
 
         processTxs(blockInfo.getTxs());
+
+        roundManager.rollback(blockInfo);
+        save(blockInfo);
         return false;
     }
 
@@ -177,11 +177,11 @@ public class RollbackService {
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
                 processCreateContract(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
-//                processCallContract(tx, blockHeight);
+                processCallContract(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_DELETE_CONTRACT) {
-
+                processDeleteContract(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
-//                processContractTransfer(tx, blockHeight);
+                processContractTransfer(tx);
             }
         }
     }
@@ -334,7 +334,7 @@ public class RollbackService {
         agentInfo.setDeleteHeight(0);
 
         //根据节点找到委托列表
-        List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
+        List<DepositInfo> depositInfos = depositService.getDepositListByHash(tx.getHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo cancelDeposit : depositInfos) {
                 //需要删除的数据
@@ -356,8 +356,8 @@ public class RollbackService {
     }
 
     public void processRedPunishTx(TransactionInfo tx) {
-        PunishLog redPunish = (PunishLog) tx.getTxData();
-        punishLogList.add(redPunish);
+//        PunishLog redPunish = (PunishLog) tx.getTxData();
+        punishTxHashList.add(tx.getHash());
 
         for (int i = 0; i < tx.getTos().size(); i++) {
             Output output = tx.getTos().get(i);
@@ -365,6 +365,7 @@ public class RollbackService {
             accountInfo.setTxCount(accountInfo.getTxCount() - 1);
         }
 
+        PunishLog redPunish = punishService.getRedPunishLog(tx.getHash());
         //根据红牌找到被惩罚的节点
         AgentInfo agentInfo = queryAgentInfo(redPunish.getAddress(), 2);
         agentInfo.setDeleteHash(null);
@@ -372,15 +373,15 @@ public class RollbackService {
         agentInfoList.add(agentInfo);
 
         //根据节点找到委托列表
-        List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
+        List<DepositInfo> depositInfos = depositService.getDepositListByHash(tx.getHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo cancelDeposit : depositInfos) {
                 cancelDeposit.setNew(true);
                 depositInfoList.add(cancelDeposit);
 
-                DepositInfo depositInfo = new DepositInfo();
-                depositInfo.setDeleteHash(tx.getHash());
-                depositInfo.setDeleteHeight(tx.getHeight());
+                DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelDeposit.getDeleteHash());
+                depositInfo.setDeleteHeight(0);
+                depositInfo.setDeleteHash(null);
                 depositInfoList.add(depositInfo);
 
                 agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
@@ -398,8 +399,9 @@ public class RollbackService {
         accountInfo.setTotalBalance(accountInfo.getTotalBalance() + tx.getFee());
 
         contractTxHashList.add(tx.getHash());
-        if (contractInfo.getIsNrc20() == 1 && contractInfo.getStatus() != NulsConstant.CONTRACT_STATUS_FAIL) {
-            accountInfo.getTokens().remove(contractInfo.getContractAddress() + "," + contractInfo.getSymbol());
+        ContractResultInfo resultInfo = contractService.getContractResultInfo(tx.getHash());
+        if (contractInfo.getIsNrc20() == 1 && resultInfo.getSuccess()) {
+            processTokenTransfers(resultInfo.getTokenTransfers(), tx);
         }
     }
 
@@ -425,11 +427,9 @@ public class RollbackService {
         if (tokenTransfers == null || tokenTransfers.isEmpty()) {
             return;
         }
+        tokenTransferHashList.add(tx.getHash());
         for (int i = 0; i < tokenTransfers.size(); i++) {
             TokenTransfer tokenTransfer = tokenTransfers.get(i);
-            tokenTransfer.setTxHash(tx.getHash());
-            tokenTransfer.setHeight(tx.getHeight());
-            tokenTransfer.setTime(tx.getCreateTime());
 
             ContractInfo contractInfo = queryContractInfo(tokenTransfer.getContractAddress());
             contractInfo.setTransferCount(contractInfo.getTransferCount() - 1);
@@ -460,6 +460,59 @@ public class RollbackService {
         }
 
         return tokenInfo;
+    }
+
+    private void processDeleteContract(TransactionInfo tx) throws Exception {
+        AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
+        accountInfo.setTxCount(accountInfo.getTxCount() - 1);
+        accountInfo.setTotalOut(accountInfo.getTotalOut() - tx.getFee());
+        accountInfo.setTotalBalance(accountInfo.getTotalBalance() + tx.getFee());
+
+        //首先查询合约交易执行结果
+        ContractResultInfo resultInfo = contractService.getContractResultInfo(tx.getHash());
+
+        ContractInfo contractInfo = queryContractInfo(resultInfo.getContractAddress());
+        contractInfo.setTxCount(contractInfo.getTxCount() - 1);
+
+        contractTxHashList.add(tx.getHash());
+
+        if (resultInfo.getSuccess()) {
+            contractInfo.setStatus(NulsConstant.CONTRACT_STATUS_NORMAL);
+        }
+    }
+
+    private void processContractTransfer(TransactionInfo tx) throws Exception {
+        processTransferTx(tx);
+        ContractTransferInfo transferInfo = (ContractTransferInfo) tx.getTxData();
+        ContractInfo contractInfo = queryContractInfo(transferInfo.getContractAddress());
+        contractInfo.setTxCount(contractInfo.getTxCount() - 1);
+    }
+
+    public void save(BlockInfo blockInfo) throws Exception {
+        //存储账户token信息
+        tokenService.saveAccountTokens(accountTokenMap);
+        blockHeaderService.updateStep(3);
+
+        //存储共识节点列表
+        agentService.rollbackAgentList(agentInfoList);
+        blockHeaderService.updateStep(2);
+
+        //存储智能合约记录
+        contractService.rollbackContractInfos(contractInfoMap);
+        blockHeaderService.updateStep(1);
+        //修改账户信息表
+        accountService.saveAccounts(accountInfoMap);
+        blockHeaderService.updateStep(0);
+
+        //回滾token转账信息
+        tokenService.rollbackTokenTransfers(tokenTransferHashList, blockInfo.getBlockHeader().getHeight());
+        //回滾合约执行结果记录
+        contractService.rollbackContractResults(contractTxHashList);
+        //回滾
+        contractService.rollbackContractTxInfos(contractTxHashList);
+
+
+        blockHeaderService.deleteBlockHeader(blockInfo.getBlockHeader().getHeight());
     }
 
     private AccountInfo queryAccountInfo(String address) {
@@ -553,12 +606,11 @@ public class RollbackService {
         aliasInfoList.clear();
         agentInfoList.clear();
         depositInfoList.clear();
-        punishLogList.clear();
         contractInfoMap.clear();
         contractResultList.clear();
         accountTokenMap.clear();
         contractTxInfoList.clear();
-        tokenTransferList.clear();
         contractTxHashList.clear();
+        tokenTransferHashList.clear();
     }
 }
