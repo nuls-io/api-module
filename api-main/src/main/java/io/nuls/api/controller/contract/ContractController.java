@@ -39,11 +39,15 @@ import io.nuls.sdk.core.model.Result;
 import io.nuls.sdk.core.model.transaction.CreateContractTransaction;
 import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.contract.validation.service.CompareJar;
+import io.nuls.sdk.core.utils.StringUtils;
 import io.nuls.sdk.tool.NulsSDKTool;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +56,29 @@ import java.util.stream.Collectors;
  */
 @Controller
 public class ContractController {
+
+    private static String BASE;
+
+    private static String VALIDATE_HOME;
+
+    static {
+        String serverHome = System.getProperty("api.server.home");
+        if(StringUtils.isBlank(serverHome)) {
+            URL resource = ClassLoader.getSystemClassLoader().getResource("");
+            String classPath = resource.getPath();
+            File file = null;
+            try {
+                file = new File(URLDecoder.decode(classPath, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                Log.error(e);
+                file = new File(classPath);
+            }
+            BASE = file.getPath();
+        } else {
+            BASE = serverHome;
+        }
+        VALIDATE_HOME = BASE + File.separator + "contract" + File.separator + "code" + File.separator;
+    }
 
     @Autowired
     private WalletRPCHandler rpcHandler;
@@ -168,33 +195,41 @@ public class ContractController {
         return result;
     }
 
-    //TODO 配置项目部署路径
-    private static final String BASE = "/Users/pierreluo/Nuls/temp/code/";
-
     @RpcMethod("validateContractCode")
     public RpcResult validateContractCode(List<Object> params) {
         RpcResult result = new RpcResult();
-        InputStream in = null;
         OutputStream out = null;
         InputStream jarIn = null;
         try {
             VerifyUtils.verifyParams(params, 2);
             String contractAddress = (String) params.get(0);
             if (!AddressTool.validAddress(contractAddress)) {
-                throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+                result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+                return result;
             }
-            in = (InputStream) params.get(1);
-            out = new FileOutputStream(BASE + contractAddress +".zip");
-            IOUtils.copy(in, out);
+
+            // 生成文件
+            String fileDataURL = (String) params.get(1);
+            String[] arr = fileDataURL.split(",");
+            if (arr.length != 2) {
+                result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR));
+                return result;
+            }
+            String headerInfo = arr[0];
+            String body = arr[1];
+            byte[] fileContent = Base64.getDecoder().decode(body);
+            out = new FileOutputStream(VALIDATE_HOME + contractAddress +".zip");
+            IOUtils.write(fileContent, out);
+
             // 编译代码
-            List<String> resultList = RunShellUtil.run(BASE + "compile.sh", contractAddress);
+            List<String> resultList = RunShellUtil.run(BASE + File.separator + "bin" + File.separator + "compile.sh", contractAddress);
             if(!resultList.isEmpty()) {
                 String error = resultList.stream().collect(Collectors.joining());
                 Log.error(error);
                 result.setError(new RpcResultError(RpcErrorCode.TX_SHELL_ERROR));
                 return result;
             }
-            File jarFile = new File(BASE + File.separator + contractAddress + File.separator + contractAddress +".jar");
+            File jarFile = new File(VALIDATE_HOME + contractAddress + File.separator + contractAddress +".jar");
             jarIn = new FileInputStream(jarFile);
             byte[] validateContractCode = IOUtils.toByteArray(jarIn);
 
@@ -218,18 +253,111 @@ public class ContractController {
             CreateContractData txData = tx.getTxData();
             byte[] contractCode = txData.getCode();
 
+            // 比较代码指令
             boolean bool = CompareJar.compareJarBytes(contractCode, validateContractCode);
             result.setResult(bool);
         } catch (Exception e) {
-            e.printStackTrace();
-            result.setError(new RpcResultError(RpcErrorCode.TX_SHELL_ERROR));
-            result.setResult(e.getMessage());
+            Log.error(e);
+            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
         } finally {
             IOUtils.closeQuietly(jarIn);
             IOUtils.closeQuietly(out);
-            IOUtils.closeQuietly(in);
         }
         return result;
     }
 
+    @RpcMethod("getContractCodeTree")
+    public RpcResult getContractCodeTree(List<Object> params) {
+        RpcResult result = new RpcResult();
+        VerifyUtils.verifyParams(params, 1);
+        String contractAddress = (String) params.get(0);
+        if (!AddressTool.validAddress(contractAddress)) {
+            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+            return result;
+        }
+        //TODO 检查认证状态，通过认证的合约继续下一步
+
+
+        File src = new File(VALIDATE_HOME + contractAddress + File.separator + "src");
+        ContractCode root = new ContractCode();
+        ContractCodeNode rootNode = new ContractCodeNode();
+        if(!src.isDirectory()) {
+            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "root path is inValid"));
+            return result;
+        }
+        List<ContractCodeNode> children = new ArrayList<>();
+        rootNode.setName(src.getName());
+        rootNode.setPath(extractFilePath(src));
+        rootNode.setDir(true);
+        rootNode.setChildren(children);
+        root.setRoot(rootNode);
+        File[] files = src.listFiles();
+        recursive(src.listFiles(), children);
+
+        result.setResult(root);
+        return result;
+    }
+
+    private void recursive(File[] files, List<ContractCodeNode> children) {
+        for(File file : files) {
+            ContractCodeNode node = new ContractCodeNode();
+            children.add(node);
+            node.setName(extractFileName(file));
+            node.setPath(extractFilePath(file));
+            node.setDir(file.isDirectory());
+            if(file.isDirectory()) {
+                node.setChildren(new ArrayList<>());
+                recursive(file.listFiles(), node.getChildren());
+            }
+        }
+    }
+
+    private String extractFileName(File file) {
+        if(file.isDirectory()) {
+            return file.getName();
+        }
+        String name = file.getName();
+        name = name.replaceAll("\\.java", "");
+        return name;
+    }
+
+    private String extractFilePath(File file) {
+        String path = file.getPath();
+        path = path.replaceAll(BASE, "");
+        return path;
+    }
+
+    @RpcMethod("getContractCode")
+    public RpcResult getContractCode(List<Object> params) {
+        RpcResult result = new RpcResult();
+        FileInputStream in = null;
+        try {
+            VerifyUtils.verifyParams(params, 2);
+            String contractAddress = (String) params.get(0);
+            if (!AddressTool.validAddress(contractAddress)) {
+                result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+                return result;
+            }
+            //TODO 检查认证状态，通过认证的合约继续下一步
+
+            String filePath = (String) params.get(1);
+            File file = new File(filePath);
+            in = new FileInputStream(file);
+            List<String> strings = IOUtils.readLines(in);
+            StringBuilder sb = new StringBuilder();
+            strings.forEach(a -> {
+                sb.append(a).append("\r\n");
+            });
+            result.setResult(sb.toString());
+        } catch (FileNotFoundException e) {
+            Log.error(e);
+            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
+        } catch (IOException e) {
+            Log.error(e);
+            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
+        return result;
+    }
 }

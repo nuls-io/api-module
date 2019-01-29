@@ -40,7 +40,7 @@ for file in ${SERVER_HOME}/libs/*.jar; do
 done
 
 # Get standard environment variables
-JAVA_OPTS="-Dfile.encoding=UTF-8 -server -Xms1024m -Xmx4096m -XX:NewSize=256m -XX:MaxNewSize=256m -XX:MaxDirectMemorySize=256M -XX:PermSize=128M -XX:MaxPermSize=128M"
+JAVA_OPTS="-Dfile.encoding=UTF-8 -Dapi.server.home=$SERVER_HOME -server -Xms1024m -Xmx4096m -XX:NewSize=256m -XX:MaxNewSize=256m -XX:MaxDirectMemorySize=256M -XX:PermSize=128M -XX:MaxPermSize=128M"
 
 MAIN_CLASS=io.nuls.api.ApiModuleBootstrap
 
