@@ -95,11 +95,7 @@ public class SyncService {
         }
         BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
 
-        AgentInfo agentInfo = findAddProcessAgentOfBlock(blockInfo);
-        //如果是种子节点出块的，则不统计相关信息
-        if (!blockInfo.getBlockHeader().isSeedPacked()) {
-            agentInfoList.add(agentInfo);
-        }
+        findAddProcessAgentOfBlock(blockInfo);
 
         //处理交易
         processTransactions(blockInfo.getTxs());
@@ -122,7 +118,7 @@ public class SyncService {
      *
      * @return
      */
-    private AgentInfo findAddProcessAgentOfBlock(BlockInfo blockInfo) {
+    private void findAddProcessAgentOfBlock(BlockInfo blockInfo) {
         BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
         AgentInfo agentInfo;
         if (headerInfo.isSeedPacked()) {
@@ -131,16 +127,16 @@ public class SyncService {
             agentInfo.setPackingAddress(headerInfo.getPackingAddress());
             agentInfo.setAgentId(headerInfo.getPackingAddress());
             agentInfo.setRewardAddress(agentInfo.getPackingAddress());
+            headerInfo.setByAgentInfo(agentInfo);
         } else {
             //根据区块头的打包地址，查询打包节点的节点信息，修改相关统计数据
-            agentInfo = agentService.getAgentByPackingAddress(headerInfo.getPackingAddress());
+            agentInfo = queryAgentInfo(headerInfo.getPackingAddress(), 3);
             agentInfo.setTotalPackingCount(agentInfo.getTotalPackingCount() + 1);
             agentInfo.setLastRewardHeight(headerInfo.getHeight());
             agentInfo.setVersion(headerInfo.getAgentVersion());
             headerInfo.setByAgentInfo(agentInfo);
             calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
         }
-        return agentInfo;
     }
 
     /**
@@ -377,6 +373,9 @@ public class SyncService {
         depositInfo.setNew(true);
         depositInfo.setBlockHeight(tx.getHeight());
         depositInfoList.add(depositInfo);
+
+        AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
+        agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
     }
 
     private void processCancelDepositTx(TransactionInfo tx) {
@@ -402,6 +401,12 @@ public class SyncService {
         cancelInfo.setNew(true);
         depositInfoList.add(depositInfo);
         depositInfoList.add(cancelInfo);
+
+        AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
+        agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() - depositInfo.getAmount());
+        if (agentInfo.getTotalDeposit() < 0) {
+            throw new RuntimeException("data error: agent[" + agentInfo.getTxHash() + "] totalDeposit < 0");
+        }
     }
 
     private void processStopAgentTx(TransactionInfo tx) {
@@ -417,10 +422,9 @@ public class SyncService {
 
         //查询所有当前节点下的委托，生成取消委托记录
         AgentInfo agentInfo = (AgentInfo) tx.getTxData();
-        agentInfo = agentService.getAgentByAgentId(agentInfo.getTxHash().substring(agentInfo.getTxHash().length() - 8));
+        agentInfo = queryAgentInfo(agentInfo.getTxHash(), 1);
         agentInfo.setDeleteHash(tx.getHash());
         agentInfo.setDeleteHeight(tx.getHeight());
-        agentInfoList.add(agentInfo);
 
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
@@ -440,6 +444,10 @@ public class SyncService {
                 cancelDeposit.setFee(0L);
                 cancelDeposit.setCreateTime(tx.getCreateTime());
                 depositInfoList.add(cancelDeposit);
+                agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() - depositInfo.getAmount());
+                if (agentInfo.getTotalDeposit() < 0) {
+                    throw new RuntimeException("data error: agent[" + agentInfo.getTxHash() + "] totalDeposit < 0");
+                }
             }
         }
     }
@@ -466,10 +474,9 @@ public class SyncService {
         }
 
         //根据红牌找到被惩罚的节点
-        AgentInfo agentInfo = agentService.getAgentByAgentAddress(redPunish.getAddress());
+        AgentInfo agentInfo = queryAgentInfo(redPunish.getAddress(), 2);
         agentInfo.setDeleteHash(tx.getHash());
         agentInfo.setDeleteHeight(tx.getHeight());
-        agentInfoList.add(agentInfo);
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
@@ -488,6 +495,11 @@ public class SyncService {
                 cancelDeposit.setFee(0L);
                 cancelDeposit.setCreateTime(tx.getCreateTime());
                 depositInfoList.add(cancelDeposit);
+
+                agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() - depositInfo.getAmount());
+                if (agentInfo.getTotalDeposit() < 0) {
+                    throw new RuntimeException("data error: agent[" + agentInfo.getTxHash() + "] totalDeposit < 0");
+                }
             }
         }
     }
@@ -732,6 +744,32 @@ public class SyncService {
             contractInfoMap.put(contractInfo.getContractAddress(), contractInfo);
         }
         return contractInfo;
+    }
+
+    private AgentInfo queryAgentInfo(String key, int type) {
+        AgentInfo agentInfo;
+        for (int i = 0; i < agentInfoList.size(); i++) {
+            agentInfo = agentInfoList.get(i);
+
+            if (type == 1 && agentInfo.getTxHash().equals(key)) {
+                return agentInfo;
+            } else if (type == 2 && agentInfo.getAgentAddress().equals(key)) {
+                return agentInfo;
+            } else if (type == 3 && agentInfo.getPackingAddress().equals(key)) {
+                return agentInfo;
+            }
+        }
+        if (type == 1) {
+            agentInfo = agentService.getAgentByAgentHash(key);
+        } else if (type == 2) {
+            agentInfo = agentService.getAgentByAgentAddress(key);
+        } else {
+            agentInfo = agentService.getAgentByPackingAddress(key);
+        }
+        if (agentInfo != null) {
+            agentInfoList.add(agentInfo);
+        }
+        return agentInfo;
     }
 
     private void clear() {

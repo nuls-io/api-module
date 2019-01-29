@@ -153,15 +153,18 @@ public class AgentService {
 
     public PageInfo<AgentInfo> getAgentList(int type, int pageNumber, int pageSize) {
         Bson filter = null;
+        Bson deleteFilter = Filters.eq("deleteHeight", 0);
         if (type == 1) {
-            filter = Filters.nin("agentAddress", ApiContext.DEVELOPER_NODE_ADDRESS.addAll(ApiContext.AMBASSADOR_NODE_ADDRESS));
+            filter = Filters.and(Filters.nin("agentAddress", ApiContext.DEVELOPER_NODE_ADDRESS.addAll(ApiContext.AMBASSADOR_NODE_ADDRESS), deleteFilter));
         } else if (type == 2) {
-            filter = Filters.in("agentAddress", ApiContext.DEVELOPER_NODE_ADDRESS);
+            filter = Filters.and(Filters.in("agentAddress", ApiContext.DEVELOPER_NODE_ADDRESS, deleteFilter));
         } else if (type == 3) {
-            filter = Filters.in("agentAddress", ApiContext.AMBASSADOR_NODE_ADDRESS);
+            filter = Filters.and(Filters.in("agentAddress", ApiContext.AMBASSADOR_NODE_ADDRESS, deleteFilter));
+        } else {
+            filter = deleteFilter;
         }
         long totalCount = this.mongoDBService.getCount(MongoTableName.AGENT_INFO, filter);
-        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.AGENT_INFO, Filters.and(filter, Filters.eq("deleteHeight", 0)), Sorts.descending("createTime"), pageNumber, pageSize);
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.AGENT_INFO, filter, Sorts.descending("createTime"), pageNumber, pageSize);
         List<AgentInfo> agentInfoList = new ArrayList<>();
         for (Document document : docsList) {
             AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);

@@ -110,7 +110,6 @@ public class POCConsensusController {
             if (clientResult.isSuccess()) {
                 agentInfo.setCreditValue(clientResult.getData().getCreditValue());
                 agentInfo.setDepositCount(clientResult.getData().getDepositCount());
-                agentInfo.setTotalDeposit(clientResult.getData().getTotalDeposit());
             }
         }
         return new RpcResult().setResult(list);

@@ -8,7 +8,6 @@ import io.nuls.api.core.model.*;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
-import io.nuls.sdk.core.model.transaction.Transaction;
 import io.nuls.sdk.core.utils.JSONUtils;
 import io.nuls.sdk.core.utils.StringUtils;
 
@@ -84,8 +83,7 @@ public class RollbackService {
     public boolean rollbackBlock(long blockHeight) throws Exception {
         clear();
         BlockInfo blockInfo = queryBlock(blockHeight);
-        BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
-        AgentInfo agentInfo = findAddProcessAgentOfBlock(blockInfo);
+        findAddProcessAgentOfBlock(blockInfo);
 
         processTxs(blockInfo.getTxs());
         return false;
@@ -107,7 +105,7 @@ public class RollbackService {
             agentInfo.setRewardAddress(agentInfo.getPackingAddress());
         } else {
             //根据区块头的打包地址，查询打包节点的节点信息，做关联存储使用
-            agentInfo = agentService.getAgentByPackingAddress(headerInfo.getPackingAddress());
+            agentInfo = queryAgentInfo(headerInfo.getPackingAddress(), 3);
         }
 
         agentInfo.setTotalPackingCount(agentInfo.getTotalPackingCount() - 1);
@@ -282,9 +280,8 @@ public class RollbackService {
         accountInfo.setTotalOut(accountInfo.getTotalOut() - tx.getFee());
         accountInfo.setTotalBalance(accountInfo.getTotalBalance() + tx.getFee());
         //查找到代理节点，设置isNew = true，最后做存储的时候删除
-        AgentInfo agentInfo = agentService.getAgentByAgentHash(tx.getHash());
-        accountInfo.setNew(true);
-        agentInfoList.add(agentInfo);
+        AgentInfo agentInfo = queryAgentInfo(tx.getHash(), 1);
+        agentInfo.setNew(true);
     }
 
     private void processDepositTx(TransactionInfo tx) {
@@ -296,6 +293,11 @@ public class RollbackService {
         DepositInfo depositInfo = depositService.getDepositInfoByHash(tx.getHash());
         depositInfo.setNew(true);
         depositInfoList.add(depositInfo);
+        AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
+        agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() - depositInfo.getAmount());
+        if (agentInfo.getTotalDeposit() < 0) {
+            throw new RuntimeException("data error: agent[" + agentInfo.getTxHash() + "] totalDeposit < 0");
+        }
     }
 
     private void processCancelDepositTx(TransactionInfo tx) {
@@ -312,6 +314,9 @@ public class RollbackService {
         cancelInfo.setNew(true);
         depositInfoList.add(depositInfo);
         depositInfoList.add(cancelInfo);
+
+        AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
+        agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
     }
 
     private void processStopAgentTx(TransactionInfo tx) {
@@ -324,10 +329,9 @@ public class RollbackService {
             }
         }
 
-        AgentInfo agentInfo = agentService.getAgentByDeleteHash(tx.getHash());
+        AgentInfo agentInfo = queryAgentInfo(tx.getHash(), 1);
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
-        agentInfoList.add(agentInfo);
 
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
@@ -341,6 +345,8 @@ public class RollbackService {
                 depositInfo.setDeleteHeight(0);
                 depositInfo.setDeleteHash(null);
                 depositInfoList.add(depositInfo);
+
+                agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
             }
         }
     }
@@ -360,7 +366,7 @@ public class RollbackService {
         }
 
         //根据红牌找到被惩罚的节点
-        AgentInfo agentInfo = agentService.getAgentByAgentAddress(redPunish.getAddress());
+        AgentInfo agentInfo = queryAgentInfo(redPunish.getAddress(), 2);
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
         agentInfoList.add(agentInfo);
@@ -376,6 +382,8 @@ public class RollbackService {
                 depositInfo.setDeleteHash(tx.getHash());
                 depositInfo.setDeleteHeight(tx.getHeight());
                 depositInfoList.add(depositInfo);
+
+                agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
             }
         }
     }
@@ -404,7 +412,7 @@ public class RollbackService {
         contractInfo.setTxCount(contractInfo.getTxCount() - 1);
 
         if (resultInfo.getSuccess()) {
-
+            processTokenTransfers(resultInfo.getTokenTransfers(), tx);
         }
     }
 
@@ -424,9 +432,6 @@ public class RollbackService {
             tokenTransfer.setTime(tx.getCreateTime());
 
             ContractInfo contractInfo = queryContractInfo(tokenTransfer.getContractAddress());
-            if (contractInfo.getOwners().contains(tokenTransfer.getToAddress())) {
-                contractInfo.getOwners().add(tokenTransfer.getToAddress());
-            }
             contractInfo.setTransferCount(contractInfo.getTransferCount() - 1);
 
             if (tokenTransfer.getFromAddress() != null) {
@@ -484,6 +489,32 @@ public class RollbackService {
             accountTokenInfo = tokenService.getAccountTokenInfo(key);
         }
         return accountTokenInfo;
+    }
+
+    private AgentInfo queryAgentInfo(String key, int type) {
+        AgentInfo agentInfo;
+        for (int i = 0; i < agentInfoList.size(); i++) {
+            agentInfo = agentInfoList.get(i);
+
+            if (type == 1 && agentInfo.getTxHash().equals(key)) {
+                return agentInfo;
+            } else if (type == 2 && agentInfo.getAgentAddress().equals(key)) {
+                return agentInfo;
+            } else if (type == 3 && agentInfo.getPackingAddress().equals(key)) {
+                return agentInfo;
+            }
+        }
+        if (type == 1) {
+            agentInfo = agentService.getAgentByAgentHash(key);
+        } else if (type == 2) {
+            agentInfo = agentService.getAgentByAgentAddress(key);
+        } else {
+            agentInfo = agentService.getAgentByPackingAddress(key);
+        }
+        if (agentInfo != null) {
+            agentInfoList.add(agentInfo);
+        }
+        return agentInfo;
     }
 
     private BlockInfo queryBlock(long height) throws Exception {
