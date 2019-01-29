@@ -207,6 +207,7 @@ public class ContractController {
                 result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
                 return result;
             }
+            //TODO 检查认证状态，未认证的合约继续下一步
 
             // 生成文件
             String fileDataURL = (String) params.get(1);
@@ -256,6 +257,9 @@ public class ContractController {
             // 比较代码指令
             boolean bool = CompareJar.compareJarBytes(contractCode, validateContractCode);
             result.setResult(bool);
+
+            //TODO 合约认证通过后，更新合约认证状态
+            
         } catch (Exception e) {
             Log.error(e);
             result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
