@@ -2,7 +2,7 @@ package io.nuls.api.core.model;
 
 
 public class ContractDeleteInfo extends TxData {
-    private String createTxHash;
+    private String txHash;
 
     private String contractAddress;
 
@@ -10,14 +10,6 @@ public class ContractDeleteInfo extends TxData {
 
     public ContractDeleteInfo() {
 
-    }
-
-    public String getCreateTxHash() {
-        return createTxHash;
-    }
-
-    public void setCreateTxHash(String createTxHash) {
-        this.createTxHash = createTxHash;
     }
 
     public String getCreater() {
@@ -34,5 +26,13 @@ public class ContractDeleteInfo extends TxData {
 
     public void setContractAddress(String contractAddress) {
         this.contractAddress = contractAddress;
+    }
+
+    public String getTxHash() {
+        return txHash;
+    }
+
+    public void setTxHash(String txHash) {
+        this.txHash = txHash;
     }
 }

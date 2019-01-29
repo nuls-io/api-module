@@ -8,6 +8,7 @@ import io.nuls.api.core.model.*;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
 import io.nuls.sdk.core.utils.JSONUtils;
+import io.nuls.sdk.core.utils.StringUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -25,6 +26,17 @@ public class ContractService {
 
     public ContractInfo getContractInfo(String contractAddress) throws Exception {
         Document document = mongoDBService.findOne(MongoTableName.CONTRACT_INFO, Filters.eq("_id", contractAddress));
+        if (document == null) {
+            return null;
+        }
+        ContractInfo tokenInfo = DocumentTransferTool.toInfo(document, "contractAddress", ContractInfo.class);
+        tokenInfo.setMethods(JSONUtils.json2list(tokenInfo.getMethodStr(), ContractMethod.class));
+        tokenInfo.setMethodStr(null);
+        return tokenInfo;
+    }
+
+    public ContractInfo getContractInfoByHash(String txHash) throws Exception {
+        Document document = mongoDBService.findOne(MongoTableName.CONTRACT_INFO, Filters.eq("createTxHash", txHash));
         if (document == null) {
             return null;
         }
@@ -140,5 +152,20 @@ public class ContractService {
         }
         PageInfo<ContractInfo> pageInfo = new PageInfo<>(pageNumber, pageSize, totalCount, contractInfos);
         return pageInfo;
+    }
+
+    public ContractResultInfo getContractResultInfo(String txHash) throws Exception {
+        Document document = mongoDBService.findOne(MongoTableName.CONTRACT_RESULT_INFO, Filters.eq("_id", txHash));
+        if (document == null) {
+            return null;
+        }
+        ContractResultInfo contractResultInfo = DocumentTransferTool.toInfo(document, "txHash", ContractResultInfo.class);
+        if (StringUtils.isNotBlank(contractResultInfo.getTokenTransferStr())) {
+            contractResultInfo.setTokenTransfers(JSONUtils.json2list(contractResultInfo.getTokenTransferStr(), TokenTransfer.class));
+        }
+        if (StringUtils.isNotBlank(contractResultInfo.getNulsTransferStr())) {
+            contractResultInfo.setNulsTransfers(JSONUtils.json2list(contractResultInfo.getNulsTransferStr(), NulsTransfer.class));
+        }
+        return contractResultInfo;
     }
 }

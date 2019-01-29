@@ -79,27 +79,18 @@ public class TxController {
 
     @RpcMethod("getTxList")
     public RpcResult getTxList(List<Object> params) {
-        VerifyUtils.verifyParams(params, 2);
+        VerifyUtils.verifyParams(params, 4);
         int pageIndex = (int) params.get(0);
         int pageSize = (int) params.get(1);
+        int type = (int) params.get(2);
+        boolean isHidden = (boolean) params.get(3);
         if (pageIndex <= 0) {
             pageIndex = 1;
         }
         if (pageSize <= 0 || pageSize > 100) {
             pageSize = 10;
         }
-        int type = 0;
-        if (params.size() > 2) {
-            type = (int) params.get(2);
-        }
-        boolean includeCoinBase = false;
-        if (params.size() > 3) {
-            includeCoinBase = (boolean) params.get(3);
-        }
-        if (TransactionConstant.TX_TYPE_COINBASE == type && !includeCoinBase) {
-            includeCoinBase = true;
-        }
-        PageInfo<TransactionInfo> pageInfo = txService.getTxList(pageIndex, pageSize, type, includeCoinBase);
+        PageInfo<TransactionInfo> pageInfo = txService.getTxList(pageIndex, pageSize, type, isHidden);
         RpcResult rpcResult = new RpcResult();
         rpcResult.setResult(pageInfo);
         return rpcResult;
@@ -112,15 +103,15 @@ public class TxController {
 
         int pageIndex = (int) params.get(0);
         int pageSize = (int) params.get(1);
+        long height = Long.valueOf(params.get(2).toString());
+        int type = Integer.parseInt("" + params.get(3));
+
         if (pageIndex <= 0) {
             pageIndex = 1;
         }
         if (pageSize <= 0 || pageSize > 100) {
             pageSize = 10;
         }
-
-        long height = Long.valueOf(params.get(2).toString());
-        int type = Integer.parseInt("" + params.get(3));
 
         PageInfo<TransactionInfo> pageInfo = txService.getBlockTxList(pageIndex, pageSize, height, type);
         RpcResult rpcResult = new RpcResult();

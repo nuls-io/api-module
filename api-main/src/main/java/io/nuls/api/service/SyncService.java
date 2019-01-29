@@ -59,6 +59,7 @@ public class SyncService {
     private List<AgentInfo> agentInfoList = new ArrayList<>();
     //记录每个区块委托共识的信息
     private List<DepositInfo> depositInfoList = new ArrayList<>();
+
     //记录每个区块的红黄牌信息
     private List<PunishLog> punishLogList = new ArrayList<>();
     //记录每个区块新创建的智能合约信息
@@ -101,7 +102,7 @@ public class SyncService {
         }
 
         //处理交易
-        processTransactions(blockInfo.getTxs(), agentInfo, headerInfo.getHeight());
+        processTransactions(blockInfo.getTxs());
         //处理轮次信息
         processRoundData(blockInfo);
         //保存数据
@@ -172,13 +173,21 @@ public class SyncService {
     }
 
 
-    private void processTransactions(List<TransactionInfo> txs, AgentInfo agentInfo, long blockHeight) throws Exception {
+    private void processTransactions(List<TransactionInfo> txs) throws Exception {
+        for (int i = 0; i < txs.size(); i++) {
+            TransactionInfo tx = txs.get(i);
+            if (tx.getTos() != null) {
+                for (Output output : tx.getTos()) {
+                    output.setTxHash(tx.getHash());
+                    outputMap.put(output.getKey(), output);
+                }
+            }
+        }
+
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
 
-            tx.setByAgentInfo(agentInfo);
-
-            processWithTxInputOutput(tx);
+            processTxInputOutput(tx);
             if (tx.getType() == TransactionConstant.TX_TYPE_COINBASE) {
                 processCoinBaseTx(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_TRANSFER) {
@@ -198,13 +207,13 @@ public class SyncService {
             } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
                 processRedPunishTx(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
-                processCreateContract(tx, blockHeight);
+                processCreateContract(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
-                processCallContract(tx, blockHeight);
+                processCallContract(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_DELETE_CONTRACT) {
-
+                processDeleteContract(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
-                processContractTransfer(tx, blockHeight);
+                processContractTransfer(tx);
             }
         }
     }
@@ -218,7 +227,7 @@ public class SyncService {
      *
      * @param tx
      */
-    private void processWithTxInputOutput(TransactionInfo tx) throws Exception {
+    private void processTxInputOutput(TransactionInfo tx) throws Exception {
         coinDataList.add(new TxCoinData(tx));
         if (tx.getFroms() != null) {
             for (Input input : tx.getFroms()) {
@@ -232,12 +241,6 @@ public class SyncService {
                 } else {
                     inputList.add(input);
                 }
-            }
-        }
-        if (tx.getTos() != null) {
-            for (Output output : tx.getTos()) {
-                output.setTxHash(tx.getHash());
-                outputMap.put(output.getKey(), output);
             }
         }
     }
@@ -489,17 +492,17 @@ public class SyncService {
         }
     }
 
-    private void processCreateContract(TransactionInfo tx, long blockHeight) throws Exception {
-        ContractInfo contractInfo = (ContractInfo) tx.getTxData();
-        contractInfo.setTxCount(1);
-        contractInfo.setNew(true);
-        contractInfo.setRemark(tx.getRemark());
-
+    private void processCreateContract(TransactionInfo tx) throws Exception {
         AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
         accountInfo.setTxCount(accountInfo.getTxCount() + 1);
         accountInfo.setTotalOut(accountInfo.getTotalOut() + tx.getFee());
         accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
         txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, 0, accountInfo.getTotalBalance()));
+
+        ContractInfo contractInfo = (ContractInfo) tx.getTxData();
+        contractInfo.setTxCount(1);
+        contractInfo.setNew(true);
+        contractInfo.setRemark(tx.getRemark());
 
         //首先查询合约交易执行结果
         RpcClientResult<ContractResultInfo> clientResult1 = rpcHandler.getContractResult(tx.getHash());
@@ -507,7 +510,7 @@ public class SyncService {
         contractResultList.add(resultInfo);
         contractInfo.setSuccess(resultInfo.getSuccess());
         contractInfoMap.put(contractInfo.getContractAddress(), contractInfo);
-        createContractTxInfo(tx, contractInfo, blockHeight);
+        createContractTxInfo(tx, contractInfo);
 
         if (!resultInfo.getSuccess()) {
             contractInfo.setErrorMsg(resultInfo.getErrorMessage());
@@ -523,12 +526,11 @@ public class SyncService {
     /**
      * @param tx
      * @param contractInfo
-     * @param blockHeight
      */
-    private void createContractTxInfo(TransactionInfo tx, ContractInfo contractInfo, long blockHeight) {
+    private void createContractTxInfo(TransactionInfo tx, ContractInfo contractInfo) {
         ContractTxInfo contractTxInfo = new ContractTxInfo();
         contractTxInfo.setTxHash(tx.getHash());
-        contractTxInfo.setBlockHeight(blockHeight);
+        contractTxInfo.setBlockHeight(tx.getHeight());
         contractTxInfo.setContractAddress(contractInfo.getContractAddress());
         contractTxInfo.setTime(tx.getCreateTime());
         contractTxInfo.setType(tx.getType());
@@ -587,7 +589,7 @@ public class SyncService {
             tokenTransfer.setTime(tx.getCreateTime());
 
             ContractInfo contractInfo = queryContractInfo(tokenTransfer.getContractAddress());
-            if (contractInfo.getOwners().contains(tokenTransfer.getToAddress())) {
+            if (!contractInfo.getOwners().contains(tokenTransfer.getToAddress())) {
                 contractInfo.getOwners().add(tokenTransfer.getToAddress());
             }
             contractInfo.setTransferCount(contractInfo.getTransferCount() + 1);
@@ -604,7 +606,7 @@ public class SyncService {
         }
     }
 
-    private void processCallContract(TransactionInfo tx, long blockHeight) throws Exception {
+    private void processCallContract(TransactionInfo tx) throws Exception {
         processTransferTx(tx);
         //首先查询合约交易执行结果
         RpcClientResult<ContractResultInfo> clientResult = rpcHandler.getContractResult(tx.getHash());
@@ -617,14 +619,38 @@ public class SyncService {
         contractInfo.setTxCount(contractInfo.getTxCount() + 1);
 
         contractResultList.add(resultInfo);
-        createContractTxInfo(tx, contractInfo, blockHeight);
+        createContractTxInfo(tx, contractInfo);
 
         if (resultInfo.getSuccess()) {
             processTokenTransfers(resultInfo.getTokenTransfers(), tx);
         }
     }
 
-    private void processContractTransfer(TransactionInfo tx, long blockHeight) throws Exception {
+    private void processDeleteContract(TransactionInfo tx) throws Exception {
+        AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
+        accountInfo.setTxCount(accountInfo.getTxCount() + 1);
+        accountInfo.setTotalOut(accountInfo.getTotalOut() + tx.getFee());
+        accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
+        txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, 0, accountInfo.getTotalBalance()));
+
+        //首先查询合约交易执行结果
+        RpcClientResult<ContractResultInfo> clientResult = rpcHandler.getContractResult(tx.getHash());
+        if (clientResult.isSuccess() == false) {
+            throw new RuntimeException(clientResult.getMsg());
+        }
+        ContractResultInfo resultInfo = clientResult.getData();
+        ContractInfo contractInfo = queryContractInfo(resultInfo.getContractAddress());
+        contractInfo.setTxCount(contractInfo.getTxCount() + 1);
+
+        contractResultList.add(resultInfo);
+        createContractTxInfo(tx, contractInfo);
+
+        if (resultInfo.getSuccess()) {
+            contractInfo.setStatus(NulsConstant.CONTRACT_STATUS_DELETE);
+        }
+    }
+
+    private void processContractTransfer(TransactionInfo tx) throws Exception {
         processTransferTx(tx);
         ContractTransferInfo transferInfo = (ContractTransferInfo) tx.getTxData();
         ContractInfo contractInfo = queryContractInfo(transferInfo.getContractAddress());
@@ -703,8 +729,8 @@ public class SyncService {
         ContractInfo contractInfo = contractInfoMap.get(contractAddress);
         if (contractInfo == null) {
             contractInfo = contractService.getContractInfo(contractAddress);
+            contractInfoMap.put(contractInfo.getContractAddress(), contractInfo);
         }
-        contractInfoMap.put(contractInfo.getContractAddress(), contractInfo);
         return contractInfo;
     }
 

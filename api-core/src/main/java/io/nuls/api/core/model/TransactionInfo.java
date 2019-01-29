@@ -15,10 +15,6 @@ public class TransactionInfo {
 
     private Long height;
 
-    private String agentId;
-
-    private String agentInfo;
-
     private Integer size;
 
     private Long fee;
@@ -61,14 +57,6 @@ public class TransactionInfo {
 
     public void setHeight(Long height) {
         this.height = height;
-    }
-
-    public String getAgentId() {
-        return agentId;
-    }
-
-    public void setAgentId(String agentId) {
-        this.agentId = agentId;
     }
 
     public Integer getSize() {
@@ -143,14 +131,6 @@ public class TransactionInfo {
         this.createTime = createTime;
     }
 
-    public String getAgentInfo() {
-        return agentInfo;
-    }
-
-    public void setAgentInfo(String agentInfo) {
-        this.agentInfo = agentInfo;
-    }
-
     public void setValue(long value) {
         this.value = value;
     }
@@ -158,16 +138,6 @@ public class TransactionInfo {
     public long getValue() {
         return value;
     }
-
-    public void setByAgentInfo(AgentInfo agentInfo) {
-        this.agentId = agentInfo.getAgentId();
-        if (agentInfo.getAgentAlias() != null) {
-            this.agentInfo = agentInfo.getAgentAlias();
-        } else {
-            this.agentInfo = agentInfo.getAgentId();
-        }
-    }
-
 
     public void calcValue() {
         long value = 0;

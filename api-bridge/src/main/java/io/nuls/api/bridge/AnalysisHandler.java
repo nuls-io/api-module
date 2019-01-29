@@ -392,6 +392,7 @@ public class AnalysisHandler {
         DeleteContractTransaction deleteContractTx = (DeleteContractTransaction) tx;
         DeleteContractData model = deleteContractTx.getTxData();
         ContractDeleteInfo info = new ContractDeleteInfo();
+        info.setTxHash(tx.getHash().getDigestHex());
         info.setCreater(AddressTool.getStringAddressByBytes(model.getSender()));
         info.setContractAddress(AddressTool.getStringAddressByBytes(model.getContractAddress()));
         return info;

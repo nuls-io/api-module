@@ -17,8 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.*;
 
 @Component
 public class TransactionService {
@@ -51,25 +50,13 @@ public class TransactionService {
         mongoDBService.insertMany(MongoTableName.TX_INFO, documentList);
     }
 
-
-    public PageInfo<TransactionInfo> getTxList(int pageIndex, int pageSize, int type, boolean includeCoinBase) {
-        Bson filter1 = null;
-        Bson filter2 = null;
+    public PageInfo<TransactionInfo> getTxList(int pageIndex, int pageSize, int type, boolean isHidden) {
         Bson filter = null;
         if (type > 0) {
-            filter1 = eq("type", type);
+            filter = eq("type", type);
+        } else if (isHidden) {
+            filter = ne("type", 1);
         }
-        if (!includeCoinBase || type == 0) {
-            filter2 = Filters.ne("type", 1);
-        }
-        if (filter1 != null && filter2 != null) {
-            filter = and(filter1, filter2);
-        } else if (filter1 != null) {
-            filter = filter1;
-        } else if (filter2 != null) {
-            filter = filter2;
-        }
-
         long totalCount = mongoDBService.getCount(MongoTableName.TX_INFO, filter);
         List<Document> docList = this.mongoDBService.pageQuery(MongoTableName.TX_INFO, filter, Sorts.descending("height", "time"), pageIndex, pageSize);
         List<TransactionInfo> txList = new ArrayList<>();
@@ -80,7 +67,6 @@ public class TransactionService {
         PageInfo<TransactionInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, txList);
         return pageInfo;
     }
-
 
     public PageInfo<TransactionInfo> getBlockTxList(int pageIndex, int pageSize, long blockHeight, int type) {
         Bson filter = null;

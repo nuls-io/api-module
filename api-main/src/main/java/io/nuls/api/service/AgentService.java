@@ -161,7 +161,7 @@ public class AgentService {
             filter = Filters.in("agentAddress", ApiContext.AMBASSADOR_NODE_ADDRESS);
         }
         long totalCount = this.mongoDBService.getCount(MongoTableName.AGENT_INFO, filter);
-        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.AGENT_INFO, filter, Sorts.descending("createTime"), pageNumber, pageSize);
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.AGENT_INFO, Filters.and(filter, Filters.eq("deleteHeight", 0)), Sorts.descending("createTime"), pageNumber, pageSize);
         List<AgentInfo> agentInfoList = new ArrayList<>();
         for (Document document : docsList) {
             AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);

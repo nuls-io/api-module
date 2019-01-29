@@ -46,7 +46,7 @@ public class ContractInfo extends TxData {
 
     private Integer isNrc20;//是否支持NRC20协议(0-否、1-是)
 
-    private Integer status; // 0未认证 1通过认证 2已删除
+    private Integer status; // -1,执行失败，0未认证 1正在审核 2通过验证 3 已删除
 
     private Long createTime;
 

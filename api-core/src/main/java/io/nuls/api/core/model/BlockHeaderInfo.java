@@ -40,6 +40,8 @@ public class BlockHeaderInfo {
 
     private Long createTime;
 
+    private String agentHash;
+
     private String agentId;
 
     private String packingAddress;
@@ -181,6 +183,7 @@ public class BlockHeaderInfo {
     }
 
     public void setByAgentInfo(AgentInfo agentInfo) {
+        this.agentHash = agentInfo.getTxHash();
         this.agentId = agentInfo.getAgentId();
         this.agentAlias = agentInfo.getAgentAlias();
     }
@@ -223,5 +226,13 @@ public class BlockHeaderInfo {
 
     public void setAgentVersion(int agentVersion) {
         this.agentVersion = agentVersion;
+    }
+
+    public String getAgentHash() {
+        return agentHash;
+    }
+
+    public void setAgentHash(String agentHash) {
+        this.agentHash = agentHash;
     }
 }

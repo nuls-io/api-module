@@ -8,9 +8,11 @@ import io.nuls.api.core.model.*;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
+import io.nuls.sdk.core.model.transaction.Transaction;
 import io.nuls.sdk.core.utils.JSONUtils;
 import io.nuls.sdk.core.utils.StringUtils;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +59,8 @@ public class RollbackService {
     private List<AgentInfo> agentInfoList = new ArrayList<>();
     //记录每个区块委托共识的信息
     private List<DepositInfo> depositInfoList = new ArrayList<>();
+
+
     //记录每个区块的红黄牌信息
     private List<PunishLog> punishLogList = new ArrayList<>();
     //记录每个区块新创建的智能合约信息
@@ -70,17 +74,18 @@ public class RollbackService {
     //记录合约转账信息
     private List<TokenTransfer> tokenTransferList = new ArrayList<>();
 
+    private List<String> punishTxHashList = new ArrayList<>();
+
+    private List<String> contractTxHashList = new ArrayList<>();
+
     /**
      * 回滚区块和区块内的所有交易和交易产生的数据
      */
     public boolean rollbackBlock(long blockHeight) throws Exception {
-
+        clear();
         BlockInfo blockInfo = queryBlock(blockHeight);
-
         BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
-
         AgentInfo agentInfo = findAddProcessAgentOfBlock(blockInfo);
-
 
         processTxs(blockInfo.getTxs());
         return false;
@@ -138,9 +143,20 @@ public class RollbackService {
         agentInfo.setCommissionReward(agentInfo.getCommissionReward() - other);
     }
 
-    private void processTxs(List<TransactionInfo> txs) {
-        for (TransactionInfo tx : txs) {
-            processWithTxInputOutput(tx);
+    private void processTxs(List<TransactionInfo> txs) throws Exception {
+        for (int i = 0; i < txs.size(); i++) {
+            TransactionInfo tx = txs.get(i);
+            if (tx.getTos() != null) {
+                for (Output output : tx.getTos()) {
+                    output.setTxHash(tx.getHash());
+                    outputMap.put(output.getKey(), output);
+                }
+            }
+        }
+
+        for (int i = 0; i < txs.size(); i++) {
+            TransactionInfo tx = txs.get(i);
+            processTxInputOutput(tx);
 
             if (tx.getType() == TransactionConstant.TX_TYPE_COINBASE) {
                 processCoinBaseTx(tx);
@@ -156,23 +172,21 @@ public class RollbackService {
                 processCancelDepositTx(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_STOP_AGENT) {
                 processStopAgentTx(tx);
-            }
-//            else if (tx.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
-//                processYellowPunishTx(tx);
-//            } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
-//                processRedPunishTx(tx, blockHeight);
-//            } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
-//                processCreateContract(tx, blockHeight);
-//            } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
+                processYellowPunishTx(tx);
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
+                processRedPunishTx(tx);
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
+                processCreateContract(tx);
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
 //                processCallContract(tx, blockHeight);
-//            } else if (tx.getType() == TransactionConstant.TX_TYPE_DELETE_CONTRACT) {
-//
-//            } else if (tx.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_DELETE_CONTRACT) {
+
+            } else if (tx.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
 //                processContractTransfer(tx, blockHeight);
-//            }
+            }
         }
     }
-
 
     private void processCoinBaseTx(TransactionInfo tx) {
         if (tx.getTos() == null || tx.getTos().isEmpty()) {
@@ -186,7 +200,7 @@ public class RollbackService {
         }
     }
 
-    private void processWithTxInputOutput(TransactionInfo tx) {
+    private void processTxInputOutput(TransactionInfo tx) {
         if (tx.getFroms() != null) {
             for (Input input : tx.getFroms()) {
                 // txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
@@ -198,11 +212,6 @@ public class RollbackService {
                 } else {
                     inputList.add(input);
                 }
-            }
-        }
-        if (tx.getTos() != null) {
-            for (Output output : tx.getTos()) {
-                outputMap.put(output.getKey(), output);
             }
         }
     }
@@ -261,11 +270,9 @@ public class RollbackService {
             }
             accountInfo.setTotalBalance(accountInfo.getTotalBalance() - value);
         }
-        AliasInfo aliasInfo = (AliasInfo) tx.getTxData();
+        AliasInfo aliasInfo = aliasService.getAliasByAddress(tx.getFroms().get(0).getAddress());
         AccountInfo accountInfo = queryAccountInfo(aliasInfo.getAddress());
-        if (accountInfo != null) {
-            accountInfo.setAlias(null);
-        }
+        accountInfo.setAlias(null);
         aliasInfoList.add(aliasInfo);
     }
 
@@ -325,23 +332,130 @@ public class RollbackService {
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
-            for (DepositInfo depositInfo : depositInfos) {
-                depositInfo.setDeleteHash(tx.getHash());
-                depositInfo.setDeleteHeight(tx.getHeight());
-                depositInfoList.add(depositInfo);
-
-                DepositInfo cancelDeposit = new DepositInfo();
+            for (DepositInfo cancelDeposit : depositInfos) {
+                //需要删除的数据
                 cancelDeposit.setNew(true);
-                cancelDeposit.setType(NulsConstant.CANCEL_CONSENSUS);
-                cancelDeposit.copyInfoWithDeposit(depositInfo);
-                cancelDeposit.setTxHash(tx.getHash());
-                cancelDeposit.setFee(0L);
-                cancelDeposit.setCreateTime(tx.getCreateTime());
                 depositInfoList.add(cancelDeposit);
+
+                DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelDeposit.getDeleteHash());
+                depositInfo.setDeleteHeight(0);
+                depositInfo.setDeleteHash(null);
+                depositInfoList.add(depositInfo);
             }
         }
     }
 
+    private void processYellowPunishTx(TransactionInfo tx) {
+        punishTxHashList.add(tx.getHash());
+    }
+
+    public void processRedPunishTx(TransactionInfo tx) {
+        PunishLog redPunish = (PunishLog) tx.getTxData();
+        punishLogList.add(redPunish);
+
+        for (int i = 0; i < tx.getTos().size(); i++) {
+            Output output = tx.getTos().get(i);
+            AccountInfo accountInfo = queryAccountInfo(output.getAddress());
+            accountInfo.setTxCount(accountInfo.getTxCount() - 1);
+        }
+
+        //根据红牌找到被惩罚的节点
+        AgentInfo agentInfo = agentService.getAgentByAgentAddress(redPunish.getAddress());
+        agentInfo.setDeleteHash(null);
+        agentInfo.setDeleteHeight(0);
+        agentInfoList.add(agentInfo);
+
+        //根据节点找到委托列表
+        List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
+        if (!depositInfos.isEmpty()) {
+            for (DepositInfo cancelDeposit : depositInfos) {
+                cancelDeposit.setNew(true);
+                depositInfoList.add(cancelDeposit);
+
+                DepositInfo depositInfo = new DepositInfo();
+                depositInfo.setDeleteHash(tx.getHash());
+                depositInfo.setDeleteHeight(tx.getHeight());
+                depositInfoList.add(depositInfo);
+            }
+        }
+    }
+
+    private void processCreateContract(TransactionInfo tx) throws Exception {
+        ContractInfo contractInfo = contractService.getContractInfoByHash(tx.getHash());
+        contractInfo.setNew(true);
+
+        AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
+        accountInfo.setTxCount(accountInfo.getTxCount() - 1);
+        accountInfo.setTotalOut(accountInfo.getTotalOut() - tx.getFee());
+        accountInfo.setTotalBalance(accountInfo.getTotalBalance() + tx.getFee());
+
+        contractTxHashList.add(tx.getHash());
+        if (contractInfo.getIsNrc20() == 1 && contractInfo.getStatus() != NulsConstant.CONTRACT_STATUS_FAIL) {
+            accountInfo.getTokens().remove(contractInfo.getContractAddress() + "," + contractInfo.getSymbol());
+        }
+    }
+
+    private void processCallContract(TransactionInfo tx) throws Exception {
+        processTransferTx(tx);
+
+        contractTxHashList.add(tx.getHash());
+        ContractResultInfo resultInfo = contractService.getContractResultInfo(tx.getHash());
+        ContractInfo contractInfo = queryContractInfo(resultInfo.getContractAddress());
+        contractInfo.setTxCount(contractInfo.getTxCount() - 1);
+
+        if (resultInfo.getSuccess()) {
+
+        }
+    }
+
+    /**
+     * 处理Nrc20合约相关转账的记录
+     *
+     * @param tokenTransfers
+     */
+    private void processTokenTransfers(List<TokenTransfer> tokenTransfers, TransactionInfo tx) throws Exception {
+        if (tokenTransfers == null || tokenTransfers.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < tokenTransfers.size(); i++) {
+            TokenTransfer tokenTransfer = tokenTransfers.get(i);
+            tokenTransfer.setTxHash(tx.getHash());
+            tokenTransfer.setHeight(tx.getHeight());
+            tokenTransfer.setTime(tx.getCreateTime());
+
+            ContractInfo contractInfo = queryContractInfo(tokenTransfer.getContractAddress());
+            if (contractInfo.getOwners().contains(tokenTransfer.getToAddress())) {
+                contractInfo.getOwners().add(tokenTransfer.getToAddress());
+            }
+            contractInfo.setTransferCount(contractInfo.getTransferCount() - 1);
+
+            if (tokenTransfer.getFromAddress() != null) {
+                processNrc20ForAccount(contractInfo, tokenTransfer.getFromAddress(), new BigInteger(tokenTransfer.getValue()), 1);
+            }
+
+            processNrc20ForAccount(contractInfo, tokenTransfer.getToAddress(), new BigInteger(tokenTransfer.getValue()), -1);
+        }
+    }
+
+    private AccountTokenInfo processNrc20ForAccount(ContractInfo contractInfo, String address, BigInteger value, int type) {
+        AccountTokenInfo tokenInfo = queryAccountTokenInfo(address + contractInfo.getContractAddress());
+        BigInteger balanceValue = new BigInteger(tokenInfo.getBalance());
+        if (type == 1) {
+            balanceValue = balanceValue.add(value);
+        } else {
+            balanceValue = balanceValue.subtract(value);
+        }
+
+        if (balanceValue.compareTo(BigInteger.ZERO) < 0) {
+            throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
+        }
+        tokenInfo.setBalance(balanceValue.toString());
+        if (!accountTokenMap.containsKey(tokenInfo.getKey())) {
+            accountTokenMap.put(tokenInfo.getKey(), tokenInfo);
+        }
+
+        return tokenInfo;
+    }
 
     private AccountInfo queryAccountInfo(String address) {
         AccountInfo accountInfo = accountInfoMap.get(address);
@@ -355,6 +469,22 @@ public class RollbackService {
         return accountInfo;
     }
 
+    private ContractInfo queryContractInfo(String contractAddress) throws Exception {
+        ContractInfo contractInfo = contractInfoMap.get(contractAddress);
+        if (contractInfo == null) {
+            contractInfo = contractService.getContractInfo(contractAddress);
+            contractInfoMap.put(contractInfo.getContractAddress(), contractInfo);
+        }
+        return contractInfo;
+    }
+
+    private AccountTokenInfo queryAccountTokenInfo(String key) {
+        AccountTokenInfo accountTokenInfo = accountTokenMap.get(key);
+        if (accountTokenInfo == null) {
+            accountTokenInfo = tokenService.getAccountTokenInfo(key);
+        }
+        return accountTokenInfo;
+    }
 
     private BlockInfo queryBlock(long height) throws Exception {
         BlockHeaderInfo headerInfo = blockHeaderService.getBlockHeaderInfoByHeight(height);
@@ -367,11 +497,6 @@ public class RollbackService {
         for (int i = 0; i < headerInfo.getTxHashList().size(); i++) {
             TransactionInfo tx = transactionService.getTx(headerInfo.getTxHashList().get(i));
             findTxCoinData(tx);
-
-            if (tx.getType() == TransactionConstant.TX_TYPE_ALIAS) {
-                AliasInfo aliasInfo = aliasService.getAliasByAddress(tx.getFroms().get(0).getAddress());
-                tx.setTxData(aliasInfo);
-            }
         }
         return blockInfo;
     }
@@ -387,5 +512,22 @@ public class RollbackService {
         if (StringUtils.isNotBlank(coinData.getOutputsJson())) {
             tx.setTos(JSONUtils.json2list(coinData.getOutputsJson(), Output.class));
         }
+    }
+
+    private void clear() {
+        inputList.clear();
+        outputMap.clear();
+        punishTxHashList.clear();
+        accountInfoMap.clear();
+        aliasInfoList.clear();
+        agentInfoList.clear();
+        depositInfoList.clear();
+        punishLogList.clear();
+        contractInfoMap.clear();
+        contractResultList.clear();
+        accountTokenMap.clear();
+        contractTxInfoList.clear();
+        tokenTransferList.clear();
+        contractTxHashList.clear();
     }
 }
