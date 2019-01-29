@@ -197,6 +197,8 @@ public class ContractController {
 
     @RpcMethod("validateContractCode")
     public RpcResult validateContractCode(List<Object> params) {
+        //TODO 是否加锁串行验证?
+        
         RpcResult result = new RpcResult();
         OutputStream out = null;
         InputStream jarIn = null;
