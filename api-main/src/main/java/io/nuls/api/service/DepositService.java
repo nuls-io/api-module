@@ -42,7 +42,7 @@ public class DepositService {
 
     public List<DepositInfo> getDepositListByAgentHash(String hash) {
         List<DepositInfo> depositInfos = new ArrayList<>();
-        Bson bson = Filters.and(Filters.eq("agentHash", hash), Filters.eq("deleteHash", null), Filters.eq("type", 0));
+        Bson bson = Filters.and(Filters.eq("agentHash", hash), Filters.eq("deleteKey", null));
         List<Document> documentList = mongoDBService.query(MongoTableName.DEPOSIT_INFO, bson);
         if (documentList == null && documentList.isEmpty()) {
             return depositInfos;
@@ -55,7 +55,7 @@ public class DepositService {
     }
 
     public PageInfo<DepositInfo> getDepositListByAgentHash(String hash, int pageIndex, int pageSize) {
-        Bson bson = Filters.and(Filters.eq("agentHash", hash), Filters.eq("deleteHash", null));
+        Bson bson = Filters.and(Filters.eq("agentHash", hash), Filters.eq("deleteKey", null));
         List<Document> documentList = mongoDBService.pageQuery(MongoTableName.DEPOSIT_INFO, bson, Sorts.descending("createTime"), pageIndex, pageSize);
         long totalCount = mongoDBService.getCount(MongoTableName.DEPOSIT_INFO, bson);
 

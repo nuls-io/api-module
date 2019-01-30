@@ -285,13 +285,12 @@ public class RollbackService {
     }
 
     private void processDepositTx(TransactionInfo tx) {
-        String address = tx.getFroms().get(0).getAddress();
         AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
         accountInfo.setTxCount(accountInfo.getTxCount() - 1);
         accountInfo.setTotalOut(accountInfo.getTotalOut() - tx.getFee());
         accountInfo.setTotalBalance(accountInfo.getTotalBalance() + tx.getFee());
         //查找到委托记录，设置isNew = true，最后做存储的时候删除
-        DepositInfo depositInfo = depositService.getDepositInfoByKey(tx.getHash() + address);
+        DepositInfo depositInfo = depositService.getDepositInfoByKey(tx.getHash() + accountInfo.getAddress());
         depositInfo.setNew(true);
         depositInfoList.add(depositInfo);
         AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
@@ -309,8 +308,8 @@ public class RollbackService {
 
         //查询取消委托记录，再根据deleteHash反向查到委托记录
         DepositInfo cancelInfo = depositService.getDepositInfoByHash(tx.getHash());
-        DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelInfo.getDeleteHash());
-        depositInfo.setDeleteHash(null);
+        DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelInfo.getKey());
+        depositInfo.setDeleteKey(null);
         depositInfo.setDeleteHeight(0);
         cancelInfo.setNew(true);
         depositInfoList.add(depositInfo);
@@ -330,7 +329,7 @@ public class RollbackService {
             }
         }
 
-        AgentInfo agentInfo = queryAgentInfo(tx.getHash(), 1);
+        AgentInfo agentInfo = queryAgentInfo(tx.getHash(), 4);
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
 
@@ -340,11 +339,12 @@ public class RollbackService {
             for (DepositInfo cancelDeposit : depositInfos) {
                 //需要删除的数据
                 cancelDeposit.setNew(true);
-                depositInfoList.add(cancelDeposit);
 
-                DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelDeposit.getDeleteHash());
+                DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelDeposit.getDeleteKey());
                 depositInfo.setDeleteHeight(0);
-                depositInfo.setDeleteHash(null);
+                depositInfo.setDeleteKey(null);
+
+                depositInfoList.add(cancelDeposit);
                 depositInfoList.add(depositInfo);
 
                 agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
@@ -357,7 +357,6 @@ public class RollbackService {
     }
 
     public void processRedPunishTx(TransactionInfo tx) {
-//        PunishLog redPunish = (PunishLog) tx.getTxData();
         punishTxHashList.add(tx.getHash());
 
         for (int i = 0; i < tx.getTos().size(); i++) {
@@ -380,9 +379,9 @@ public class RollbackService {
                 cancelDeposit.setNew(true);
                 depositInfoList.add(cancelDeposit);
 
-                DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelDeposit.getDeleteHash());
+                DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelDeposit.getDeleteKey());
                 depositInfo.setDeleteHeight(0);
-                depositInfo.setDeleteHash(null);
+                depositInfo.setDeleteKey(null);
                 depositInfoList.add(depositInfo);
 
                 agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
@@ -559,14 +558,18 @@ public class RollbackService {
                 return agentInfo;
             } else if (type == 3 && agentInfo.getPackingAddress().equals(key)) {
                 return agentInfo;
+            } else if (type == 4 && key.equals(agentInfo.getDeleteHash())) {
+                return agentInfo;
             }
         }
         if (type == 1) {
             agentInfo = agentService.getAgentByAgentHash(key);
         } else if (type == 2) {
             agentInfo = agentService.getAgentByAgentAddress(key);
-        } else {
+        } else if (type == 3) {
             agentInfo = agentService.getAgentByPackingAddress(key);
+        } else {
+            agentInfo = agentService.getAgentByDeleteHash(key);
         }
         if (agentInfo != null) {
             agentInfoList.add(agentInfo);

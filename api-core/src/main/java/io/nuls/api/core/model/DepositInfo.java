@@ -14,7 +14,7 @@ public class DepositInfo extends TxData {
 
     private Long createTime;
 
-    private String deleteHash;
+    private String deleteKey;
 
     private long blockHeight;
 
@@ -64,14 +64,6 @@ public class DepositInfo extends TxData {
 
     public void setCreateTime(Long createTime) {
         this.createTime = createTime;
-    }
-
-    public String getDeleteHash() {
-        return deleteHash;
-    }
-
-    public void setDeleteHash(String deleteHash) {
-        this.deleteHash = deleteHash == null ? null : deleteHash.trim();
     }
 
     public long getDeleteHeight() {
@@ -126,5 +118,13 @@ public class DepositInfo extends TxData {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getDeleteKey() {
+        return deleteKey;
+    }
+
+    public void setDeleteKey(String deleteKey) {
+        this.deleteKey = deleteKey;
     }
 }

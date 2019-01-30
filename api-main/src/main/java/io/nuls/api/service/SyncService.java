@@ -389,16 +389,17 @@ public class SyncService {
 
         //查询委托记录，生成对应的取消委托信息
         DepositInfo cancelInfo = (DepositInfo) tx.getTxData();
-        DepositInfo depositInfo = depositService.getDepositInfoByHash(cancelInfo.getTxHash());
-        depositInfo.setDeleteHash(cancelInfo.getTxHash());
-        depositInfo.setDeleteHeight(tx.getHeight());
+        DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelInfo.getTxHash() + accountInfo.getAddress());
 
         cancelInfo.copyInfoWithDeposit(depositInfo);
         cancelInfo.setTxHash(tx.getHash());
         cancelInfo.setKey(tx.getHash() + depositInfo.getKey());
         cancelInfo.setBlockHeight(tx.getHeight());
-        cancelInfo.setDeleteHash(depositInfo.getTxHash());
+        cancelInfo.setDeleteKey(depositInfo.getKey());
         cancelInfo.setNew(true);
+
+        depositInfo.setDeleteKey(cancelInfo.getKey());
+        depositInfo.setDeleteHeight(tx.getHeight());
         depositInfoList.add(depositInfo);
         depositInfoList.add(cancelInfo);
 
@@ -430,10 +431,6 @@ public class SyncService {
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo depositInfo : depositInfos) {
-                depositInfo.setDeleteHash(tx.getHash());
-                depositInfo.setDeleteHeight(tx.getHeight());
-                depositInfoList.add(depositInfo);
-
                 DepositInfo cancelDeposit = new DepositInfo();
                 cancelDeposit.setNew(true);
                 cancelDeposit.setType(NulsConstant.CANCEL_CONSENSUS);
@@ -441,9 +438,13 @@ public class SyncService {
                 cancelDeposit.setKey(tx.getHash() + depositInfo.getKey());
                 cancelDeposit.setTxHash(tx.getHash());
                 cancelDeposit.setBlockHeight(tx.getHeight());
-                cancelDeposit.setDeleteHash(depositInfo.getTxHash());
+                cancelDeposit.setDeleteKey(depositInfo.getKey());
                 cancelDeposit.setFee(0L);
                 cancelDeposit.setCreateTime(tx.getCreateTime());
+
+                depositInfo.setDeleteKey(cancelDeposit.getKey());
+                depositInfo.setDeleteHeight(tx.getHeight());
+                depositInfoList.add(depositInfo);
                 depositInfoList.add(cancelDeposit);
                 agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() - depositInfo.getAmount());
                 if (agentInfo.getTotalDeposit() < 0) {
@@ -482,10 +483,6 @@ public class SyncService {
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo depositInfo : depositInfos) {
-                depositInfo.setDeleteHash(tx.getHash());
-                depositInfo.setDeleteHeight(tx.getHeight());
-                depositInfoList.add(depositInfo);
-
                 DepositInfo cancelDeposit = new DepositInfo();
                 cancelDeposit.setNew(true);
                 cancelDeposit.setType(NulsConstant.CANCEL_CONSENSUS);
@@ -493,9 +490,13 @@ public class SyncService {
                 cancelDeposit.setKey(tx.getHash() + depositInfo.getKey());
                 cancelDeposit.setTxHash(tx.getHash());
                 cancelDeposit.setBlockHeight(tx.getHeight());
-                cancelDeposit.setDeleteHash(depositInfo.getTxHash());
+                cancelDeposit.setDeleteKey(depositInfo.getKey());
                 cancelDeposit.setFee(0L);
                 cancelDeposit.setCreateTime(tx.getCreateTime());
+
+                depositInfo.setDeleteKey(cancelDeposit.getKey());
+                depositInfo.setDeleteHeight(tx.getHeight());
+                depositInfoList.add(depositInfo);
                 depositInfoList.add(cancelDeposit);
 
                 agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() - depositInfo.getAmount());
