@@ -69,11 +69,7 @@ public class BlockController {
         if (height < 0) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[height] should not be less than 0"));
         }
-        RpcClientResult<BlockHeaderInfo> result = rpcHandler.getBlockHeader(height);
-        BlockHeaderInfo header = result.getData();
-        if (result.isFailed()) {
-            throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
-        }
+        BlockHeaderInfo header = blockHeaderService.getBlockHeaderInfoByHeight(height);
         RpcResult rpcResult = new RpcResult();
         rpcResult.setResult(header);
 
@@ -87,11 +83,8 @@ public class BlockController {
         if (StringUtils.isBlank(hash)) {
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[hash] is required"));
         }
-        RpcClientResult<BlockHeaderInfo> result = rpcHandler.getBlockHeader(hash);
-        BlockHeaderInfo header = result.getData();
-        if (result.isFailed()) {
-            throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
-        }
+        BlockHeaderInfo header = blockHeaderService.getBlockHeaderInfoByHash(hash);
+
         RpcResult rpcResult = new RpcResult();
         rpcResult.setResult(header);
         return rpcResult;
@@ -126,10 +119,11 @@ public class BlockController {
             throw new JsonRpcException(new RpcResultError(DATA_NOT_EXISTS.getCode(), DATA_NOT_EXISTS.getMessage(), null));
         }
         RpcClientResult<BlockInfo> result = rpcHandler.getBlock(blockHeaderInfo.getHash());
-        BlockInfo block = result.getData();
         if (result.isFailed()) {
             throw new JsonRpcException(new RpcResultError(result.getCode(), result.getMsg(), null));
         }
+        BlockInfo block = result.getData();
+        block.setBlockHeader(blockHeaderInfo);
         RpcResult rpcResult = new RpcResult();
         rpcResult.setResult(block);
         return rpcResult;

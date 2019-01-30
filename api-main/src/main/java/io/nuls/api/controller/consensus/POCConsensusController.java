@@ -23,7 +23,6 @@ package io.nuls.api.controller.consensus;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
-import io.nuls.api.bridge.AnalysisHandler;
 import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
