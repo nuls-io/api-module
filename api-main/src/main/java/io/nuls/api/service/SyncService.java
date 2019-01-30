@@ -682,20 +682,17 @@ public class SyncService {
         blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
         //存储交易记录
         transactionService.saveTxList(blockInfo.getTxs());
+
+        utxoService.saveCoinDatas(coinDataList);
         //存储交易和地址关系记录
         transactionService.saveTxRelationList(txRelationInfoSet);
 
-        utxoService.saveCoinDatas(coinDataList);
-        //根据input和output更新utxo表
-        utxoService.saveOutputs(inputList, outputMap);
         //存储别名记录
         aliasService.saveAliasList(aliasInfoList);
-        //存储委托/取消委托记录
-        depositService.saveDepositList(depositInfoList);
         //存储红黄牌惩罚记录
         punishService.savePunishList(punishLogList);
-
-
+        //存储委托/取消委托记录
+        depositService.saveDepositList(depositInfoList);
         //存储智能合约交易关系记录
         contractService.saveContractTxInfos(contractTxInfoList);
         //存入智能合约执行结果记录
@@ -703,21 +700,27 @@ public class SyncService {
         //存储token转账信息
         tokenService.saveTokenTransfers(tokenTransferList);
 
+        blockHeaderService.updateStep(1);
         /*
             涉及到统计类的表放在最后来存储，便于回滚
             每修改一张表，记录一次存储步骤，作为回滚时的参考
          */
-        //修改账户信息表
-        accountService.saveAccounts(accountInfoMap);
-        blockHeaderService.updateStep(1);
-        //存储智能合约记录
-        contractService.saveContractInfos(contractInfoMap);
+        //根据input和output更新utxo表
+        utxoService.saveOutputs(inputList, outputMap);
         blockHeaderService.updateStep(2);
+
         //存储共识节点列表
         agentService.saveAgentList(agentInfoList);
         blockHeaderService.updateStep(3);
+        //存储智能合约记录
+        contractService.saveContractInfos(contractInfoMap);
+        blockHeaderService.updateStep(4);
         //存储账户token信息
         tokenService.saveAccountTokens(accountTokenMap);
+        blockHeaderService.updateStep(5);
+        //修改账户信息表
+        accountService.saveAccounts(accountInfoMap);
+
         //完成解析
         blockHeaderService.syncComplete();
     }

@@ -91,6 +91,15 @@ public class BlockHeaderService {
     }
 
 
+    public void rollbackComplete() {
+        Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
+        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
+        document.put("height", document.getLong("height") - 1);
+        document.put("finish", true);
+        mongoDBService.update(MongoTableName.NEW_INFO, query, document);
+    }
+
+
     /**
      * 按照高度获取区块头
      *

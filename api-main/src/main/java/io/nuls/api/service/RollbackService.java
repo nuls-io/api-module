@@ -80,6 +80,11 @@ public class RollbackService {
     public boolean rollbackBlock(long blockHeight) throws Exception {
         clear();
         BlockInfo blockInfo = queryBlock(blockHeight);
+        if (blockInfo == null) {
+            rollbackComplete();
+            return true;
+        }
+
         findAddProcessAgentOfBlock(blockInfo);
 
         processTxs(blockInfo.getTxs());
@@ -112,7 +117,10 @@ public class RollbackService {
         agentInfo.setLastRewardHeight(headerInfo.getHeight() - 1);
         agentInfo.setVersion(headerInfo.getAgentVersion());
 
-        calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
+        if(!blockInfo.getTxs().isEmpty()) {
+            calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
+        }
+
         return agentInfo;
     }
 
@@ -518,6 +526,11 @@ public class RollbackService {
         blockHeaderService.deleteBlockHeader(blockInfo.getBlockHeader().getHeight());
     }
 
+
+    private void rollbackComplete() {
+        blockHeaderService.rollbackComplete();
+    }
+
     private AccountInfo queryAccountInfo(String address) {
         AccountInfo accountInfo = accountInfoMap.get(address);
         if (accountInfo == null) {
@@ -585,10 +598,15 @@ public class RollbackService {
         BlockInfo blockInfo = new BlockInfo();
         blockInfo.setBlockHeader(headerInfo);
 
+        List<TransactionInfo> txList = new ArrayList<>();
         for (int i = 0; i < headerInfo.getTxHashList().size(); i++) {
             TransactionInfo tx = transactionService.getTx(headerInfo.getTxHashList().get(i));
-            findTxCoinData(tx);
+            if (tx != null) {
+                findTxCoinData(tx);
+                txList.add(tx);
+            }
         }
+        blockInfo.setTxs(txList);
         return blockInfo;
     }
 
