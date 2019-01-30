@@ -137,7 +137,7 @@ public class MongoDBService {
 
     public long updateOne(String collName, Bson var1, String op, Document docs) {
         MongoCollection<Document> collection = getCollection(collName);
-        return collection.replaceOne(var1, new Document(op, docs)).getModifiedCount();
+        return collection.updateOne(var1, new Document(op, docs)).getModifiedCount();
 
     }
 

@@ -2,6 +2,8 @@ package io.nuls.api.core.model;
 
 public class DepositInfo extends TxData {
 
+    private String key;
+
     private String txHash;
 
     private Long amount;
@@ -116,5 +118,13 @@ public class DepositInfo extends TxData {
 
     public void setBlockHeight(long blockHeight) {
         this.blockHeight = blockHeight;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 }

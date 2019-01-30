@@ -79,4 +79,12 @@ public class PunishService {
         PunishLog punishLog = DocumentTransferTool.toInfo(document, PunishLog.class);
         return punishLog;
     }
+
+    public void rollbackPunishLog(List<String> txHashs, long height) {
+        if(txHashs.isEmpty()) {
+            return;
+        }
+
+        mongoDBService.delete(MongoTableName.PUNISH_INFO, Filters.eq("blockHeight", height));
+    }
 }

@@ -285,12 +285,13 @@ public class RollbackService {
     }
 
     private void processDepositTx(TransactionInfo tx) {
+        String address = tx.getFroms().get(0).getAddress();
         AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
         accountInfo.setTxCount(accountInfo.getTxCount() - 1);
         accountInfo.setTotalOut(accountInfo.getTotalOut() - tx.getFee());
         accountInfo.setTotalBalance(accountInfo.getTotalBalance() + tx.getFee());
         //查找到委托记录，设置isNew = true，最后做存储的时候删除
-        DepositInfo depositInfo = depositService.getDepositInfoByHash(tx.getHash());
+        DepositInfo depositInfo = depositService.getDepositInfoByKey(tx.getHash() + address);
         depositInfo.setNew(true);
         depositInfoList.add(depositInfo);
         AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
@@ -508,9 +509,12 @@ public class RollbackService {
         tokenService.rollbackTokenTransfers(tokenTransferHashList, blockInfo.getBlockHeader().getHeight());
         //回滾合约执行结果记录
         contractService.rollbackContractResults(contractTxHashList);
-        //回滾
+        //回滾智能合約交易
         contractService.rollbackContractTxInfos(contractTxHashList);
-
+        //回滚惩罚记录
+        punishService.rollbackPunishLog(punishTxHashList, blockInfo.getBlockHeader().getHeight());
+        //回滚委托记录
+//        depositService
 
         blockHeaderService.deleteBlockHeader(blockInfo.getBlockHeader().getHeight());
     }

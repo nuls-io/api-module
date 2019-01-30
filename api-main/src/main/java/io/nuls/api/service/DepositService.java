@@ -26,7 +26,17 @@ public class DepositService {
         if (document == null) {
             return null;
         }
-        DepositInfo depositInfo = DocumentTransferTool.toInfo(document, DepositInfo.class);
+        DepositInfo depositInfo = DocumentTransferTool.toInfo(document, "key", DepositInfo.class);
+        return depositInfo;
+    }
+
+
+    public DepositInfo getDepositInfoByKey(String key) {
+        Document document = mongoDBService.findOne(MongoTableName.DEPOSIT_INFO, Filters.eq("_id", key));
+        if (document == null) {
+            return null;
+        }
+        DepositInfo depositInfo = DocumentTransferTool.toInfo(document, "key", DepositInfo.class);
         return depositInfo;
     }
 
@@ -38,7 +48,7 @@ public class DepositService {
             return depositInfos;
         }
         for (Document document : documentList) {
-            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, DepositInfo.class);
+            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, "key", DepositInfo.class);
             depositInfos.add(depositInfo);
         }
         return depositInfos;
@@ -51,7 +61,7 @@ public class DepositService {
 
         List<DepositInfo> depositInfos = new ArrayList<>();
         for (Document document : documentList) {
-            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, DepositInfo.class);
+            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, "key", DepositInfo.class);
             depositInfos.add(depositInfo);
         }
         PageInfo<DepositInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, depositInfos);
@@ -64,7 +74,7 @@ public class DepositService {
 
         List<DepositInfo> depositInfos = new ArrayList<>();
         for (Document document : documentList) {
-            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, DepositInfo.class);
+            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, "key", DepositInfo.class);
             depositInfos.add(depositInfo);
         }
         return depositInfos;
@@ -83,13 +93,12 @@ public class DepositService {
 
         List<DepositInfo> depositInfos = new ArrayList<>();
         for (Document document : documentList) {
-            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, DepositInfo.class);
+            DepositInfo depositInfo = DocumentTransferTool.toInfo(document, "key", DepositInfo.class);
             depositInfos.add(depositInfo);
         }
         PageInfo<DepositInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, depositInfos);
         return pageInfo;
     }
-
 
     public void saveDepositList(List<DepositInfo> depositInfoList) {
         if (depositInfoList.isEmpty()) {
@@ -98,11 +107,29 @@ public class DepositService {
         List<WriteModel<Document>> modelList = new ArrayList<>();
 
         for (DepositInfo depositInfo : depositInfoList) {
-            Document document = DocumentTransferTool.toDocument(depositInfo);
+            Document document = DocumentTransferTool.toDocument(depositInfo, "key");
             if (depositInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
             } else {
-                modelList.add(new ReplaceOneModel<>(Filters.eq("txHash", depositInfo.getTxHash()), document));
+                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", depositInfo.getKey()), document));
+            }
+        }
+
+        mongoDBService.bulkWrite(MongoTableName.DEPOSIT_INFO, modelList);
+    }
+
+    public void rollbackDepoist(List<DepositInfo> depositInfoList) {
+        if (depositInfoList.isEmpty()) {
+            return;
+        }
+        List<WriteModel<Document>> modelList = new ArrayList<>();
+        for (DepositInfo depositInfo : depositInfoList) {
+
+            if (depositInfo.isNew()) {
+                modelList.add(new DeleteOneModel<>(Filters.eq("_id", depositInfo.getKey())));
+            } else {
+                Document document = DocumentTransferTool.toDocument(depositInfo);
+                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", depositInfo.getKey()), document));
             }
         }
 
@@ -115,7 +142,7 @@ public class DepositService {
         List<Document> list = this.mongoDBService.query(MongoTableName.DEPOSIT_INFO, bson);
         List<DepositInfo> resultList = new ArrayList<>();
         for (Document document : list) {
-            resultList.add(DocumentTransferTool.toInfo(document, DepositInfo.class));
+            resultList.add(DocumentTransferTool.toInfo(document, "key", DepositInfo.class));
         }
 
         return resultList;

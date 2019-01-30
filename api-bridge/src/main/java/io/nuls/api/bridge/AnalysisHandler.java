@@ -281,7 +281,9 @@ public class AnalysisHandler {
         info.setAddress(AddressTool.getStringAddressByBytes(deposit.getAddress()));
         info.setTxHash(tx.getHash().getDigestHex());
         info.setCreateTime(tx.getTime());
+        info.setBlockHeight(tx.getBlockHeight());
         info.setFee(tx.getFee().getValue());
+        info.setKey(info.getTxHash() + info.getAddress());
         return info;
     }
 

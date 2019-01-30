@@ -371,7 +371,6 @@ public class SyncService {
 
         DepositInfo depositInfo = (DepositInfo) tx.getTxData();
         depositInfo.setNew(true);
-        depositInfo.setBlockHeight(tx.getHeight());
         depositInfoList.add(depositInfo);
 
         AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
@@ -396,6 +395,7 @@ public class SyncService {
 
         cancelInfo.copyInfoWithDeposit(depositInfo);
         cancelInfo.setTxHash(tx.getHash());
+        cancelInfo.setKey(tx.getHash() + depositInfo.getKey());
         cancelInfo.setBlockHeight(tx.getHeight());
         cancelInfo.setDeleteHash(depositInfo.getTxHash());
         cancelInfo.setNew(true);
@@ -438,6 +438,7 @@ public class SyncService {
                 cancelDeposit.setNew(true);
                 cancelDeposit.setType(NulsConstant.CANCEL_CONSENSUS);
                 cancelDeposit.copyInfoWithDeposit(depositInfo);
+                cancelDeposit.setKey(tx.getHash() + depositInfo.getKey());
                 cancelDeposit.setTxHash(tx.getHash());
                 cancelDeposit.setBlockHeight(tx.getHeight());
                 cancelDeposit.setDeleteHash(depositInfo.getTxHash());
@@ -489,6 +490,7 @@ public class SyncService {
                 cancelDeposit.setNew(true);
                 cancelDeposit.setType(NulsConstant.CANCEL_CONSENSUS);
                 cancelDeposit.copyInfoWithDeposit(depositInfo);
+                cancelDeposit.setKey(tx.getHash() + depositInfo.getKey());
                 cancelDeposit.setTxHash(tx.getHash());
                 cancelDeposit.setBlockHeight(tx.getHeight());
                 cancelDeposit.setDeleteHash(depositInfo.getTxHash());
