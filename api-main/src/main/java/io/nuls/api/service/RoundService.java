@@ -85,7 +85,7 @@ public class RoundService {
     }
 
     public List<PocRound> getRoundList(int pageIndex, int pageSize) {
-        List<Document> list = this.mongoDBService.pageQuery(MongoTableName.ROUND_INFO, Sorts.descending("index"), pageIndex, pageSize);
+        List<Document> list = this.mongoDBService.pageQuery(MongoTableName.ROUND_INFO, Sorts.descending("_id"), pageIndex, pageSize);
         List<PocRound> roundList = new ArrayList<>();
         for (Document document : list) {
             roundList.add(DocumentTransferTool.toInfo(document, "index", PocRound.class));

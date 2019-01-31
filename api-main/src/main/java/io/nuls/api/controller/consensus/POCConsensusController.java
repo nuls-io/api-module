@@ -142,14 +142,12 @@ public class POCConsensusController {
             agentInfo.setStatus(1);
         }
 
-        List<DepositInfo> depositInfoList = depositService.getDepositListByAgentHash(agentHash);
-        long totalDeposit = 0;
-        for (DepositInfo dep : depositInfoList) {
-            totalDeposit += dep.getAmount();
+        RpcClientResult<AgentInfo> result = walletRPCHandler.getAgent(agentHash);
+        if(result.isSuccess()) {
+            AgentInfo agent = result.getData();
+            agentInfo.setCreditValue(agent.getCreditValue());
+            agentInfo.setDepositCount(agent.getDepositCount());
         }
-        agentInfo.setDepositCount(depositInfoList.size());
-        agentInfo.setTotalDeposit(totalDeposit);
-
 
         return new RpcResult().setResult(agentInfo);
     }
