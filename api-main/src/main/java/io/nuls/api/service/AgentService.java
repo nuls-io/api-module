@@ -35,11 +35,12 @@ public class AgentService {
     private AccountService accountService;
 
     public AgentInfo getAgentByPackingAddress(String packingAddress) {
-        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("packingAddress", packingAddress));
+        Bson filter = Filters.and(Filters.eq("packingAddress", packingAddress), Filters.or(Filters.eq("deleteHeight", 0)));
+        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, filter);
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
         AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
         if (alias != null) {
             agentInfo.setAgentAlias(alias.getAlias());
@@ -52,7 +53,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
         AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
         if (alias != null) {
             agentInfo.setAgentAlias(alias.getAlias());
@@ -61,7 +62,7 @@ public class AgentService {
     }
 
     public AgentInfo getAgentByAgentId(String agentId) {
-        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("_id", agentId));
+        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("agentId", agentId));
         if (document == null) {
             return null;
         }
@@ -74,11 +75,11 @@ public class AgentService {
     }
 
     public AgentInfo getAgentByAgentHash(String agentHash) {
-        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("txHash", agentHash));
+        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("_id", agentHash));
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
         AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
         if (alias != null) {
             agentInfo.setAgentAlias(alias.getAlias());
@@ -91,7 +92,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
         AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
         if (alias != null) {
             agentInfo.setAgentAlias(alias.getAlias());
@@ -109,7 +110,7 @@ public class AgentService {
         if (document == null) {
             return null;
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
         AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
         if (alias != null) {
             agentInfo.setAgentAlias(alias.getAlias());
@@ -123,12 +124,12 @@ public class AgentService {
         }
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (AgentInfo agentInfo : agentInfoList) {
-            Document document = DocumentTransferTool.toDocument(agentInfo, "agentId");
+            Document document = DocumentTransferTool.toDocument(agentInfo, "txHash");
 
             if (agentInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
             } else {
-                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", agentInfo.getAgentId()), document));
+                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", agentInfo.getTxHash()), document));
             }
         }
         mongoDBService.bulkWrite(MongoTableName.AGENT_INFO, modelList);
@@ -141,10 +142,10 @@ public class AgentService {
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (AgentInfo agentInfo : agentInfoList) {
             if (agentInfo.isNew()) {
-                modelList.add(new DeleteOneModel(Filters.eq("_id", agentInfo.getAgentId())));
+                modelList.add(new DeleteOneModel(Filters.eq("_id", agentInfo.getTxHash())));
             } else {
-                Document document = DocumentTransferTool.toDocument(agentInfo, "agentId");
-                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", agentInfo.getAgentId()), document));
+                Document document = DocumentTransferTool.toDocument(agentInfo, "txHash");
+                modelList.add(new ReplaceOneModel<>(Filters.eq("_id", agentInfo.getTxHash()), document));
             }
         }
         mongoDBService.bulkWrite(MongoTableName.AGENT_INFO, modelList);
@@ -156,7 +157,7 @@ public class AgentService {
         List<Document> list = this.mongoDBService.query(MongoTableName.AGENT_INFO, bson);
         List<AgentInfo> resultList = new ArrayList<>();
         for (Document document : list) {
-            AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+            AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
             AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
             if (alias != null) {
                 agentInfo.setAgentAlias(alias.getAlias());
@@ -183,7 +184,7 @@ public class AgentService {
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.AGENT_INFO, filter, Sorts.descending("createTime"), pageNumber, pageSize);
         List<AgentInfo> agentInfoList = new ArrayList<>();
         for (Document document : docsList) {
-            AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
+            AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
             AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
             if (alias != null) {
                 agentInfo.setAgentAlias(alias.getAlias());

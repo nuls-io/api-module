@@ -117,7 +117,7 @@ public class RollbackService {
         agentInfo.setLastRewardHeight(headerInfo.getHeight() - 1);
         agentInfo.setVersion(headerInfo.getAgentVersion());
 
-        if(!blockInfo.getTxs().isEmpty()) {
+        if (!blockInfo.getTxs().isEmpty()) {
             calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
         }
 
@@ -132,9 +132,6 @@ public class RollbackService {
      */
     private void calcCommissionReward(AgentInfo agentInfo, TransactionInfo coinBaseTx) {
         List<Output> list = coinBaseTx.getTos();
-        if (null == list) {
-            return;
-        }
         long agentReward = 0L, other = 0L;
         for (Output output : list) {
             if (output.getAddress().equals(agentInfo.getRewardAddress())) {
@@ -152,11 +149,9 @@ public class RollbackService {
     private void processTxs(List<TransactionInfo> txs) throws Exception {
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
-            if (tx.getTos() != null) {
-                for (Output output : tx.getTos()) {
-                    output.setTxHash(tx.getHash());
-                    outputMap.put(output.getKey(), output);
-                }
+            for (Output output : tx.getTos()) {
+                output.setTxHash(tx.getHash());
+                outputMap.put(output.getKey(), output);
             }
         }
 
@@ -194,31 +189,26 @@ public class RollbackService {
         }
     }
 
-    private void processCoinBaseTx(TransactionInfo tx) {
-        if (tx.getTos() == null || tx.getTos().isEmpty()) {
-            return;
+    private void processTxInputOutput(TransactionInfo tx) {
+        for (Input input : tx.getFroms()) {
+            // txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
+            //这里需要特殊处理，由于一个区块打包的多个交易中，可能存在下一个交易用到了上一个交易新生成的utxo
+            //因此在这里添加进入inputList之前提前判断是否outputMap里已有对应的output，有就直接删除
+            //没有才添加进入集合
+            if (outputMap.containsKey(input.getKey())) {
+                outputMap.remove(input.getKey());
+            } else {
+                inputList.add(input);
+            }
         }
+    }
+
+    private void processCoinBaseTx(TransactionInfo tx) {
         for (Output output : tx.getTos()) {
             AccountInfo accountInfo = queryAccountInfo(output.getAddress());
             accountInfo.setTotalIn(accountInfo.getTotalIn() - output.getValue());
             accountInfo.setTxCount(accountInfo.getTxCount() - 1);
             accountInfo.setTotalBalance(accountInfo.getTotalBalance() - output.getValue());
-        }
-    }
-
-    private void processTxInputOutput(TransactionInfo tx) {
-        if (tx.getFroms() != null) {
-            for (Input input : tx.getFroms()) {
-                // txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
-                //这里需要特殊处理，由于一个区块打包的多个交易中，可能存在下一个交易用到了上一个交易新生成的utxo
-                //因此在这里添加进入inputList之前提前判断是否outputMap里已有对应的output，有就直接删除
-                //没有才添加进入集合
-                if (outputMap.containsKey(input.getKey())) {
-                    outputMap.remove(input.getKey());
-                } else {
-                    inputList.add(input);
-                }
-            }
         }
     }
 
@@ -277,9 +267,11 @@ public class RollbackService {
             accountInfo.setTotalBalance(accountInfo.getTotalBalance() - value);
         }
         AliasInfo aliasInfo = aliasService.getAliasByAddress(tx.getFroms().get(0).getAddress());
-        AccountInfo accountInfo = queryAccountInfo(aliasInfo.getAddress());
-        accountInfo.setAlias(null);
-        aliasInfoList.add(aliasInfo);
+        if (aliasInfo != null) {
+            AccountInfo accountInfo = queryAccountInfo(aliasInfo.getAddress());
+            accountInfo.setAlias(null);
+            aliasInfoList.add(aliasInfo);
+        }
     }
 
     private void processCreateAgentTx(TransactionInfo tx) {
@@ -340,7 +332,7 @@ public class RollbackService {
         AgentInfo agentInfo = queryAgentInfo(tx.getHash(), 4);
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
-
+        agentInfo.setStatus(1);
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByHash(tx.getHash());
         if (!depositInfos.isEmpty()) {
@@ -378,6 +370,7 @@ public class RollbackService {
         AgentInfo agentInfo = queryAgentInfo(redPunish.getAddress(), 2);
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
+        agentInfo.setStatus(1);
         agentInfoList.add(agentInfo);
 
         //根据节点找到委托列表
@@ -612,15 +605,18 @@ public class RollbackService {
 
     private void findTxCoinData(TransactionInfo tx) throws Exception {
         TxCoinData coinData = utxoService.getTxCoinData(tx.getHash());
-        if (coinData == null) {
-            return;
+        List<Input> inputs = new ArrayList<>();
+        List<Output> outputs = new ArrayList<>();
+        if (coinData != null) {
+            if (StringUtils.isNotBlank(coinData.getInputsJson())) {
+                inputs = JSONUtils.json2list(coinData.getInputsJson(), Input.class);
+            }
+            if (StringUtils.isNotBlank(coinData.getOutputsJson())) {
+                outputs = JSONUtils.json2list(coinData.getOutputsJson(), Output.class);
+            }
         }
-        if (StringUtils.isNotBlank(coinData.getInputsJson())) {
-            tx.setFroms(JSONUtils.json2list(coinData.getInputsJson(), Input.class));
-        }
-        if (StringUtils.isNotBlank(coinData.getOutputsJson())) {
-            tx.setTos(JSONUtils.json2list(coinData.getOutputsJson(), Output.class));
-        }
+        tx.setFroms(inputs);
+        tx.setTos(outputs);
     }
 
     private void clear() {
