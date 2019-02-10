@@ -35,11 +35,12 @@ public class AgentService {
     private AccountService accountService;
 
     public AgentInfo getAgentByPackingAddress(String packingAddress) {
-        Bson filter = Filters.and(Filters.eq("packingAddress", packingAddress), Filters.or(Filters.eq("deleteHeight", 0)));
-        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, filter);
-        if (document == null) {
+        Bson filter = Filters.and(Filters.eq("packingAddress", packingAddress));
+        List<Document> list = mongoDBService.query(MongoTableName.AGENT_INFO, filter, Sorts.descending("createTime"));
+        if (list == null || list.isEmpty()) {
             return null;
         }
+        Document document = list.get(0);
         AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
         AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
         if (alias != null) {
