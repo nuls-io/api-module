@@ -40,9 +40,10 @@ public enum RpcErrorCode {
     TX_PARSE_ERROR(999, "Transaction parse error!"),
 
     //脚本执行错误
-    TX_SHELL_ERROR(755, "Shell execute error!");
+    TX_SHELL_ERROR(755, "Shell execute error!"),
 
-
+    //系统未知错误
+    SYS_UNKNOWN_EXCEPTION(10002, "System unknown error!");
     private int code;
 
     private String message;

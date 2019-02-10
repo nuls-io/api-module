@@ -65,7 +65,7 @@ public class BlockHeaderService {
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
         if (document == null) {
             document = new Document();
-            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false);
+            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false).append("step", 0);
             mongoDBService.insertOne(MongoTableName.NEW_INFO, document);
         } else {
             document.put("height", newHeight);
@@ -102,7 +102,6 @@ public class BlockHeaderService {
         } else {
             mongoDBService.update(MongoTableName.NEW_INFO, query, document);
         }
-
     }
 
 

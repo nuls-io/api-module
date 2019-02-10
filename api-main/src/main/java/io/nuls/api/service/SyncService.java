@@ -684,47 +684,52 @@ public class SyncService {
         blockHeaderService.saveNewHeightInfo(blockInfo.getBlockHeader().getHeight());
         //存储区块头信息
         blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
+        blockHeaderService.updateStep(100);
         //存储交易记录
         transactionService.saveTxList(blockInfo.getTxs());
-
+        blockHeaderService.updateStep(200);
+        //存储交易的coinData
         utxoService.saveCoinDatas(coinDataList);
+        blockHeaderService.updateStep(300);
         //存储交易和地址关系记录
         transactionService.saveTxRelationList(txRelationInfoSet);
-
+        blockHeaderService.updateStep(400);
         //存储别名记录
         aliasService.saveAliasList(aliasInfoList);
+        blockHeaderService.updateStep(500);
         //存储红黄牌惩罚记录
         punishService.savePunishList(punishLogList);
+        blockHeaderService.updateStep(600);
         //存储委托/取消委托记录
         depositService.saveDepositList(depositInfoList);
+        blockHeaderService.updateStep(700);
         //存储智能合约交易关系记录
         contractService.saveContractTxInfos(contractTxInfoList);
+        blockHeaderService.updateStep(800);
         //存入智能合约执行结果记录
         contractService.saveContractResults(contractResultList);
+        blockHeaderService.updateStep(900);
         //存储token转账信息
         tokenService.saveTokenTransfers(tokenTransferList);
-
-        blockHeaderService.updateStep(1);
+        blockHeaderService.updateStep(1000);
         /*
             涉及到统计类的表放在最后来存储，便于回滚
-            每修改一张表，记录一次存储步骤，作为回滚时的参考
          */
         //根据input和output更新utxo表
         utxoService.saveOutputs(inputList, outputMap);
-        blockHeaderService.updateStep(2);
+        blockHeaderService.updateStep(1100);
 
         //存储共识节点列表
         agentService.saveAgentList(agentInfoList);
-        blockHeaderService.updateStep(3);
+        blockHeaderService.updateStep(1200);
         //存储智能合约记录
         contractService.saveContractInfos(contractInfoMap);
-        blockHeaderService.updateStep(4);
+        blockHeaderService.updateStep(1300);
         //存储账户token信息
         tokenService.saveAccountTokens(accountTokenMap);
-        blockHeaderService.updateStep(5);
+        blockHeaderService.updateStep(1400);
         //修改账户信息表
         accountService.saveAccounts(accountInfoMap);
-
         //完成解析
         blockHeaderService.syncComplete();
     }

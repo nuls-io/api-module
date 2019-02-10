@@ -323,7 +323,7 @@ public class RollbackService {
 
         //查询取消委托记录，再根据deleteHash反向查到委托记录
         DepositInfo cancelInfo = depositService.getDepositInfoByHash(tx.getHash());
-        DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelInfo.getKey());
+        DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelInfo.getDeleteKey());
         depositInfo.setDeleteKey(null);
         depositInfo.setDeleteHeight(0);
         cancelInfo.setNew(true);
@@ -348,7 +348,7 @@ public class RollbackService {
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
         agentInfo.setStatus(1);
-        //根据节点找到委托列表
+        //根据交易hash查询所有取消委托的记录
         List<DepositInfo> depositInfos = depositService.getDepositListByHash(tx.getHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo cancelDeposit : depositInfos) {
@@ -386,18 +386,18 @@ public class RollbackService {
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
         agentInfo.setStatus(1);
-        agentInfoList.add(agentInfo);
 
-        //根据节点找到委托列表
+        //根据交易hash查询所有取消委托的记录
         List<DepositInfo> depositInfos = depositService.getDepositListByHash(tx.getHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo cancelDeposit : depositInfos) {
                 cancelDeposit.setNew(true);
-                depositInfoList.add(cancelDeposit);
 
                 DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelDeposit.getDeleteKey());
                 depositInfo.setDeleteHeight(0);
                 depositInfo.setDeleteKey(null);
+
+                depositInfoList.add(cancelDeposit);
                 depositInfoList.add(depositInfo);
 
                 agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
