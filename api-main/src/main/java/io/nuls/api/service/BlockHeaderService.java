@@ -96,7 +96,13 @@ public class BlockHeaderService {
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
         document.put("height", document.getLong("height") - 1);
         document.put("finish", true);
-        mongoDBService.update(MongoTableName.NEW_INFO, query, document);
+
+        if (document.getLong("height") < 0) {
+            mongoDBService.delete(MongoTableName.NEW_INFO, query);
+        } else {
+            mongoDBService.update(MongoTableName.NEW_INFO, query, document);
+        }
+
     }
 
 

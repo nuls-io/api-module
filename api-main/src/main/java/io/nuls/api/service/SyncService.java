@@ -98,7 +98,7 @@ public class SyncService {
         findAddProcessAgentOfBlock(blockInfo);
 
         //处理交易
-        processTransactions(blockInfo.getTxs());
+        processTxs(blockInfo.getTxs());
         //处理轮次信息
         processRoundData(blockInfo);
         //保存数据
@@ -135,7 +135,10 @@ public class SyncService {
             agentInfo.setLastRewardHeight(headerInfo.getHeight());
             agentInfo.setVersion(headerInfo.getAgentVersion());
             headerInfo.setByAgentInfo(agentInfo);
-            calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
+
+            if (blockInfo.getTxs() != null && !blockInfo.getTxs().isEmpty()) {
+                calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
+            }
         }
     }
 
@@ -147,7 +150,7 @@ public class SyncService {
      */
     private void calcCommissionReward(AgentInfo agentInfo, TransactionInfo coinBaseTx) {
         List<Output> list = coinBaseTx.getTos();
-        if (null == list) {
+        if (null == list || list.isEmpty()) {
             return;
         }
         //分表记录当前块，代理节点自己的和委托人的奖励
@@ -169,7 +172,7 @@ public class SyncService {
     }
 
 
-    private void processTransactions(List<TransactionInfo> txs) throws Exception {
+    private void processTxs(List<TransactionInfo> txs) throws Exception {
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
             if (tx.getTos() != null) {
@@ -182,8 +185,8 @@ public class SyncService {
 
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
-
             processTxInputOutput(tx);
+
             if (tx.getType() == TransactionConstant.TX_TYPE_COINBASE) {
                 processCoinBaseTx(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_TRANSFER) {

@@ -3,9 +3,11 @@ package io.nuls.api.service;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.bridge.WalletRPCHandler;
+import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.mongodb.MongoDBService;
+import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.utils.JSONUtils;
@@ -77,6 +79,9 @@ public class RollbackService {
     /**
      * 回滚区块和区块内的所有交易和交易产生的数据
      */
+    private long time1;
+    int i = 0;
+
     public boolean rollbackBlock(long blockHeight) throws Exception {
         clear();
         BlockInfo blockInfo = queryBlock(blockHeight);
@@ -91,7 +96,14 @@ public class RollbackService {
 
         roundManager.rollback(blockInfo);
         save(blockInfo);
-        return false;
+
+        if (i % 1000 == 0) {
+            Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
+            time1 = System.currentTimeMillis();
+        }
+        i++;
+        ApiContext.bestHeight = blockHeight - 1;
+        return true;
     }
 
     /**
@@ -204,6 +216,9 @@ public class RollbackService {
     }
 
     private void processCoinBaseTx(TransactionInfo tx) {
+        if (tx.getTos() == null || tx.getTos().isEmpty()) {
+            return;
+        }
         for (Output output : tx.getTos()) {
             AccountInfo accountInfo = queryAccountInfo(output.getAddress());
             accountInfo.setTotalIn(accountInfo.getTotalIn() - output.getValue());
@@ -517,6 +532,8 @@ public class RollbackService {
 //        depositService
 
         blockHeaderService.deleteBlockHeader(blockInfo.getBlockHeader().getHeight());
+
+        rollbackComplete();
     }
 
 

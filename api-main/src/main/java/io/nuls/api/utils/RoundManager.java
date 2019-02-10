@@ -265,6 +265,22 @@ public class RoundManager {
     }
 
     public void rollback(BlockInfo blockInfo) {
+        if (null == this.currentRound.getItemList()) {
+            PocRound round = null;
+            long roundIndex = blockInfo.getBlockHeader().getRoundIndex();
+            while (round == null && blockInfo.getBlockHeader().getHeight() > 0) {
+                round = roundService.getRound(roundIndex--);
+            }
+            if (round != null) {
+                CurrentRound preRound = new CurrentRound();
+                preRound.initByPocRound(round);
+                List<PocRoundItem> list = roundService.getRoundItemList(round.getIndex());
+                preRound.setItemList(list);
+                preRound.setStartBlockHeader(blockHeaderService.getBlockHeaderInfoByHeight(round.getStartHeight()));
+                preRound.setPackerOrder(round.getMemberCount());
+                this.currentRound = preRound;
+            }
+        }
         if (blockInfo.getBlockHeader().getHeight() == currentRound.getStartHeight()) {
             rollbackPreRound(blockInfo);
         } else {

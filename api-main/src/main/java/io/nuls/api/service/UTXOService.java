@@ -12,6 +12,11 @@ import io.nuls.api.core.model.Output;
 import io.nuls.api.core.model.TxCoinData;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.sdk.accountledger.utils.LedgerUtil;
+import io.nuls.sdk.core.crypto.Hex;
+import io.nuls.sdk.core.model.CoinData;
+import io.nuls.sdk.core.utils.JSONUtils;
+import io.nuls.sdk.core.utils.StringUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -46,6 +51,34 @@ public class UTXOService {
             modelList.add(new InsertOneModel<>(DocumentTransferTool.toDocument(output, "key")));
         }
 
+        mongoDBService.bulkWrite(MongoTableName.UTXO_INFO, modelList);
+    }
+
+    public void rollbackOutputs(List<Input> inputs, Map<String, Output> outputMap) throws Exception {
+        if (inputs.isEmpty() && outputMap.isEmpty()) {
+            return;
+        }
+        List<WriteModel<Document>> modelList = new ArrayList<>();
+        for (Output output : outputMap.values()) {
+            modelList.add(new DeleteOneModel<>(Filters.eq("_id", output.getKey())));
+        }
+        //回滚input的时候，需要通过input的key找到对应的上一笔交易，然后通过index找到output，重新写入数据库中
+        byte[] fromBytes;
+        TxCoinData fromCoinData;
+        List<Output> outputs = new ArrayList<>();
+        Output from;
+        for (Input input : inputs) {
+            outputs.clear();
+            fromBytes = Hex.decode(input.getKey());
+            String txHash = LedgerUtil.getTxHash(fromBytes);
+            int index = LedgerUtil.getIndex(fromBytes);
+            fromCoinData = getTxCoinData(txHash);
+            if (StringUtils.isNotBlank(fromCoinData.getOutputsJson())) {
+                outputs = JSONUtils.json2list(fromCoinData.getOutputsJson(), Output.class);
+            }
+            from = outputs.get(index);
+            modelList.add(new InsertOneModel<>(DocumentTransferTool.toDocument(from, "key")));
+        }
         mongoDBService.bulkWrite(MongoTableName.UTXO_INFO, modelList);
     }
 

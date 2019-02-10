@@ -116,8 +116,8 @@ public class ContractController {
         String address = (String) params.get(2);
         String contractAddress = (String) params.get(3);
 
-        if (!AddressTool.validAddress(address)) {
-            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
+        if (StringUtils.isBlank(address) && StringUtils.isBlank(contractAddress)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] or [contractAddress] is inValid"));
         }
         if (pageIndex <= 0) {
             pageIndex = 1;
