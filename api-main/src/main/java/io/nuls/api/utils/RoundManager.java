@@ -162,6 +162,7 @@ public class RoundManager {
                 AgentInfo agentInfo = map.get(sorter.getAgentId());
                 item.setAgentName(agentInfo.getAgentAlias() == null ?
                         agentInfo.getTxHash().substring(agentInfo.getTxHash().length() - 8) : agentInfo.getAgentAlias());
+                item.setAgentHash(agentInfo.getTxHash());
                 item.setPackingAddress(agentInfo.getPackingAddress());
             } else {
                 item.setSeedAddress(sorter.getSeedAddress());
@@ -232,6 +233,16 @@ public class RoundManager {
 
     private void rollbackCurrentRound(BlockInfo blockInfo) {
         int indexOfRound = blockInfo.getBlockHeader().getPackingIndexOfRound();
+        if (currentRound.getItemList() == null) {
+            PocRound round = roundService.getRound(blockInfo.getBlockHeader().getRoundIndex());
+            CurrentRound preRound = new CurrentRound();
+            preRound.initByPocRound(round);
+            List<PocRoundItem> list = roundService.getRoundItemList(round.getIndex());
+            preRound.setItemList(list);
+            preRound.setStartBlockHeader(blockHeaderService.getBlockHeaderInfoByHeight(round.getStartHeight()));
+            preRound.setPackerOrder(round.getMemberCount());
+            this.currentRound = preRound;
+        }
         PocRoundItem item = currentRound.getItemList().get(indexOfRound);
         item.setBlockHeight(0);
         item.setReward(0);

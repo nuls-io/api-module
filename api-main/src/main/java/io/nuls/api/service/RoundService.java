@@ -28,6 +28,7 @@ import io.nuls.api.core.model.PocRound;
 import io.nuls.api.core.model.PocRoundItem;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.api.core.util.Log;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -62,7 +63,11 @@ public class RoundService {
             Document document = DocumentTransferTool.toDocument(item, "id");
             docsList.add(document);
         }
-        this.mongoDBService.insertMany(MongoTableName.ROUND_ITEM_INFO, docsList);
+        try {
+            this.mongoDBService.insertMany(MongoTableName.ROUND_ITEM_INFO, docsList);
+        } catch (Exception e) {
+            Log.warn("", e);
+        }
     }
 
     public long updateRound(PocRound round) {

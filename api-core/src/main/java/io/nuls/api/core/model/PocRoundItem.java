@@ -27,6 +27,8 @@ public class PocRoundItem {
 
     private String id;
 
+    private String agentHash;
+
     private long roundIndex;
 
     private int order;
@@ -135,4 +137,11 @@ public class PocRoundItem {
         this.blockHash = blockHash;
     }
 
+    public String getAgentHash() {
+        return agentHash;
+    }
+
+    public void setAgentHash(String agentHash) {
+        this.agentHash = agentHash;
+    }
 }
