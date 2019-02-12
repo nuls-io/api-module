@@ -77,6 +77,7 @@ public class POCConsensusController {
         resultMap.put("seedsCount", (long) ApiContext.SEED_NODE_ADDRESS.size());
         resultMap.put("consensusCount", (long) (roundManager.getCurrentRound().getMemberCount() - ApiContext.SEED_NODE_ADDRESS.size()));
         long count = agentService.agentsCount(ApiContext.bestHeight);
+        resultMap.put("agentCount", count);
         resultMap.put("totalCount", count + ApiContext.SEED_NODE_ADDRESS.size());
         RpcResult result = new RpcResult();
         result.setResult(resultMap);
@@ -143,7 +144,7 @@ public class POCConsensusController {
         }
 
         RpcClientResult<AgentInfo> result = walletRPCHandler.getAgent(agentHash);
-        if(result.isSuccess()) {
+        if (result.isSuccess()) {
             AgentInfo agent = result.getData();
             agentInfo.setCreditValue(agent.getCreditValue());
             agentInfo.setDepositCount(agent.getDepositCount());

@@ -202,8 +202,13 @@ public class AgentService {
     }
 
     public long getConsensusCoinTotal() {
+        Document filter = new Document();
+        filter.put("deleteHeight", 0);
+
+        Document match = new Document("$match", filter);
         MongoCollection<Document> collection = mongoDBService.getCollection(MongoTableName.AGENT_INFO);
         AggregateIterable<Document> ai = collection.aggregate(Arrays.asList(
+                match,
                 Aggregates.group(null, Accumulators.sum("deposit", "$deposit"), Accumulators.sum("totalDeposit", "$totalDeposit"))
         ));
         MongoCursor<Document> cursor = ai.iterator();
