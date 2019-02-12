@@ -12,6 +12,7 @@ import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.utils.JSONUtils;
 import io.nuls.sdk.core.utils.StringUtils;
+import org.bson.Document;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -504,33 +505,62 @@ public class RollbackService {
         contractInfo.setTxCount(contractInfo.getTxCount() - 1);
     }
 
+    /**
+     * 回滚的时候数据库存储处理是正常的同步区块的逆向操作
+     *
+     * @param blockInfo
+     * @throws Exception
+     */
     public void save(BlockInfo blockInfo) throws Exception {
-        //存储账户token信息
-        tokenService.saveAccountTokens(accountTokenMap);
-        blockHeaderService.updateStep(3);
+        Document document = blockHeaderService.getBestBlockHeightInfo();
+        if (document.getBoolean("finish")) {
+            accountService.saveAccounts(accountInfoMap);
+            blockHeaderService.updateStep(50);
+            document.put("step", 50);
+        }
 
-        //存储共识节点列表
-        agentService.rollbackAgentList(agentInfoList);
-        blockHeaderService.updateStep(2);
+        if (document.getInteger("step") == 50) {
+            tokenService.saveAccountTokens(accountTokenMap);
+            blockHeaderService.updateStep(40);
+            document.put("step", 40);
+        }
 
-        //存储智能合约记录
-        contractService.rollbackContractInfos(contractInfoMap);
-        blockHeaderService.updateStep(1);
-        //修改账户信息表
-        accountService.saveAccounts(accountInfoMap);
-        blockHeaderService.updateStep(0);
+        if (document.getInteger("step") == 40) {
+            contractService.rollbackContractInfos(contractInfoMap);
+            blockHeaderService.updateStep(30);
+            document.put("step", 30);
+        }
 
+        if (document.getInteger("step") == 30) {
+            agentService.rollbackAgentList(agentInfoList);
+            blockHeaderService.updateStep(20);
+            document.put("step", 20);
+        }
+
+        if (document.getInteger("step") == 20) {
+            utxoService.rollbackOutputs(inputList, outputMap);
+            blockHeaderService.updateStep(10);
+            document.put("step", 10);
+        }
         //回滾token转账信息
         tokenService.rollbackTokenTransfers(tokenTransferHashList, blockInfo.getBlockHeader().getHeight());
-        //回滾合约执行结果记录
-        contractService.rollbackContractResults(contractTxHashList);
         //回滾智能合約交易
         contractService.rollbackContractTxInfos(contractTxHashList);
+        //回滾合约执行结果记录
+        contractService.rollbackContractResults(contractTxHashList);
+        //回滚委托记录
+        depositService.rollbackDepoist(depositInfoList);
         //回滚惩罚记录
         punishService.rollbackPunishLog(punishTxHashList, blockInfo.getBlockHeader().getHeight());
-        //回滚委托记录
-//        depositService
-
+        //回滚别名记录
+        aliasService.rollbackAliasList(aliasInfoList);
+        //回滚交易关系记录
+        transactionService.rollbackTxRelationList(blockInfo.getBlockHeader().getTxHashList());
+        //回滚coinData记录
+        utxoService.rollbackCoinDatas(blockInfo.getBlockHeader().getTxHashList());
+        //回滚交易记录
+        transactionService.rollbackTxList(blockInfo.getBlockHeader().getTxHashList());
+        //回滚区块信息
         blockHeaderService.deleteBlockHeader(blockInfo.getBlockHeader().getHeight());
 
         rollbackComplete();

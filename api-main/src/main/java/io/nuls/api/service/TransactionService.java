@@ -40,6 +40,14 @@ public class TransactionService {
         mongoDBService.insertMany(MongoTableName.TX_RELATION_INFO, documentList);
     }
 
+    public void rollbackTxRelationList(List<String> txHashList) {
+        if (txHashList.isEmpty()) {
+            return;
+        }
+        Bson filter = Filters.in("txHash", txHashList);
+        mongoDBService.delete(MongoTableName.TX_RELATION_INFO, filter);
+    }
+
 
     public void saveTxList(List<TransactionInfo> txList) {
         List<Document> documentList = new ArrayList<>();
@@ -48,6 +56,14 @@ public class TransactionService {
             documentList.add(transactionInfo.toDocument());
         }
         mongoDBService.insertMany(MongoTableName.TX_INFO, documentList);
+    }
+
+    public void rollbackTxList(List<String> txHashList) {
+        if (txHashList.isEmpty()) {
+            return;
+        }
+        Bson filter = Filters.in("_id", txHashList);
+        mongoDBService.delete(MongoTableName.TX_INFO, filter);
     }
 
     public PageInfo<TransactionInfo> getTxList(int pageIndex, int pageSize, int type, boolean isHidden) {

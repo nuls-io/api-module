@@ -1,7 +1,5 @@
 package io.nuls.api.core.model;
 
-import java.math.BigInteger;
-
 public class TokenTransfer extends TxData {
 
     private String txHash;

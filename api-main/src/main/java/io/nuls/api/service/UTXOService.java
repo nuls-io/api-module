@@ -107,6 +107,15 @@ public class UTXOService {
         mongoDBService.insertMany(MongoTableName.COINDATA_INFO, documentList);
     }
 
+
+    public void rollbackCoinDatas(List<String> txHashList) {
+        if (txHashList.isEmpty()) {
+            return;
+        }
+        Bson filter = Filters.in("_id", txHashList);
+        mongoDBService.delete(MongoTableName.COINDATA_INFO, filter);
+    }
+
     public TxCoinData getTxCoinData(String txHash) {
         Document document = mongoDBService.findOne(MongoTableName.COINDATA_INFO, Filters.eq("_id", txHash));
         if (document == null) {
