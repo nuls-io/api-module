@@ -12,6 +12,7 @@ import io.nuls.api.core.model.Output;
 import io.nuls.api.core.model.TxCoinData;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.api.core.util.Log;
 import io.nuls.sdk.accountledger.utils.LedgerUtil;
 import io.nuls.sdk.core.crypto.Hex;
 import io.nuls.sdk.core.model.CoinData;

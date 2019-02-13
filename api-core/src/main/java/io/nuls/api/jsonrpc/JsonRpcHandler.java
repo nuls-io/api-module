@@ -51,7 +51,7 @@ public class JsonRpcHandler extends HttpHandler {
             response.getWriter().write("ok");
             return;
         }
-        System.out.println("request::::::::::::::");
+//        System.out.println("request::::::::::::::");
         if (!request.getMethod().equals(Method.POST)) {
             Log.warn("the request is not POST!");
             responseError(response, -32600, "", 0);

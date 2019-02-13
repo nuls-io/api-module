@@ -74,7 +74,7 @@ public class ScheduleManager {
                 mongoDBService.createCollection(MongoTableName.TX_RELATION_INFO);
             }
             //创建索引
-            mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("type","address"));
+            mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("type", "address"));
         }
         //账户信息表
         indexes = mongoDBService.getIndexes(MongoTableName.ACCOUNT_INFO);
@@ -92,7 +92,16 @@ public class ScheduleManager {
             if (!iterator.hasNext()) {
                 mongoDBService.createCollection(MongoTableName.TX_INFO);
             }
-            mongoDBService.createIndex(MongoTableName.TX_INFO, Indexes.descending("height","createTime"));
+            mongoDBService.createIndex(MongoTableName.TX_INFO, Indexes.descending("height", "createTime"));
+        }
+        //UTXO 表
+        indexes = mongoDBService.getIndexes(MongoTableName.UTXO_INFO);
+        iterator = indexes.iterator();
+        if (!iterator.hasNext() || (iterator.next() != null && !iterator.hasNext())) {
+            if (!iterator.hasNext()) {
+                mongoDBService.createCollection(MongoTableName.UTXO_INFO);
+            }
+            mongoDBService.createIndex(MongoTableName.UTXO_INFO, Indexes.ascending("address"));
         }
     }
 }
