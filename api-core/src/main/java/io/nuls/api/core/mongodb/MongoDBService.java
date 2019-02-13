@@ -26,6 +26,7 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.WriteModel;
+import io.nuls.api.core.util.Log;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -51,7 +52,11 @@ public class MongoDBService {
     }
 
     public void createCollection(String collName) {
-        db.createCollection(collName);
+        try {
+            db.createCollection(collName);
+        } catch (Exception e) {
+            Log.warn(e.getMessage());
+        }
     }
 
     public MongoCollection<Document> getCollection(String collName) {
