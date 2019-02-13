@@ -74,7 +74,7 @@ public class TransactionService {
             filter = ne("type", 1);
         }
         long totalCount = mongoDBService.getCount(MongoTableName.TX_INFO, filter);
-        List<Document> docList = this.mongoDBService.pageQuery(MongoTableName.TX_INFO, filter, Sorts.descending("height", "time"), pageIndex, pageSize);
+        List<Document> docList = this.mongoDBService.pageQuery(MongoTableName.TX_INFO, filter, Sorts.descending("height", "createTime"), pageIndex, pageSize);
         List<TransactionInfo> txList = new ArrayList<>();
         for (Document document : docList) {
             txList.add(TransactionInfo.fromDocument(document));
