@@ -123,22 +123,23 @@ public class ContractService {
             return;
         }
         List<Document> documentList = new ArrayList<>();
+        String str;
         for (ContractResultInfo resultInfo : contractResultInfos) {
-            Document document = DocumentTransferTool.toDocument(resultInfo, "txHash");
-            document.remove("nulsTransfers");
-            document.remove("tokenTransfers");
-
-            String str = null;
+            str = null;
             if (resultInfo.getNulsTransfers() != null) {
                 str = JSONUtils.obj2json(resultInfo.getNulsTransfers());
             }
-            document.append("nulsTransfers", str);
+            resultInfo.setNulsTransferStr(str);
 
             str = null;
             if (resultInfo.getTokenTransfers() != null) {
                 str = JSONUtils.obj2json(resultInfo.getTokenTransfers());
             }
-            document.append("tokenTransfers", str);
+            resultInfo.setTokenTransferStr(str);
+
+            Document document = DocumentTransferTool.toDocument(resultInfo, "txHash");
+            document.remove("nulsTransfers");
+            document.remove("tokenTransfers");
 
             documentList.add(document);
         }

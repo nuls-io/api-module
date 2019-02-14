@@ -24,7 +24,6 @@
  */
 package io.nuls.api.core.model;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,6 +73,8 @@ public class ContractInfo extends TxData {
     private List<String> owners;
 
     private boolean isNew;
+
+    private ContractResultInfo resultInfo;
 
 
     public ContractInfo() {
@@ -254,5 +255,13 @@ public class ContractInfo extends TxData {
 
     public void setBalance(long balance) {
         this.balance = balance;
+    }
+
+    public ContractResultInfo getResultInfo() {
+        return resultInfo;
+    }
+
+    public void setResultInfo(ContractResultInfo resultInfo) {
+        this.resultInfo = resultInfo;
     }
 }

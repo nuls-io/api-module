@@ -76,9 +76,8 @@ public class AnalysisHandler {
 
     public BlockInfo toBlock(Block block) throws Exception {
         BlockInfo blockInfo = new BlockInfo();
-
-        blockInfo.setTxs(toTxs(block.getTxs()));
         BlockHeaderInfo blockHeader = toBlockHeader(block.getHeader());
+        blockInfo.setTxs(toTxs(block.getTxs(), blockHeader));
         //计算coinbase奖励
         blockHeader.setReward(calcCoinBaseReward(blockInfo.getTxs().get(0)));
         //计算总手续费
@@ -116,16 +115,27 @@ public class AnalysisHandler {
         return info;
     }
 
-    private List<TransactionInfo> toTxs(List<Transaction> txList) throws Exception {
+    private List<TransactionInfo> toTxs(List<Transaction> txList, BlockHeaderInfo blockHeader) throws Exception {
         List<TransactionInfo> txs = new ArrayList<>();
         for (int i = 0; i < txList.size(); i++) {
-            TransactionInfo transactionInfo = toTransaction(txList.get(i));
-            if (transactionInfo.getFroms() != null && !transactionInfo.getFroms().isEmpty()) {
-                if (transactionInfo.getFroms().get(0).getAddress() == null) {
-                    transactionInfo.setFroms(rpcHandler.queryTxInput(transactionInfo.getHash()));
+            TransactionInfo txInfo = toTransaction(txList.get(i));
+            if (txInfo.getFroms() != null && !txInfo.getFroms().isEmpty()) {
+                if (txInfo.getFroms().get(0).getAddress() == null) {
+                    txInfo.setFroms(rpcHandler.queryTxInput(txInfo.getHash()));
                 }
             }
-            txs.add(transactionInfo);
+            if (txInfo.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
+                PunishLog punishLog = (PunishLog) txInfo.getTxData();
+                punishLog.setRoundIndex(blockHeader.getRoundIndex());
+                punishLog.setIndex(blockHeader.getPackingIndexOfRound());
+            } else if (txInfo.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
+                for (TxData txData : txInfo.getTxDataList()) {
+                    PunishLog punishLog = (PunishLog) txData;
+                    punishLog.setRoundIndex(blockHeader.getRoundIndex());
+                    punishLog.setIndex(blockHeader.getPackingIndexOfRound());
+                }
+            }
+            txs.add(txInfo);
         }
         return txs;
     }
@@ -142,7 +152,7 @@ public class AnalysisHandler {
             info.setTxDataHex(Hex.encode(tx.getTxData().serialize()));
         }
         if (tx.getRemark() != null) {
-            info.setRemark(new String(tx.getRemark(), "UTF-8"));
+            info.setRemark(new String(tx.getRemark(), "GBK"));
         }
         info.setFroms(toInputs(tx.getCoinData(), tx));
         info.setTos(toOutputs(tx.getCoinData(), info.getHash()));

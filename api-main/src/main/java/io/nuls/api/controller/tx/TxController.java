@@ -28,11 +28,9 @@ import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
-import io.nuls.api.core.model.PageInfo;
-import io.nuls.api.core.model.RpcClientResult;
-import io.nuls.api.core.model.TransactionInfo;
-import io.nuls.api.service.TransactionService;
-import io.nuls.api.service.StatisticalService;
+import io.nuls.api.core.model.*;
+import io.nuls.api.core.util.Log;
+import io.nuls.api.service.*;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.accountledger.model.Transaction;
 import io.nuls.sdk.core.contast.TransactionConstant;
@@ -48,12 +46,18 @@ public class TxController {
 
     @Autowired
     private WalletRPCHandler rpcHandler;
-
     @Autowired
     private TransactionService txService;
-
+    @Autowired
+    private DepositService depositService;
+    @Autowired
+    private AgentService agentService;
+    @Autowired
+    private PunishService punishService;
     @Autowired
     private StatisticalService statisticalService;
+    @Autowired
+    private ContractService contractService;
 
     @RpcMethod("getTx")
     public RpcResult getTx(List<Object> params) {
@@ -73,6 +77,43 @@ public class TxController {
             return result;
         }
         RpcResult rpcResult = new RpcResult();
+        TransactionInfo tx = rpcClientResult.getData();
+        if (tx.getType() == TransactionConstant.TX_TYPE_JOIN_CONSENSUS) {
+            DepositInfo depositInfo = (DepositInfo) tx.getTxData();
+            AgentInfo agentInfo = agentService.getAgentByAgentHash(depositInfo.getAgentHash());
+            tx.setTxData(agentInfo);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_CANCEL_DEPOSIT) {
+            DepositInfo depositInfo = (DepositInfo) tx.getTxData();
+            depositInfo = depositService.getDepositInfoByHash(depositInfo.getTxHash());
+            AgentInfo agentInfo = agentService.getAgentByAgentHash(depositInfo.getAgentHash());
+            tx.setTxData(agentInfo);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_STOP_AGENT) {
+            AgentInfo agentInfo = (AgentInfo) tx.getTxData();
+            agentInfo = agentService.getAgentByAgentHash(agentInfo.getTxHash());
+            tx.setTxData(agentInfo);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
+            List<TxData> punishLogs = punishService.getYellowPunishLog(tx.getHash());
+            tx.setTxDataList(punishLogs);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
+            PunishLog punishLog = punishService.getRedPunishLog(tx.getHash());
+            tx.setTxData(punishLog);
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_CREATE_CONTRACT) {
+            try {
+                ContractResultInfo resultInfo = contractService.getContractResultInfo(tx.getHash());
+                ContractInfo contractInfo = (ContractInfo) tx.getTxData();
+                contractInfo.setResultInfo(resultInfo);
+            } catch (Exception e) {
+                Log.error(e);
+            }
+        } else if (tx.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT) {
+            try {
+                ContractResultInfo resultInfo = contractService.getContractResultInfo(tx.getHash());
+                ContractCallInfo contractCallInfo = (ContractCallInfo) tx.getTxData();
+                contractCallInfo.setResultInfo(resultInfo);
+            } catch (Exception e) {
+                Log.error(e);
+            }
+        }
         rpcResult.setResult(rpcClientResult.getData());
         return rpcResult;
     }
@@ -95,7 +136,6 @@ public class TxController {
         rpcResult.setResult(pageInfo);
         return rpcResult;
     }
-
 
     @RpcMethod("getBlockTxList")
     public RpcResult getBlockTxList(List<Object> params) {
