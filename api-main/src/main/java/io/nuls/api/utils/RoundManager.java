@@ -232,7 +232,7 @@ public class RoundManager {
     }
 
     private void rollbackCurrentRound(BlockInfo blockInfo) {
-        int indexOfRound = blockInfo.getBlockHeader().getPackingIndexOfRound();
+        int indexOfRound = blockInfo.getBlockHeader().getPackingIndexOfRound() - 1;
         if (currentRound.getItemList() == null) {
             PocRound round = roundService.getRound(blockInfo.getBlockHeader().getRoundIndex());
             CurrentRound preRound = new CurrentRound();

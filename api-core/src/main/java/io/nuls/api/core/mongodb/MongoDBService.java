@@ -114,6 +114,17 @@ public class MongoDBService {
         return collection.find(var1).first();
     }
 
+    public List<Document> query(String collName) {
+        MongoCollection<Document> collection = getCollection(collName);
+        FindIterable<Document> iterable = collection.find();
+        List<Document> list = new ArrayList<>();
+        MongoCursor<Document> documentMongoCursor = iterable.iterator();
+        while (documentMongoCursor.hasNext()) {
+            list.add(documentMongoCursor.next());
+        }
+        return list;
+    }
+
     public List<Document> query(String collName, Bson var1) {
         MongoCollection<Document> collection = getCollection(collName);
         FindIterable<Document> iterable = collection.find(var1);

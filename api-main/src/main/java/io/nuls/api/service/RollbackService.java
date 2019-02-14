@@ -408,7 +408,9 @@ public class RollbackService {
 
     private void processCreateContract(TransactionInfo tx) throws Exception {
         ContractInfo contractInfo = contractService.getContractInfoByHash(tx.getHash());
+        contractInfo = queryContractInfo(contractInfo.getContractAddress());
         contractInfo.setNew(true);
+
 
         AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
         accountInfo.setTxCount(accountInfo.getTxCount() - 1);
