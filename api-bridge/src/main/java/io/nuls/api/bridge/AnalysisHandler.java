@@ -42,6 +42,7 @@ import io.nuls.sdk.core.utils.NulsByteBuffer;
 import io.nuls.sdk.core.utils.VarInt;
 import org.spongycastle.util.Arrays;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -152,7 +153,11 @@ public class AnalysisHandler {
             info.setTxDataHex(Hex.encode(tx.getTxData().serialize()));
         }
         if (tx.getRemark() != null) {
-            info.setRemark(new String(tx.getRemark(), "GBK"));
+            try {
+                info.setRemark(new String(tx.getRemark(), NulsConstant.DEFAULT_ENCODING));
+            } catch (UnsupportedEncodingException e) {
+                info.setRemark(Hex.encode(tx.getRemark()));
+            }
         }
         info.setFroms(toInputs(tx.getCoinData(), tx));
         info.setTos(toOutputs(tx.getCoinData(), info.getHash()));

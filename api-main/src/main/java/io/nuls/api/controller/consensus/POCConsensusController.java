@@ -123,7 +123,9 @@ public class POCConsensusController {
         AgentInfo agentInfo = agentService.getAgentByAgentHash(agentHash);
 
         long count = punishService.getYellowCount(agentInfo.getAgentAddress());
-        agentInfo.setLostRate(DoubleUtils.div(count, count + agentInfo.getTotalPackingCount()));
+        if (agentInfo.getTotalPackingCount() != 0) {
+            agentInfo.setLostRate(DoubleUtils.div(count, count + agentInfo.getTotalPackingCount()));
+        }
 
         List<PocRoundItem> itemList = roundManager.getCurrentRound().getItemList();
 
