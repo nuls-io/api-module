@@ -79,7 +79,7 @@ public class SyncBlockTask implements Runnable {
             localBestHeight = localBestBlockHeader.getHeight();
         }
 
-//        if (localBestHeight >= 100000) {
+//        if (localBestHeight >= 400) {
 //            return false;
 //        }
         ApiContext.bestHeight = localBestHeight;
