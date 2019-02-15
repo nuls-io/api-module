@@ -164,7 +164,7 @@ public class SyncService {
         }
         agentInfo.setTotalReward(agentInfo.getTotalReward() + agentReward + otherReward);
         agentInfo.setAgentReward(agentInfo.getAgentReward() + agentReward);
-        agentInfo.setCommissionReward(agentInfo.getCommissionRate() + otherReward);
+        agentInfo.setCommissionReward(agentInfo.getCommissionReward() + otherReward);
     }
 
     private void processRoundData(BlockInfo blockInfo) {
@@ -458,10 +458,15 @@ public class SyncService {
     }
 
     public void processYellowPunishTx(TransactionInfo tx) {
+        Set<String> addressSet = new HashSet<>();
         for (TxData txData : tx.getTxDataList()) {
             PunishLog punishLog = (PunishLog) txData;
             punishLogList.add(punishLog);
-            AccountInfo accountInfo = queryAccountInfo(punishLog.getAddress());
+            addressSet.add(punishLog.getAddress());
+        }
+
+        for (String address : addressSet) {
+            AccountInfo accountInfo = queryAccountInfo(address);
             accountInfo.setTxCount(accountInfo.getTxCount() + 1);
             txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, 0, accountInfo.getTotalBalance()));
         }
@@ -669,11 +674,11 @@ public class SyncService {
         }
     }
 
-    private void processContractTransfer(TransactionInfo tx) throws Exception {
+    private void processContractTransfer(TransactionInfo tx) {
         processTransferTx(tx);
-        ContractTransferInfo transferInfo = (ContractTransferInfo) tx.getTxData();
-        ContractInfo contractInfo = queryContractInfo(transferInfo.getContractAddress());
-        contractInfo.setTxCount(contractInfo.getTxCount() + 1);
+//        ContractTransferInfo transferInfo = (ContractTransferInfo) tx.getTxData();
+//        ContractInfo contractInfo = queryContractInfo(transferInfo.getContractAddress());
+//        contractInfo.setTxCount(contractInfo.getTxCount() + 1);
     }
 
     /**

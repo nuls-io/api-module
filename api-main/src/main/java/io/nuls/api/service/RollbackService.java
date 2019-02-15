@@ -15,10 +15,7 @@ import io.nuls.sdk.core.utils.StringUtils;
 import org.bson.Document;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class RollbackService {
@@ -95,7 +92,7 @@ public class RollbackService {
 
         processTxs(blockInfo.getTxs());
 
-        roundManager.rollback(blockInfo);
+//        roundManager.rollback(blockInfo);
         save(blockInfo);
 
         if (i % 1000 == 0) {
@@ -297,7 +294,7 @@ public class RollbackService {
         accountInfo.setTotalBalance(accountInfo.getTotalBalance() + tx.getFee());
         //查找到代理节点，设置isNew = true，最后做存储的时候删除
         AgentInfo agentInfo = queryAgentInfo(tx.getHash(), 1);
-        agentInfo.setNew(true);
+//        agentInfo.setNew(true);
     }
 
     private void processDepositTx(TransactionInfo tx) {
@@ -369,6 +366,18 @@ public class RollbackService {
     }
 
     private void processYellowPunishTx(TransactionInfo tx) {
+        List<TxData> logList = punishService.getYellowPunishLog(tx.getHash());
+        Set<String> addressSet = new HashSet<>();
+        for (TxData txData : logList) {
+            PunishLog punishLog = (PunishLog) txData;
+            addressSet.add(punishLog.getAddress());
+        }
+
+        for (String address : addressSet) {
+            AccountInfo accountInfo = queryAccountInfo(address);
+            accountInfo.setTxCount(accountInfo.getTxCount() - 1);
+        }
+
         punishTxHashList.add(tx.getHash());
     }
 
@@ -409,7 +418,7 @@ public class RollbackService {
     private void processCreateContract(TransactionInfo tx) throws Exception {
         ContractInfo contractInfo = contractService.getContractInfoByHash(tx.getHash());
         contractInfo = queryContractInfo(contractInfo.getContractAddress());
-        contractInfo.setNew(true);
+        contractInfo.setNew(false);
 
 
         AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
@@ -500,11 +509,8 @@ public class RollbackService {
         }
     }
 
-    private void processContractTransfer(TransactionInfo tx) throws Exception {
+    private void processContractTransfer(TransactionInfo tx) {
         processTransferTx(tx);
-        ContractTransferInfo transferInfo = (ContractTransferInfo) tx.getTxData();
-        ContractInfo contractInfo = queryContractInfo(transferInfo.getContractAddress());
-        contractInfo.setTxCount(contractInfo.getTxCount() - 1);
     }
 
     /**
