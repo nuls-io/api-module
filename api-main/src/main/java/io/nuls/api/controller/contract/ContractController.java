@@ -317,6 +317,7 @@ public class ContractController {
             File[] files = src.listFiles();
             recursive(src.listFiles(), children);
 
+            //TODO 加缓存?
             result.setResult(root);
         } catch (Exception e) {
             Log.error(e);
@@ -386,6 +387,8 @@ public class ContractController {
             strings.forEach(a -> {
                 sb.append(a).append("\r\n");
             });
+
+            //TODO 加缓存?
             result.setResult(sb.toString());
         } catch (FileNotFoundException e) {
             Log.error(e);
