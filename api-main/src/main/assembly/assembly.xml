@@ -21,6 +21,9 @@
             <outputDirectory>/conf</outputDirectory>
             <directoryMode>0744</directoryMode>
             <fileMode>0644</fileMode>
+            <excludes>
+                <exclude>contract/**</exclude>
+            </excludes>
             <includes>
                 <include>**/*.html</include>
                 <include>**/*.png</include>
@@ -34,13 +37,12 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>src/main/script</directory>
-            <outputDirectory>/bin</outputDirectory>
-            <directoryMode>0755</directoryMode>
-            <fileMode>0755</fileMode>
-            <lineEnding>unix</lineEnding>
+            <directory>src/main/resources/contract</directory>
+            <outputDirectory>/contract</outputDirectory>
+            <directoryMode>0744</directoryMode>
+            <fileMode>0644</fileMode>
             <includes>
-                <include>*.sh</include>
+                <include>**/*.jar</include>
             </includes>
         </fileSet>
         <fileSet>
@@ -51,6 +53,16 @@
             <lineEnding>unix</lineEnding>
             <includes>
                 <include>compile.xml</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>src/main/script</directory>
+            <outputDirectory>/bin</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <lineEnding>unix</lineEnding>
+            <includes>
+                <include>*.sh</include>
             </includes>
         </fileSet>
         <fileSet>
