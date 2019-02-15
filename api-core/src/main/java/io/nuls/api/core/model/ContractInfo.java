@@ -47,6 +47,8 @@ public class ContractInfo extends TxData {
 
     private Integer status; // -1,执行失败，0未认证 1正在审核 2通过验证 3 已删除
 
+    private Long certificationTime;
+
     private Long createTime;
 
     private String remark;
@@ -127,6 +129,14 @@ public class ContractInfo extends TxData {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Long getCertificationTime() {
+        return certificationTime;
+    }
+
+    public void setCertificationTime(Long certificationTime) {
+        this.certificationTime = certificationTime;
     }
 
     public Long getCreateTime() {

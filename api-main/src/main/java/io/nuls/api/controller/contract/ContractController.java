@@ -20,6 +20,9 @@
 
 package io.nuls.api.controller.contract;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
@@ -34,11 +37,11 @@ import io.nuls.api.service.ContractService;
 import io.nuls.api.service.TokenService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.api.utils.RunShellUtil;
+import io.nuls.contract.validation.service.CompareJar;
 import io.nuls.sdk.core.model.CreateContractData;
 import io.nuls.sdk.core.model.Result;
 import io.nuls.sdk.core.model.transaction.CreateContractTransaction;
 import io.nuls.sdk.core.utils.AddressTool;
-import io.nuls.contract.validation.service.CompareJar;
 import io.nuls.sdk.core.utils.StringUtils;
 import io.nuls.sdk.tool.NulsSDKTool;
 import org.apache.commons.io.IOUtils;
@@ -49,6 +52,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -219,7 +223,6 @@ public class ContractController {
 
     @RpcMethod("validateContractCode")
     public RpcResult validateContractCode(List<Object> params) {
-        //TODO 是否加锁串行验证?
 
         RpcResult result = new RpcResult();
         OutputStream out = null;
@@ -286,11 +289,12 @@ public class ContractController {
 
             // 合约认证通过后，更新合约认证状态
             contractInfo.setStatus(2);
+            contractInfo.setCertificationTime(System.currentTimeMillis());
             contractService.updateContractInfo(contractInfo);
 
         } catch (Exception e) {
             Log.error(e);
-            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
         } finally {
             IOUtils.closeQuietly(jarIn);
             IOUtils.closeQuietly(out);
@@ -323,23 +327,11 @@ public class ContractController {
             }
 
             // 提取文件目录树
-            File src = new File(VALIDATE_HOME + contractAddress + File.separator + "src");
-            ContractCode root = new ContractCode();
-            ContractCodeNode rootNode = new ContractCodeNode();
-            if (!src.isDirectory()) {
+            ContractCode root = contractCodeTreeCaches.get(contractAddress);
+            if (root == null) {
                 result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "root path is inValid"));
                 return result;
             }
-            List<ContractCodeNode> children = new ArrayList<>();
-            rootNode.setName(src.getName());
-            rootNode.setPath(extractFilePath(src));
-            rootNode.setDir(true);
-            rootNode.setChildren(children);
-            root.setRoot(rootNode);
-            File[] files = src.listFiles();
-            recursive(src.listFiles(), children);
-
-            //TODO 加缓存?
             result.setResult(root);
         } catch (Exception e) {
             Log.error(e);
@@ -347,6 +339,35 @@ public class ContractController {
         }
         return result;
     }
+
+    private LoadingCache<String, ContractCode> contractCodeTreeCaches = CacheBuilder.newBuilder()
+            .maximumSize(100)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build(new CacheLoader<String, ContractCode>() {
+                @Override
+                public ContractCode load(String contractAddress) {
+                    return generateContractCodeTree(contractAddress);
+                }
+            });
+
+    private ContractCode generateContractCodeTree(String contractAddress) {
+        File src = new File(VALIDATE_HOME + contractAddress + File.separator + "src");
+        ContractCode root = new ContractCode();
+        ContractCodeNode rootNode = new ContractCodeNode();
+        if (!src.isDirectory()) {
+            return null;
+        }
+        List<ContractCodeNode> children = new ArrayList<>();
+        rootNode.setName(src.getName());
+        rootNode.setPath(extractFilePath(src));
+        rootNode.setDir(true);
+        rootNode.setChildren(children);
+        root.setRoot(rootNode);
+        File[] files = src.listFiles();
+        recursive(src.listFiles(), children);
+        return root;
+    }
+
 
     private void recursive(File[] files, List<ContractCodeNode> children) {
         for (File file : files) {
@@ -380,7 +401,6 @@ public class ContractController {
     @RpcMethod("getContractCode")
     public RpcResult getContractCode(List<Object> params) {
         RpcResult result = new RpcResult();
-        FileInputStream in = null;
         try {
             VerifyUtils.verifyParams(params, 2);
             String contractAddress = (String) params.get(0);
@@ -402,28 +422,46 @@ public class ContractController {
 
             // 提取文件内容
             String filePath = (String) params.get(1);
-            File file = new File(filePath);
+            String code = contractCodeCaches.get(filePath);
+            if(StringUtils.isBlank(code)) {
+                result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS, "Fail to read contract code."));
+                return result;
+            }
+            result.setResult(code);
+        } catch (Exception e) {
+            Log.error(e);
+            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
+        }
+        return result;
+    }
+
+    private LoadingCache<String, String> contractCodeCaches = CacheBuilder.newBuilder()
+            .maximumSize(500)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build(new CacheLoader<String, String>() {
+                @Override
+                public String load(String filePath) {
+                    return readContractCode(filePath);
+                }
+            });
+
+    private String readContractCode(String filePath) {
+        FileInputStream in = null;
+        try {
+            File file = new File(BASE + filePath);
             in = new FileInputStream(file);
             List<String> strings = IOUtils.readLines(in);
             StringBuilder sb = new StringBuilder();
             strings.forEach(a -> {
                 sb.append(a).append("\r\n");
             });
-
-            //TODO 加缓存?
-            result.setResult(sb.toString());
-        } catch (FileNotFoundException e) {
-            Log.error(e);
-            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
-        } catch (IOException e) {
-            Log.error(e);
-            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
+            return sb.toString();
         } catch (Exception e) {
             Log.error(e);
-            result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
+            return null;
         } finally {
             IOUtils.closeQuietly(in);
         }
-        return result;
     }
+
 }

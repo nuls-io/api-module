@@ -68,8 +68,14 @@ public class ContractService {
         mongoDBService.bulkWrite(MongoTableName.CONTRACT_INFO, modelList);
     }
 
-    public void updateContractInfo(ContractInfo contractInfo) {
+    public void updateContractInfo(ContractInfo contractInfo) throws Exception {
         Document document = DocumentTransferTool.toDocument(contractInfo, "contractAddress");
+        document.remove("methods");
+        String methodStr = null;
+        if (contractInfo.getMethods() != null) {
+            methodStr = JSONUtils.obj2json(contractInfo.getMethods());
+        }
+        document.put("methodStr", methodStr);
         mongoDBService.updateOne(MongoTableName.CONTRACT_INFO, Filters.eq("_id", contractInfo.getContractAddress()), document);
     }
 
