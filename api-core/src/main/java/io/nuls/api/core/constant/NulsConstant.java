@@ -30,7 +30,9 @@ public class NulsConstant {
     //合约已失效
     public static final int CONTRACT_STATUS_DELETE = 3;
     //时间高度分界线
-    public static long BlOCKHEIGHT_TIME_DIVIDE = 1000000000000L;
+    public static final long BlOCKHEIGHT_TIME_DIVIDE = 1000000000000L;
     //合约不存在错误码
     public static final int CONTRACT_NOT_EXIST = 100002;
+
+    public static final String DEFAULT_ENCODING = "UTF-8";
 }

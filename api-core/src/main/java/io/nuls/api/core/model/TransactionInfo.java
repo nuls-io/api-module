@@ -141,13 +141,17 @@ public class TransactionInfo {
 
     public void calcValue() {
         long value = 0;
-        if (type == TransactionConstant.TX_TYPE_COINBASE || type == TransactionConstant.TX_TYPE_STOP_AGENT) {
+        if (type == TransactionConstant.TX_TYPE_COINBASE ||
+                type == TransactionConstant.TX_TYPE_STOP_AGENT ||
+                type == TransactionConstant.TX_TYPE_CANCEL_DEPOSIT) {
             if (tos != null) {
                 for (Output output : tos) {
                     value += output.getValue();
                 }
             }
-        } else if (type == TransactionConstant.TX_TYPE_TRANSFER || type == TransactionConstant.TX_TYPE_ALIAS) {
+        } else if (type == TransactionConstant.TX_TYPE_TRANSFER ||
+                type == TransactionConstant.TX_TYPE_ALIAS ||
+                type == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
             Set<String> addressSet = new HashSet<>();
             for (Input input : froms) {
                 addressSet.add(input.getAddress());
@@ -157,12 +161,14 @@ public class TransactionInfo {
                     value += output.getValue();
                 }
             }
-        } else if (type == TransactionConstant.TX_TYPE_REGISTER_AGENT ||
-                type == TransactionConstant.TX_TYPE_JOIN_CONSENSUS ||
-                type == TransactionConstant.TX_TYPE_CANCEL_DEPOSIT) {
-            for (Input input : froms) {
-                value += input.getValue();
+        } else if (type == TransactionConstant.TX_TYPE_REGISTER_AGENT || type == TransactionConstant.TX_TYPE_JOIN_CONSENSUS) {
+            for (Output output : tos) {
+                if (output.getLockTime() == -1) {
+                    value += output.getValue();
+                }
             }
+        } else {
+            value = this.fee;
         }
         this.value = value;
     }

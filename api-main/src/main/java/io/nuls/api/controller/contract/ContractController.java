@@ -63,7 +63,7 @@ public class ContractController {
 
     static {
         String serverHome = System.getProperty("api.server.home");
-        if(StringUtils.isBlank(serverHome)) {
+        if (StringUtils.isBlank(serverHome)) {
             URL resource = ClassLoader.getSystemClassLoader().getResource("");
             String classPath = resource.getPath();
             File file = null;
@@ -108,6 +108,27 @@ public class ContractController {
         return result;
     }
 
+    @RpcMethod("getContractTokens")
+    public RpcResult getContractTokens(List<Object> params) {
+        VerifyUtils.verifyParams(params, 3);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        String contractAddress = (String) params.get(2);
+        if (!AddressTool.validAddress(contractAddress)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+        }
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 100) {
+            pageSize = 10;
+        }
+        PageInfo<AccountTokenInfo> pageInfo = tokenService.getContractTokens(contractAddress, pageIndex, pageSize);
+        RpcResult result = new RpcResult();
+        result.setResult(pageInfo);
+        return result;
+    }
+
     @RpcMethod("getTokenTransfers")
     public RpcResult getTokenTransfers(List<Object> params) {
         VerifyUtils.verifyParams(params, 4);
@@ -116,8 +137,8 @@ public class ContractController {
         String address = (String) params.get(2);
         String contractAddress = (String) params.get(3);
 
-        if (!AddressTool.validAddress(address)) {
-            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] is inValid"));
+        if (StringUtils.isBlank(address) && StringUtils.isBlank(contractAddress)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] or [contractAddress] is inValid"));
         }
         if (pageIndex <= 0) {
             pageIndex = 1;
@@ -148,7 +169,8 @@ public class ContractController {
                 rpcResult.setResult(contractInfo);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.error(e);
+            rpcResult.setError(new RpcResultError(RpcErrorCode.SYS_UNKNOWN_EXCEPTION));
         }
         return rpcResult;
     }
@@ -217,7 +239,7 @@ public class ContractController {
             }
             Integer status = contractInfo.getStatus();
             // 已进入以下状态 -> 正在审核 or 通过验证 or 已删除
-            if(status > 0) {
+            if (status > 0) {
                 result.setError(new RpcResultError(RpcErrorCode.CONTRACT_VALIDATION_ERROR));
                 return result;
             }
@@ -232,18 +254,18 @@ public class ContractController {
             String headerInfo = arr[0];
             String body = arr[1];
             byte[] fileContent = Base64.getDecoder().decode(body);
-            out = new FileOutputStream(VALIDATE_HOME + contractAddress +".zip");
+            out = new FileOutputStream(VALIDATE_HOME + contractAddress + ".zip");
             IOUtils.write(fileContent, out);
 
             // 编译代码
             List<String> resultList = RunShellUtil.run(BASE + File.separator + "bin" + File.separator + "compile.sh", contractAddress);
-            if(!resultList.isEmpty()) {
+            if (!resultList.isEmpty()) {
                 String error = resultList.stream().collect(Collectors.joining());
                 Log.error(error);
                 result.setError(new RpcResultError(RpcErrorCode.TX_SHELL_ERROR));
                 return result;
             }
-            File jarFile = new File(VALIDATE_HOME + contractAddress + File.separator + contractAddress +".jar");
+            File jarFile = new File(VALIDATE_HOME + contractAddress + File.separator + contractAddress + ".jar");
             jarIn = new FileInputStream(jarFile);
             byte[] validateContractCode = IOUtils.toByteArray(jarIn);
 
@@ -265,7 +287,7 @@ public class ContractController {
             // 合约认证通过后，更新合约认证状态
             contractInfo.setStatus(2);
             contractService.updateContractInfo(contractInfo);
-            
+
         } catch (Exception e) {
             Log.error(e);
             result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
@@ -295,7 +317,7 @@ public class ContractController {
             }
             Integer status = contractInfo.getStatus();
             // 检查认证状态，通过认证的合约继续下一步
-            if(status != 2) {
+            if (status != 2) {
                 result.setError(new RpcResultError(RpcErrorCode.CONTRACT_NOT_VALIDATION_ERROR));
                 return result;
             }
@@ -304,7 +326,7 @@ public class ContractController {
             File src = new File(VALIDATE_HOME + contractAddress + File.separator + "src");
             ContractCode root = new ContractCode();
             ContractCodeNode rootNode = new ContractCodeNode();
-            if(!src.isDirectory()) {
+            if (!src.isDirectory()) {
                 result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "root path is inValid"));
                 return result;
             }
@@ -327,13 +349,13 @@ public class ContractController {
     }
 
     private void recursive(File[] files, List<ContractCodeNode> children) {
-        for(File file : files) {
+        for (File file : files) {
             ContractCodeNode node = new ContractCodeNode();
             children.add(node);
             node.setName(extractFileName(file));
             node.setPath(extractFilePath(file));
             node.setDir(file.isDirectory());
-            if(file.isDirectory()) {
+            if (file.isDirectory()) {
                 node.setChildren(new ArrayList<>());
                 recursive(file.listFiles(), node.getChildren());
             }
@@ -341,7 +363,7 @@ public class ContractController {
     }
 
     private String extractFileName(File file) {
-        if(file.isDirectory()) {
+        if (file.isDirectory()) {
             return file.getName();
         }
         String name = file.getName();
@@ -373,7 +395,7 @@ public class ContractController {
                 return result;
             }
             Integer status = contractInfo.getStatus();
-            if(status != 2) {
+            if (status != 2) {
                 result.setError(new RpcResultError(RpcErrorCode.CONTRACT_NOT_VALIDATION_ERROR));
                 return result;
             }

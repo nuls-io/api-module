@@ -65,13 +65,13 @@ public class BlockHeaderService {
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
         if (document == null) {
             document = new Document();
-            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false);
+            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false).append("step", 0);
             mongoDBService.insertOne(MongoTableName.NEW_INFO, document);
         } else {
             document.put("height", newHeight);
             document.put("finish", false);
             document.put("step", 0);
-            mongoDBService.update(MongoTableName.NEW_INFO, query, document);
+            mongoDBService.updateOne(MongoTableName.NEW_INFO, query, document);
         }
     }
 
@@ -80,14 +80,14 @@ public class BlockHeaderService {
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
         document.put("step", step);
         document.put("finish", false);
-        mongoDBService.update(MongoTableName.NEW_INFO, query, document);
+        mongoDBService.updateOne(MongoTableName.NEW_INFO, query, document);
     }
 
     public void syncComplete() {
         Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
         document.put("finish", true);
-        mongoDBService.update(MongoTableName.NEW_INFO, query, document);
+        mongoDBService.updateOne(MongoTableName.NEW_INFO, query, document);
     }
 
 
@@ -96,7 +96,12 @@ public class BlockHeaderService {
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
         document.put("height", document.getLong("height") - 1);
         document.put("finish", true);
-        mongoDBService.update(MongoTableName.NEW_INFO, query, document);
+
+        if (document.getLong("height") < 0) {
+            mongoDBService.delete(MongoTableName.NEW_INFO, query);
+        } else {
+            mongoDBService.updateOne(MongoTableName.NEW_INFO, query, document);
+        }
     }
 
 

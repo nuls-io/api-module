@@ -19,7 +19,7 @@ public class AgentInfo extends TxData {
     private int commissionRate;
 
     private long createTime;
-
+    // 0:待共识，1:共识中，2:退出共识
     private int status;
 
     private long totalDeposit;

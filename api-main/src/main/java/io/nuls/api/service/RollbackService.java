@@ -3,13 +3,16 @@ package io.nuls.api.service;
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.bridge.WalletRPCHandler;
+import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.mongodb.MongoDBService;
+import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
 import io.nuls.sdk.core.utils.JSONUtils;
 import io.nuls.sdk.core.utils.StringUtils;
+import org.bson.Document;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -77,6 +80,9 @@ public class RollbackService {
     /**
      * 回滚区块和区块内的所有交易和交易产生的数据
      */
+    private long time1;
+    int i = 0;
+
     public boolean rollbackBlock(long blockHeight) throws Exception {
         clear();
         BlockInfo blockInfo = queryBlock(blockHeight);
@@ -91,7 +97,14 @@ public class RollbackService {
 
         roundManager.rollback(blockInfo);
         save(blockInfo);
-        return false;
+
+        if (i % 1000 == 0) {
+            Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
+            time1 = System.currentTimeMillis();
+        }
+        i++;
+        ApiContext.bestHeight = blockHeight - 1;
+        return true;
     }
 
     /**
@@ -117,7 +130,7 @@ public class RollbackService {
         agentInfo.setLastRewardHeight(headerInfo.getHeight() - 1);
         agentInfo.setVersion(headerInfo.getAgentVersion());
 
-        if(!blockInfo.getTxs().isEmpty()) {
+        if (!blockInfo.getTxs().isEmpty()) {
             calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
         }
 
@@ -132,9 +145,6 @@ public class RollbackService {
      */
     private void calcCommissionReward(AgentInfo agentInfo, TransactionInfo coinBaseTx) {
         List<Output> list = coinBaseTx.getTos();
-        if (null == list) {
-            return;
-        }
         long agentReward = 0L, other = 0L;
         for (Output output : list) {
             if (output.getAddress().equals(agentInfo.getRewardAddress())) {
@@ -152,11 +162,9 @@ public class RollbackService {
     private void processTxs(List<TransactionInfo> txs) throws Exception {
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
-            if (tx.getTos() != null) {
-                for (Output output : tx.getTos()) {
-                    output.setTxHash(tx.getHash());
-                    outputMap.put(output.getKey(), output);
-                }
+            for (Output output : tx.getTos()) {
+                output.setTxHash(tx.getHash());
+                outputMap.put(output.getKey(), output);
             }
         }
 
@@ -194,6 +202,20 @@ public class RollbackService {
         }
     }
 
+    private void processTxInputOutput(TransactionInfo tx) {
+        for (Input input : tx.getFroms()) {
+            // txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
+            //这里需要特殊处理，由于一个区块打包的多个交易中，可能存在下一个交易用到了上一个交易新生成的utxo
+            //因此在这里添加进入inputList之前提前判断是否outputMap里已有对应的output，有就直接删除
+            //没有才添加进入集合
+            if (outputMap.containsKey(input.getKey())) {
+                outputMap.remove(input.getKey());
+            } else {
+                inputList.add(input);
+            }
+        }
+    }
+
     private void processCoinBaseTx(TransactionInfo tx) {
         if (tx.getTos() == null || tx.getTos().isEmpty()) {
             return;
@@ -203,22 +225,6 @@ public class RollbackService {
             accountInfo.setTotalIn(accountInfo.getTotalIn() - output.getValue());
             accountInfo.setTxCount(accountInfo.getTxCount() - 1);
             accountInfo.setTotalBalance(accountInfo.getTotalBalance() - output.getValue());
-        }
-    }
-
-    private void processTxInputOutput(TransactionInfo tx) {
-        if (tx.getFroms() != null) {
-            for (Input input : tx.getFroms()) {
-                // txRelationInfoSet.add(new TxRelationInfo(input.getAddress(), tx));
-                //这里需要特殊处理，由于一个区块打包的多个交易中，可能存在下一个交易用到了上一个交易新生成的utxo
-                //因此在这里添加进入inputList之前提前判断是否outputMap里已有对应的output，有就直接删除
-                //没有才添加进入集合
-                if (outputMap.containsKey(input.getKey())) {
-                    outputMap.remove(input.getKey());
-                } else {
-                    inputList.add(input);
-                }
-            }
         }
     }
 
@@ -277,9 +283,11 @@ public class RollbackService {
             accountInfo.setTotalBalance(accountInfo.getTotalBalance() - value);
         }
         AliasInfo aliasInfo = aliasService.getAliasByAddress(tx.getFroms().get(0).getAddress());
-        AccountInfo accountInfo = queryAccountInfo(aliasInfo.getAddress());
-        accountInfo.setAlias(null);
-        aliasInfoList.add(aliasInfo);
+        if (aliasInfo != null) {
+            AccountInfo accountInfo = queryAccountInfo(aliasInfo.getAddress());
+            accountInfo.setAlias(null);
+            aliasInfoList.add(aliasInfo);
+        }
     }
 
     private void processCreateAgentTx(TransactionInfo tx) {
@@ -316,7 +324,7 @@ public class RollbackService {
 
         //查询取消委托记录，再根据deleteHash反向查到委托记录
         DepositInfo cancelInfo = depositService.getDepositInfoByHash(tx.getHash());
-        DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelInfo.getKey());
+        DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelInfo.getDeleteKey());
         depositInfo.setDeleteKey(null);
         depositInfo.setDeleteHeight(0);
         cancelInfo.setNew(true);
@@ -340,8 +348,8 @@ public class RollbackService {
         AgentInfo agentInfo = queryAgentInfo(tx.getHash(), 4);
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
-
-        //根据节点找到委托列表
+        agentInfo.setStatus(1);
+        //根据交易hash查询所有取消委托的记录
         List<DepositInfo> depositInfos = depositService.getDepositListByHash(tx.getHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo cancelDeposit : depositInfos) {
@@ -378,18 +386,19 @@ public class RollbackService {
         AgentInfo agentInfo = queryAgentInfo(redPunish.getAddress(), 2);
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
-        agentInfoList.add(agentInfo);
+        agentInfo.setStatus(1);
 
-        //根据节点找到委托列表
+        //根据交易hash查询所有取消委托的记录
         List<DepositInfo> depositInfos = depositService.getDepositListByHash(tx.getHash());
         if (!depositInfos.isEmpty()) {
             for (DepositInfo cancelDeposit : depositInfos) {
                 cancelDeposit.setNew(true);
-                depositInfoList.add(cancelDeposit);
 
                 DepositInfo depositInfo = depositService.getDepositInfoByKey(cancelDeposit.getDeleteKey());
                 depositInfo.setDeleteHeight(0);
                 depositInfo.setDeleteKey(null);
+
+                depositInfoList.add(cancelDeposit);
                 depositInfoList.add(depositInfo);
 
                 agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
@@ -399,7 +408,9 @@ public class RollbackService {
 
     private void processCreateContract(TransactionInfo tx) throws Exception {
         ContractInfo contractInfo = contractService.getContractInfoByHash(tx.getHash());
+        contractInfo = queryContractInfo(contractInfo.getContractAddress());
         contractInfo.setNew(true);
+
 
         AccountInfo accountInfo = queryAccountInfo(tx.getFroms().get(0).getAddress());
         accountInfo.setTxCount(accountInfo.getTxCount() - 1);
@@ -496,34 +507,65 @@ public class RollbackService {
         contractInfo.setTxCount(contractInfo.getTxCount() - 1);
     }
 
+    /**
+     * 回滚的时候数据库存储处理是正常的同步区块的逆向操作
+     *
+     * @param blockInfo
+     * @throws Exception
+     */
     public void save(BlockInfo blockInfo) throws Exception {
-        //存储账户token信息
-        tokenService.saveAccountTokens(accountTokenMap);
-        blockHeaderService.updateStep(3);
+        Document document = blockHeaderService.getBestBlockHeightInfo();
+        if (document.getBoolean("finish")) {
+            accountService.saveAccounts(accountInfoMap);
+            blockHeaderService.updateStep(50);
+            document.put("step", 50);
+        }
 
-        //存储共识节点列表
-        agentService.rollbackAgentList(agentInfoList);
-        blockHeaderService.updateStep(2);
+        if (document.getInteger("step") == 50) {
+            tokenService.saveAccountTokens(accountTokenMap);
+            blockHeaderService.updateStep(40);
+            document.put("step", 40);
+        }
 
-        //存储智能合约记录
-        contractService.rollbackContractInfos(contractInfoMap);
-        blockHeaderService.updateStep(1);
-        //修改账户信息表
-        accountService.saveAccounts(accountInfoMap);
-        blockHeaderService.updateStep(0);
+        if (document.getInteger("step") == 40) {
+            contractService.rollbackContractInfos(contractInfoMap);
+            blockHeaderService.updateStep(30);
+            document.put("step", 30);
+        }
 
+        if (document.getInteger("step") == 30) {
+            agentService.rollbackAgentList(agentInfoList);
+            blockHeaderService.updateStep(20);
+            document.put("step", 20);
+        }
+
+        if (document.getInteger("step") == 20) {
+            utxoService.rollbackOutputs(inputList, outputMap);
+            blockHeaderService.updateStep(10);
+            document.put("step", 10);
+        }
         //回滾token转账信息
         tokenService.rollbackTokenTransfers(tokenTransferHashList, blockInfo.getBlockHeader().getHeight());
-        //回滾合约执行结果记录
-        contractService.rollbackContractResults(contractTxHashList);
         //回滾智能合約交易
         contractService.rollbackContractTxInfos(contractTxHashList);
+        //回滾合约执行结果记录
+        contractService.rollbackContractResults(contractTxHashList);
+        //回滚委托记录
+        depositService.rollbackDepoist(depositInfoList);
         //回滚惩罚记录
         punishService.rollbackPunishLog(punishTxHashList, blockInfo.getBlockHeader().getHeight());
-        //回滚委托记录
-//        depositService
-
+        //回滚别名记录
+        aliasService.rollbackAliasList(aliasInfoList);
+        //回滚交易关系记录
+        transactionService.rollbackTxRelationList(blockInfo.getBlockHeader().getTxHashList());
+        //回滚coinData记录
+        utxoService.rollbackCoinDatas(blockInfo.getBlockHeader().getTxHashList());
+        //回滚交易记录
+        transactionService.rollbackTxList(blockInfo.getBlockHeader().getTxHashList());
+        //回滚区块信息
         blockHeaderService.deleteBlockHeader(blockInfo.getBlockHeader().getHeight());
+
+        rollbackComplete();
     }
 
 
@@ -612,15 +654,18 @@ public class RollbackService {
 
     private void findTxCoinData(TransactionInfo tx) throws Exception {
         TxCoinData coinData = utxoService.getTxCoinData(tx.getHash());
-        if (coinData == null) {
-            return;
+        List<Input> inputs = new ArrayList<>();
+        List<Output> outputs = new ArrayList<>();
+        if (coinData != null) {
+            if (StringUtils.isNotBlank(coinData.getInputsJson())) {
+                inputs = JSONUtils.json2list(coinData.getInputsJson(), Input.class);
+            }
+            if (StringUtils.isNotBlank(coinData.getOutputsJson())) {
+                outputs = JSONUtils.json2list(coinData.getOutputsJson(), Output.class);
+            }
         }
-        if (StringUtils.isNotBlank(coinData.getInputsJson())) {
-            tx.setFroms(JSONUtils.json2list(coinData.getInputsJson(), Input.class));
-        }
-        if (StringUtils.isNotBlank(coinData.getOutputsJson())) {
-            tx.setTos(JSONUtils.json2list(coinData.getOutputsJson(), Output.class));
-        }
+        tx.setFroms(inputs);
+        tx.setTos(outputs);
     }
 
     private void clear() {

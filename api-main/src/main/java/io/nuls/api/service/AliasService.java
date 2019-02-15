@@ -8,6 +8,7 @@ import io.nuls.api.core.model.AliasInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,5 +47,16 @@ public class AliasService {
             documentList.add(document);
         }
         mongoDBService.insertMany(MongoTableName.ALIAS_INFO, documentList);
+    }
+
+    public void rollbackAliasList(List<AliasInfo> aliasInfoList) {
+        if (aliasInfoList.isEmpty()) {
+            return;
+        }
+        List<String> list = new ArrayList<>();
+        for (AliasInfo aliasInfo : aliasInfoList) {
+            list.add(aliasInfo.getAddress());
+        }
+        mongoDBService.delete(MongoTableName.ALIAS_INFO, Filters.in("_id", list));
     }
 }

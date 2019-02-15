@@ -26,12 +26,14 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.WriteModel;
+import io.nuls.api.core.util.Log;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author Niels
@@ -50,7 +52,11 @@ public class MongoDBService {
     }
 
     public void createCollection(String collName) {
-        db.createCollection(collName);
+        try {
+            db.createCollection(collName);
+        } catch (Exception e) {
+            Log.warn(e.getMessage());
+        }
     }
 
     public MongoCollection<Document> getCollection(String collName) {
@@ -106,6 +112,17 @@ public class MongoDBService {
         MongoCollection<Document> collection = getCollection(collName);
 //        collection.up
         return collection.find(var1).first();
+    }
+
+    public List<Document> query(String collName) {
+        MongoCollection<Document> collection = getCollection(collName);
+        FindIterable<Document> iterable = collection.find();
+        List<Document> list = new ArrayList<>();
+        MongoCursor<Document> documentMongoCursor = iterable.iterator();
+        while (documentMongoCursor.hasNext()) {
+            list.add(documentMongoCursor.next());
+        }
+        return list;
     }
 
     public List<Document> query(String collName, Bson var1) {
@@ -191,24 +208,30 @@ public class MongoDBService {
 
     public List<Document> pageQuery(String collName, Bson var1, Bson sort, int pageNumber, int pageSize) {
         MongoCollection<Document> collection = getCollection(collName);
-        //todo skip在大数据情况会非常慢
-        FindIterable<Document> iterable;
+        List<Document> list = new ArrayList<>();
+        Consumer<Document> listBlocker = new Consumer<Document>() {
+            @Override
+            public void accept(final Document document) {
+                list.add(document);
+            }
+        };
+
 
         if (var1 == null && sort == null) {
-            iterable = collection.find().skip((pageNumber - 1) * pageSize).limit(pageSize);
+            collection.find().skip((pageNumber - 1) * pageSize).limit(pageSize).forEach(listBlocker);
         } else if (var1 == null && sort != null) {
-            iterable = collection.find().sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
+            collection.find().sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize).forEach(listBlocker);
         } else if (var1 != null && sort == null) {
-            iterable = collection.find(var1).skip((pageNumber - 1) * pageSize).limit(pageSize);
+            collection.find(var1).skip((pageNumber - 1) * pageSize).limit(pageSize).forEach(listBlocker);
         } else {
-            iterable = collection.find(var1).sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize);
+            collection.find(var1).sort(sort).skip((pageNumber - 1) * pageSize).limit(pageSize).forEach(listBlocker);
         }
 
-        List<Document> list = new ArrayList<>();
-        MongoCursor<Document> documentMongoCursor = iterable.iterator();
-        while (documentMongoCursor.hasNext()) {
-            list.add(documentMongoCursor.next());
-        }
+//        List<Document> list = new ArrayList<>();
+//        MongoCursor<Document> documentMongoCursor = iterable.iterator();
+//        while (documentMongoCursor.hasNext()) {
+//            list.add(documentMongoCursor.next());
+//        }
         return list;
     }
 

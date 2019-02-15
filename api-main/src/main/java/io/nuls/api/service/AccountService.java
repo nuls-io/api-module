@@ -99,7 +99,7 @@ public class AccountService {
         }
         List<AccountInfo> accountInfoList = new ArrayList<>();
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.ACCOUNT_INFO, sort, pageIndex, pageSize);
-        long totalCount = mongoDBService.getCount(MongoTableName.ACCOUNT_INFO, null);
+        long totalCount = mongoDBService.getCount(MongoTableName.ACCOUNT_INFO);
         for (Document document : docsList) {
             AccountInfo accountInfo = DocumentTransferTool.toInfo(document, "address", AccountInfo.class);
             List<Output> outputs = utxoService.getAccountUtxos(accountInfo.getAddress());

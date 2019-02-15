@@ -31,7 +31,7 @@ public class TokenService {
         if (document == null) {
             return null;
         }
-        AccountTokenInfo tokenInfo = DocumentTransferTool.toInfo(document,"key", AccountTokenInfo.class);
+        AccountTokenInfo tokenInfo = DocumentTransferTool.toInfo(document, "key", AccountTokenInfo.class);
         return tokenInfo;
     }
 
@@ -65,6 +65,19 @@ public class TokenService {
         return pageInfo;
     }
 
+    public PageInfo<AccountTokenInfo> getContractTokens(String contractAddress, int pageNumber, int pageSize) {
+        Bson query = Filters.eq("contractAddress", contractAddress);
+        Bson sort = Sorts.descending("balance");
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.ACCOUNT_TOKEN_INFO, query, sort, pageNumber, pageSize);
+        List<AccountTokenInfo> accountTokenList = new ArrayList<>();
+        long totalCount = mongoDBService.getCount(MongoTableName.ACCOUNT_TOKEN_INFO, query);
+        for (Document document : docsList) {
+            accountTokenList.add(DocumentTransferTool.toInfo(document, "key", AccountTokenInfo.class));
+        }
+        PageInfo<AccountTokenInfo> pageInfo = new PageInfo<>(pageNumber, pageSize, totalCount, accountTokenList);
+        return pageInfo;
+    }
+
     public void saveTokenTransfers(List<TokenTransfer> tokenTransfers) {
         if (tokenTransfers.isEmpty()) {
             return;
@@ -85,12 +98,13 @@ public class TokenService {
     }
 
     public PageInfo<TokenTransfer> getTokenTransfers(String address, String contractAddress, int pageIndex, int pageSize) {
-        Bson addressFilter = Filters.or(Filters.eq("fromAddress", address), Filters.eq("toAddress", address));
         Bson filter;
-        if (StringUtils.isBlank(contractAddress)) {
-            filter = addressFilter;
+        if (StringUtils.isNotBlank(address) && StringUtils.isNotBlank(contractAddress)) {
+            filter = Filters.or(Filters.eq("fromAddress", address), Filters.eq("toAddress", address));
+        } else if (StringUtils.isNotBlank(contractAddress)) {
+            filter = Filters.eq("contractAddress", contractAddress);
         } else {
-            filter = Filters.and(addressFilter, Filters.eq("contractAddress", contractAddress));
+            filter = Filters.eq("toAddress", address);
         }
         Bson sort = Sorts.descending("time");
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.TOKEN_TRANSFER_INFO, filter, sort, pageIndex, pageSize);

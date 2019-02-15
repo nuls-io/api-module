@@ -40,6 +40,14 @@ public class TransactionService {
         mongoDBService.insertMany(MongoTableName.TX_RELATION_INFO, documentList);
     }
 
+    public void rollbackTxRelationList(List<String> txHashList) {
+        if (txHashList.isEmpty()) {
+            return;
+        }
+        Bson filter = Filters.in("txHash", txHashList);
+        mongoDBService.delete(MongoTableName.TX_RELATION_INFO, filter);
+    }
+
 
     public void saveTxList(List<TransactionInfo> txList) {
         List<Document> documentList = new ArrayList<>();
@@ -50,6 +58,14 @@ public class TransactionService {
         mongoDBService.insertMany(MongoTableName.TX_INFO, documentList);
     }
 
+    public void rollbackTxList(List<String> txHashList) {
+        if (txHashList.isEmpty()) {
+            return;
+        }
+        Bson filter = Filters.in("_id", txHashList);
+        mongoDBService.delete(MongoTableName.TX_INFO, filter);
+    }
+
     public PageInfo<TransactionInfo> getTxList(int pageIndex, int pageSize, int type, boolean isHidden) {
         Bson filter = null;
         if (type > 0) {
@@ -58,7 +74,7 @@ public class TransactionService {
             filter = ne("type", 1);
         }
         long totalCount = mongoDBService.getCount(MongoTableName.TX_INFO, filter);
-        List<Document> docList = this.mongoDBService.pageQuery(MongoTableName.TX_INFO, filter, Sorts.descending("height", "time"), pageIndex, pageSize);
+        List<Document> docList = this.mongoDBService.pageQuery(MongoTableName.TX_INFO, filter, Sorts.descending("height", "createTime"), pageIndex, pageSize);
         List<TransactionInfo> txList = new ArrayList<>();
         for (Document document : docList) {
             txList.add(TransactionInfo.fromDocument(document));

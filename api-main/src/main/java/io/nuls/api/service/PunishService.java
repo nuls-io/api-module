@@ -7,6 +7,7 @@ import io.nuls.api.bean.annotation.Component;
 import io.nuls.api.core.constant.MongoTableName;
 import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.PunishLog;
+import io.nuls.api.core.model.TxData;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
 import org.bson.Document;
@@ -16,9 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Filter;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.gte;
+import static com.mongodb.client.model.Filters.*;
 
 @Component
 public class PunishService {
@@ -80,8 +79,18 @@ public class PunishService {
         return punishLog;
     }
 
+    public List<TxData> getYellowPunishLog(String txHash) {
+        List<Document> documentList = mongoDBService.query(MongoTableName.PUNISH_INFO, Filters.eq("txHash", txHash));
+        List<TxData> punishLogs = new ArrayList<>();
+        for (Document document : documentList) {
+            PunishLog punishLog = DocumentTransferTool.toInfo(document, PunishLog.class);
+            punishLogs.add(punishLog);
+        }
+        return punishLogs;
+    }
+
     public void rollbackPunishLog(List<String> txHashs, long height) {
-        if(txHashs.isEmpty()) {
+        if (txHashs.isEmpty()) {
             return;
         }
 

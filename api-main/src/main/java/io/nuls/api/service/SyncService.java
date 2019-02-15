@@ -98,7 +98,7 @@ public class SyncService {
         findAddProcessAgentOfBlock(blockInfo);
 
         //处理交易
-        processTransactions(blockInfo.getTxs());
+        processTxs(blockInfo.getTxs());
         //处理轮次信息
         processRoundData(blockInfo);
         //保存数据
@@ -135,7 +135,10 @@ public class SyncService {
             agentInfo.setLastRewardHeight(headerInfo.getHeight());
             agentInfo.setVersion(headerInfo.getAgentVersion());
             headerInfo.setByAgentInfo(agentInfo);
-            calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
+
+            if (blockInfo.getTxs() != null && !blockInfo.getTxs().isEmpty()) {
+                calcCommissionReward(agentInfo, blockInfo.getTxs().get(0));
+            }
         }
     }
 
@@ -147,7 +150,7 @@ public class SyncService {
      */
     private void calcCommissionReward(AgentInfo agentInfo, TransactionInfo coinBaseTx) {
         List<Output> list = coinBaseTx.getTos();
-        if (null == list) {
+        if (null == list || list.isEmpty()) {
             return;
         }
         //分表记录当前块，代理节点自己的和委托人的奖励
@@ -169,7 +172,7 @@ public class SyncService {
     }
 
 
-    private void processTransactions(List<TransactionInfo> txs) throws Exception {
+    private void processTxs(List<TransactionInfo> txs) throws Exception {
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
             if (tx.getTos() != null) {
@@ -182,8 +185,8 @@ public class SyncService {
 
         for (int i = 0; i < txs.size(); i++) {
             TransactionInfo tx = txs.get(i);
-
             processTxInputOutput(tx);
+
             if (tx.getType() == TransactionConstant.TX_TYPE_COINBASE) {
                 processCoinBaseTx(tx);
             } else if (tx.getType() == TransactionConstant.TX_TYPE_TRANSFER) {
@@ -426,7 +429,7 @@ public class SyncService {
         agentInfo = queryAgentInfo(agentInfo.getTxHash(), 1);
         agentInfo.setDeleteHash(tx.getHash());
         agentInfo.setDeleteHeight(tx.getHeight());
-
+        agentInfo.setStatus(2);
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
@@ -479,6 +482,7 @@ public class SyncService {
         AgentInfo agentInfo = queryAgentInfo(redPunish.getAddress(), 2);
         agentInfo.setDeleteHash(tx.getHash());
         agentInfo.setDeleteHeight(tx.getHeight());
+        agentInfo.setStatus(2);
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
@@ -682,15 +686,15 @@ public class SyncService {
         blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
         //存储交易记录
         transactionService.saveTxList(blockInfo.getTxs());
-
+        //存储交易的coinData
         utxoService.saveCoinDatas(coinDataList);
         //存储交易和地址关系记录
         transactionService.saveTxRelationList(txRelationInfoSet);
-
         //存储别名记录
         aliasService.saveAliasList(aliasInfoList);
         //存储红黄牌惩罚记录
         punishService.savePunishList(punishLogList);
+
         //存储委托/取消委托记录
         depositService.saveDepositList(depositInfoList);
         //存储智能合约交易关系记录
@@ -699,28 +703,24 @@ public class SyncService {
         contractService.saveContractResults(contractResultList);
         //存储token转账信息
         tokenService.saveTokenTransfers(tokenTransferList);
-
-        blockHeaderService.updateStep(1);
+        blockHeaderService.updateStep(10);
         /*
             涉及到统计类的表放在最后来存储，便于回滚
-            每修改一张表，记录一次存储步骤，作为回滚时的参考
          */
         //根据input和output更新utxo表
         utxoService.saveOutputs(inputList, outputMap);
-        blockHeaderService.updateStep(2);
-
+        blockHeaderService.updateStep(20);
         //存储共识节点列表
         agentService.saveAgentList(agentInfoList);
-        blockHeaderService.updateStep(3);
+        blockHeaderService.updateStep(30);
         //存储智能合约记录
         contractService.saveContractInfos(contractInfoMap);
-        blockHeaderService.updateStep(4);
+        blockHeaderService.updateStep(40);
         //存储账户token信息
         tokenService.saveAccountTokens(accountTokenMap);
-        blockHeaderService.updateStep(5);
+        blockHeaderService.updateStep(50);
         //修改账户信息表
         accountService.saveAccounts(accountInfoMap);
-
         //完成解析
         blockHeaderService.syncComplete();
     }
