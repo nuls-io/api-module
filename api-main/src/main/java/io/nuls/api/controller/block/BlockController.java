@@ -33,7 +33,9 @@ import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.RpcClientResult;
 import io.nuls.api.core.mongodb.MongoDBService;
+import io.nuls.api.core.util.Log;
 import io.nuls.api.service.BlockHeaderService;
+import io.nuls.api.service.RollbackService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.StringUtils;
 
@@ -55,6 +57,8 @@ public class BlockController {
 
     @Autowired
     private BlockHeaderService blockHeaderService;
+    @Autowired
+    private RollbackService rollbackBlock;
 
     @RpcMethod("getBestBlockHeader")
     public RpcResult getBestInfo(List<Object> params) {
@@ -154,6 +158,29 @@ public class BlockController {
         RpcResult result = new RpcResult();
         result.setResult(pageInfo);
         return result;
+    }
+
+    @RpcMethod("rollbackBestBlocks")
+    public RpcResult rollbackBestBlocks(List<Object> params) {
+        VerifyUtils.verifyParams(params, 1);
+        int count = (int) params.get(0);
+        BlockHeaderInfo localBestBlockHeader;
+        for (int i = count; count > 0; count--) {
+            localBestBlockHeader = blockHeaderService.getBestBlockHeader();
+            if (null != localBestBlockHeader && localBestBlockHeader.getHeight() >= 0L) {
+                try {
+                    long start = System.nanoTime();
+                    rollbackBlock.rollbackBlock(localBestBlockHeader.getHeight());
+                    System.out.println("rollback " + localBestBlockHeader.getHeight() + " use:" + (System.nanoTime() - start) + "ns.");
+                } catch (Exception e) {
+                    Log.error(e);
+                    throw new JsonRpcException(new RpcResultError(RpcErrorCode.SYS_UNKNOWN_EXCEPTION, "Rollback is failed"));
+                }
+            }
+        }
+        RpcResult rpcResult = new RpcResult();
+        rpcResult.setResult(true);
+        return rpcResult;
     }
 
 }

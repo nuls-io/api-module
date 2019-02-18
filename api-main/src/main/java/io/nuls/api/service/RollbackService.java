@@ -87,7 +87,6 @@ public class RollbackService {
         Log.info("-----------------queryBlock: use:" + (System.currentTimeMillis() - time1) + "ms");
 
 
-
         if (blockInfo == null) {
             rollbackComplete();
             return true;
@@ -99,7 +98,7 @@ public class RollbackService {
         time1 = System.currentTimeMillis();
         processTxs(blockInfo.getTxs());
         Log.info("-----------------processTxs: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        roundManager.rollback(blockInfo);
+        roundManager.rollback(blockInfo);
         time1 = System.currentTimeMillis();
         save(blockInfo);
         Log.info("-----------------save: use:" + (System.currentTimeMillis() - time1) + "ms");

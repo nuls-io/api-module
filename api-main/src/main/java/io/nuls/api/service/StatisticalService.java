@@ -90,7 +90,11 @@ public class StatisticalService {
             for (Document document : documentList) {
                 KeyValue keyValue = new KeyValue();
                 keyValue.setKey(document.get("month") + "/" + document.get("date"));
-                keyValue.setValue(document.getLong(field));
+                if ("annualizedReward".equals(field)) {
+                    keyValue.setValue(document.getDouble(field));
+                } else {
+                    keyValue.setValue(document.getLong(field));
+                }
                 list.add(keyValue);
             }
         } else {

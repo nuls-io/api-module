@@ -103,5 +103,14 @@ public class ScheduleManager {
             }
             mongoDBService.createIndex(MongoTableName.UTXO_INFO, Indexes.ascending("address"));
         }
+        //block 表
+        indexes = mongoDBService.getIndexes(MongoTableName.BLOCK_HEADER);
+        iterator = indexes.iterator();
+        if (!iterator.hasNext() || (iterator.next() != null && !iterator.hasNext())) {
+            if (!iterator.hasNext()) {
+                mongoDBService.createCollection(MongoTableName.BLOCK_HEADER);
+            }
+            mongoDBService.createIndex(MongoTableName.BLOCK_HEADER, Indexes.ascending("hash"));
+        }
     }
 }

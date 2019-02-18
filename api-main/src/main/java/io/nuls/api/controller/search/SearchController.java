@@ -24,6 +24,7 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.bridge.WalletRPCHandler;
+import io.nuls.api.controller.constant.AddressType;
 import io.nuls.api.controller.ex.NotFoundException;
 import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
@@ -31,8 +32,10 @@ import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.search.dto.SearchResultDTO;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.model.*;
+import io.nuls.api.core.util.Log;
 import io.nuls.api.service.AccountService;
 import io.nuls.api.service.BlockHeaderService;
+import io.nuls.api.service.ContractService;
 import io.nuls.api.service.TransactionService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.AddressTool;
@@ -59,6 +62,9 @@ public class SearchController {
     @Autowired
     private AccountService accountService;
 
+    @Autowired
+    private ContractService contractService;
+
     /**
      * 根据查询字符串自动匹配结果
      *
@@ -75,7 +81,15 @@ public class SearchController {
         if (length < 20) {
             result = getBlockByHeight(text);
         } else if (length < 40) {
-            result = getAccountByAddress(text);
+            boolean isAddress = AddressTool.validAddress(text);
+            if (isAddress) {
+                byte[] address = AddressTool.getAddress(text);
+                if (address[2] == AddressType.CONTRACT_ADDRESS_TYPE) {
+                    result = getContractByAddress(text);
+                } else {
+                    result = getAccountByAddress(text);
+                }
+            }
         } else {
             result = getResultByHash(text);
         }
@@ -83,6 +97,20 @@ public class SearchController {
             throw new NotFoundException();
         }
         return new RpcResult().setResult(result);
+    }
+
+    private SearchResultDTO getContractByAddress(String text) {
+        ContractInfo contractInfo = null;
+        try {
+            contractInfo = contractService.getContractInfo(text);
+        } catch (Exception e) {
+            Log.error(e);
+            throw new JsonRpcException();
+        }
+        SearchResultDTO dto = new SearchResultDTO();
+        dto.setData(contractInfo);
+        dto.setType("contract");
+        return dto;
     }
 
     private SearchResultDTO getResultByHash(String hash) {
@@ -95,10 +123,10 @@ public class SearchController {
         if (null == tx) {
             throw new NotFoundException();
         }
-        RpcClientResult<TransactionInfo> rpcClientResult = rpcHandler.getTx(hash);
-        if (rpcClientResult.isSuccess()) {
-            tx = rpcClientResult.getData();
-        }
+//        RpcClientResult<TransactionInfo> rpcClientResult = rpcHandler.getTx(hash);
+//        if (rpcClientResult.isSuccess()) {
+//            tx = rpcClientResult.getData();
+//        }
         SearchResultDTO dto = new SearchResultDTO();
         dto.setData(tx);
         dto.setType("tx");
