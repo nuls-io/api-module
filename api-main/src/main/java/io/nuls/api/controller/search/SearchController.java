@@ -24,18 +24,21 @@ import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.bridge.WalletRPCHandler;
+import io.nuls.api.controller.constant.AddressType;
 import io.nuls.api.controller.ex.NotFoundException;
 import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.search.dto.SearchResultDTO;
 import io.nuls.api.controller.utils.VerifyUtils;
+import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.api.service.AccountService;
 import io.nuls.api.service.BlockHeaderService;
 import io.nuls.api.service.TransactionService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.AddressTool;
+import sun.jvm.hotspot.debugger.Address;
 
 import java.util.List;
 
@@ -75,7 +78,15 @@ public class SearchController {
         if (length < 20) {
             result = getBlockByHeight(text);
         } else if (length < 40) {
-            result = getAccountByAddress(text);
+            boolean isAddress = AddressTool.validAddress(text);
+            if (isAddress) {
+                byte[] address = AddressTool.getAddress(text);
+                if (address[2] == AddressType.CONTRACT_ADDRESS_TYPE) {
+                    result = getContractByAddress(text);
+                } else {
+                    result = getAccountByAddress(text);
+                }
+            }
         } else {
             result = getResultByHash(text);
         }
@@ -83,6 +94,11 @@ public class SearchController {
             throw new NotFoundException();
         }
         return new RpcResult().setResult(result);
+    }
+
+    private SearchResultDTO getContractByAddress(String text) {
+        //todo
+        return null;
     }
 
     private SearchResultDTO getResultByHash(String hash) {
