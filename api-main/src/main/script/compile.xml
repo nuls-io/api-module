@@ -14,13 +14,13 @@
 
     <!-- 初始化 -->
     <target name="init">
-      <mkdir dir="${dest}/classes"/>
+        <mkdir dir="${dest}/classes"/>
     </target>
 
     <!-- 编译 -->
     <target name="compile" depends="init">
         <javac srcdir="${src}" destdir="${dest}/classes" source="1.6" target="1.6"
-            debug="${compile.debug}" deprecation="${compile.deprecation}" optimize="${compile.optimize}">
+               debug="${compile.debug}" deprecation="${compile.deprecation}" optimize="${compile.optimize}">
             <classpath refid="sdk.path" />
         </javac>
     </target>
