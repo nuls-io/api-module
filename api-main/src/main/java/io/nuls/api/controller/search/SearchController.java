@@ -31,7 +31,6 @@ import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.search.dto.SearchResultDTO;
 import io.nuls.api.controller.utils.VerifyUtils;
-import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.service.AccountService;
@@ -40,7 +39,6 @@ import io.nuls.api.service.ContractService;
 import io.nuls.api.service.TransactionService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.AddressTool;
-import sun.jvm.hotspot.debugger.Address;
 
 import java.util.List;
 
