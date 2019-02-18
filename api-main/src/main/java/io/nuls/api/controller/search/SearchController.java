@@ -33,8 +33,10 @@ import io.nuls.api.controller.search.dto.SearchResultDTO;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
+import io.nuls.api.core.util.Log;
 import io.nuls.api.service.AccountService;
 import io.nuls.api.service.BlockHeaderService;
+import io.nuls.api.service.ContractService;
 import io.nuls.api.service.TransactionService;
 import io.nuls.api.utils.JsonRpcException;
 import io.nuls.sdk.core.utils.AddressTool;
@@ -61,6 +63,9 @@ public class SearchController {
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private ContractService contractService;
 
     /**
      * 根据查询字符串自动匹配结果
@@ -97,8 +102,17 @@ public class SearchController {
     }
 
     private SearchResultDTO getContractByAddress(String text) {
-        //todo
-        return null;
+        ContractInfo contractInfo = null;
+        try {
+            contractInfo = contractService.getContractInfo(text);
+        } catch (Exception e) {
+            Log.error(e);
+            throw new JsonRpcException();
+        }
+        SearchResultDTO dto = new SearchResultDTO();
+        dto.setData(contractInfo);
+        dto.setType("contract");
+        return dto;
     }
 
     private SearchResultDTO getResultByHash(String hash) {
