@@ -79,7 +79,8 @@ public class SyncBlockTask implements Runnable {
             localBestHeight = localBestBlockHeader.getHeight();
         }
 
-//        if (localBestHeight >= 400) {
+//         测试的时候，只同步到20万块，测试回滚
+//        if (localBestHeight >= 200000) {
 //            return false;
 //        }
         ApiContext.bestHeight = localBestHeight;
@@ -168,6 +169,9 @@ public class SyncBlockTask implements Runnable {
         }
     }
 
+    /**
+     * 测试回滚的时候 ，把上面方法注释掉，启用下面这个方法就可以
+     */
 //    private boolean checkBlockContinuity(BlockHeaderInfo localBest, BlockHeaderInfo newest) {
 //        return false;
 //    }
