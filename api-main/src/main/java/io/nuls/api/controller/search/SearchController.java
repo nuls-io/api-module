@@ -123,10 +123,10 @@ public class SearchController {
         if (null == tx) {
             throw new NotFoundException();
         }
-        RpcClientResult<TransactionInfo> rpcClientResult = rpcHandler.getTx(hash);
-        if (rpcClientResult.isSuccess()) {
-            tx = rpcClientResult.getData();
-        }
+//        RpcClientResult<TransactionInfo> rpcClientResult = rpcHandler.getTx(hash);
+//        if (rpcClientResult.isSuccess()) {
+//            tx = rpcClientResult.getData();
+//        }
         SearchResultDTO dto = new SearchResultDTO();
         dto.setData(tx);
         dto.setType("tx");
