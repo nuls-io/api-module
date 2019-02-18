@@ -100,11 +100,12 @@ public class TokenService {
     public PageInfo<TokenTransfer> getTokenTransfers(String address, String contractAddress, int pageIndex, int pageSize) {
         Bson filter;
         if (StringUtils.isNotBlank(address) && StringUtils.isNotBlank(contractAddress)) {
-            filter = Filters.or(Filters.eq("fromAddress", address), Filters.eq("toAddress", address));
+            Bson addressFilter = Filters.or(Filters.eq("fromAddress", address), Filters.eq("toAddress", address));
+            filter = Filters.and(Filters.eq("contractAddress", contractAddress), addressFilter);
         } else if (StringUtils.isNotBlank(contractAddress)) {
             filter = Filters.eq("contractAddress", contractAddress);
         } else {
-            filter = Filters.eq("toAddress", address);
+            filter = Filters.or(Filters.eq("fromAddress", address), Filters.eq("toAddress", address));
         }
         Bson sort = Sorts.descending("time");
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.TOKEN_TRANSFER_INFO, filter, sort, pageIndex, pageSize);
