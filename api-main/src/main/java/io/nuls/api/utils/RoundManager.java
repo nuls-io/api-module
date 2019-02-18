@@ -169,6 +169,7 @@ public class RoundManager {
                 item.setPackingAddress(sorter.getSeedAddress());
 
             }
+            item.setTime(round.getStartTime() + item.getOrder() * 10000L);
             itemList.add(item);
         }
         round.setItemList(itemList);

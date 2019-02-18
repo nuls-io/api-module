@@ -20,6 +20,8 @@
 
 package io.nuls.api.core.model;
 
+import io.nuls.sdk.core.utils.TimeService;
+
 /**
  * @author Niels
  */
@@ -48,6 +50,8 @@ public class PocRoundItem {
     private long time;
 
     private String blockHash;
+
+    private Boolean yellow = false;
 
     public String getId() {
         return id;
@@ -143,5 +147,19 @@ public class PocRoundItem {
 
     public void setAgentHash(String agentHash) {
         this.agentHash = agentHash;
+    }
+
+    public boolean isYellow() {
+        if (time < TimeService.currentTimeMillis() && null == blockHash) {
+            this.yellow = true;
+        }
+        if (null == yellow) {
+            yellow = false;
+        }
+        return yellow;
+    }
+
+    public void setYellow(Boolean yellow) {
+        this.yellow = yellow;
     }
 }
