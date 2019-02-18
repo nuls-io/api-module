@@ -50,10 +50,11 @@ public class AgentService {
     }
 
     public AgentInfo getAgentByAgentAddress(String agentAddress) {
-        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("agentAddress", agentAddress));
-        if (document == null) {
+        List<Document> list = mongoDBService.query(MongoTableName.AGENT_INFO, Filters.eq("agentAddress", agentAddress), Sorts.descending("createTime"));
+        if (list == null || list.isEmpty()) {
             return null;
         }
+        Document document = list.get(0);
         AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
         AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
         if (alias != null) {
