@@ -231,7 +231,7 @@ public class ContractController {
             VerifyUtils.verifyParams(params, 2);
             String contractAddress = (String) params.get(0);
             if (!AddressTool.validAddress(contractAddress)) {
-                result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[contractAddress] is inValid"));
+                result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "contractAddress is inValid."));
                 return result;
             }
             // 检查认证状态，未认证的合约继续下一步
@@ -251,50 +251,64 @@ public class ContractController {
             String fileDataURL = (String) params.get(1);
             String[] arr = fileDataURL.split(",");
             if (arr.length != 2) {
-                result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR));
+                result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "File Data error."));
                 return result;
             }
             String headerInfo = arr[0];
             String body = arr[1];
             byte[] fileContent = Base64.getDecoder().decode(body);
-            out = new FileOutputStream(VALIDATE_HOME + contractAddress + ".zip");
+            File zipFile = new File(VALIDATE_HOME + contractAddress + ".zip");
+            out = new FileOutputStream(zipFile);
             IOUtils.write(fileContent, out);
 
-            // 编译代码
-            List<String> resultList = RunShellUtil.run(BASE + File.separator + "bin" + File.separator + "compile.sh", contractAddress);
-            if (!resultList.isEmpty()) {
-                String error = resultList.stream().collect(Collectors.joining());
-                Log.error(error);
-                result.setError(new RpcResultError(RpcErrorCode.TX_SHELL_ERROR));
-                return result;
+            boolean isValidationPass = false;
+            do {
+                // 编译代码
+                List<String> resultList = RunShellUtil.run(BASE + File.separator + "bin" + File.separator + "compile.sh", contractAddress);
+                if (!resultList.isEmpty()) {
+                    String error = resultList.stream().collect(Collectors.joining());
+                    Log.error(error);
+                    result.setError(new RpcResultError(RpcErrorCode.TX_SHELL_ERROR));
+                    break;
+                }
+                File jarFile = new File(VALIDATE_HOME + contractAddress + File.separator + contractAddress + ".jar");
+                jarIn = new FileInputStream(jarFile);
+                byte[] validateContractCode = IOUtils.toByteArray(jarIn);
+
+                // 获取智能合约的代码
+                String createTxHash = contractInfo.getCreateTxHash();
+                Result result1 = NulsSDKTool.getTxWithBytes(createTxHash);
+                if (result1.isFailed()) {
+                    result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
+                    break;
+                }
+                CreateContractTransaction tx = (CreateContractTransaction) result1.getData();
+                CreateContractData txData = tx.getTxData();
+                byte[] contractCode = txData.getCode();
+
+                // 比较代码指令
+                isValidationPass = CompareJar.compareJarBytes(contractCode, validateContractCode);
+                result.setResult(isValidationPass);
+
+                if(!isValidationPass) {
+                    break;
+                }
+
+                // 合约认证通过后，更新合约认证状态
+                contractInfo.setStatus(2);
+                contractInfo.setCertificationTime(System.currentTimeMillis());
+                contractService.updateContractInfo(contractInfo);
+            } while (false);
+
+            if(!isValidationPass) {
+                // 删除上传的文件
+                if(zipFile.exists()) {
+                    zipFile.delete();
+                }
+                delFolder(VALIDATE_HOME + contractAddress);
+                return new RpcResult().setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "Verification failed."));
             }
-            File jarFile = new File(VALIDATE_HOME + contractAddress + File.separator + contractAddress + ".jar");
-            jarIn = new FileInputStream(jarFile);
-            byte[] validateContractCode = IOUtils.toByteArray(jarIn);
 
-            // 获取智能合约的代码
-            String createTxHash = contractInfo.getCreateTxHash();
-            Result result1 = NulsSDKTool.getTxWithBytes(createTxHash);
-            if (result1.isFailed()) {
-                result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS));
-                return result;
-            }
-            CreateContractTransaction tx = (CreateContractTransaction) result1.getData();
-            CreateContractData txData = tx.getTxData();
-            byte[] contractCode = txData.getCode();
-
-            // 比较代码指令
-            boolean bool = CompareJar.compareJarBytes(contractCode, validateContractCode);
-            result.setResult(bool);
-
-            if(!bool) {
-                throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "Verification failed."));
-            }
-
-            // 合约认证通过后，更新合约认证状态
-            contractInfo.setStatus(2);
-            contractInfo.setCertificationTime(System.currentTimeMillis());
-            contractService.updateContractInfo(contractInfo);
 
         } catch (Exception e) {
             Log.error(e);
@@ -304,6 +318,44 @@ public class ContractController {
             IOUtils.closeQuietly(out);
         }
         return result;
+    }
+
+    private void delFolder(String folderPath) {
+        try {
+            //删除完里面所有内容
+            delAllFile(folderPath);
+            File myFilePath = new File(folderPath);
+            //删除空文件夹
+            myFilePath.delete();
+        } catch (Exception e) {}
+    }
+
+    private boolean delAllFile(String path) {
+        boolean flag = false;
+        File file = new File(path);
+        if (!file.exists()) {
+            return flag;
+        }
+        if (!file.isDirectory()) {
+            return flag;
+        }
+        String[] tempList = file.list();
+        File temp = null;
+        for (int i = 0; i < tempList.length; i++) {
+            if (path.endsWith(File.separator)) {
+                temp = new File(path + tempList[i]);
+            } else {
+                temp = new File(path + File.separator + tempList[i]);
+            }
+            if (temp.isFile()) {
+                temp.delete();
+            }
+            if (temp.isDirectory()) {
+                delFolder(path + File.separator + tempList[i]);
+                flag = true;
+            }
+        }
+        return flag;
     }
 
     @RpcMethod("getContractCodeTree")

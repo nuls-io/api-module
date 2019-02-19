@@ -78,4 +78,17 @@ public class RpcResultError {
     public void setData(Object data) {
         this.data = data;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append("\"code\":")
+                .append(code);
+        sb.append(",\"message\":")
+                .append('\"').append(message).append('\"');
+        sb.append(",\"data\":")
+                .append('\"').append(data).append('\"');
+        sb.append('}');
+        return sb.toString();
+    }
 }

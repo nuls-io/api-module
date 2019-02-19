@@ -69,4 +69,19 @@ public class RpcResult {
         this.error = error;
         return this;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append("\"jsonrpc\":")
+                .append('\"').append(jsonrpc).append('\"');
+        sb.append(",\"id\":")
+                .append(id);
+        sb.append(",\"result\":")
+                .append('\"').append(result).append('\"');
+        sb.append(",\"error\":")
+                .append(error);
+        sb.append('}');
+        return sb.toString();
+    }
 }

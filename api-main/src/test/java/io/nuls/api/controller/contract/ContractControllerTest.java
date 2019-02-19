@@ -54,16 +54,16 @@ public class ContractControllerTest {
     public void validateContractCode() {
         FileInputStream in=  null;
         try {
-            TimeUnit.SECONDS.sleep(15);
+            TimeUnit.SECONDS.sleep(3);
             ContractController controller = SpringLiteContext.getBean(ContractController.class);
             List<Object> params = new ArrayList<>();
-            String address = "TTbB7CA2q6QjMdiUUbLGs85nHrhvwjga";
+            String address = "TTb42Ekgkaug3iVQsAnCoE3VEiiWFdbg";
             File file = new File(BASE + "/contract/code/ddd.zip");
             in = new FileInputStream(file);
             params.add(address);
             params.add("mockHeader," + Base64.getEncoder().encodeToString(IOUtils.toByteArray(in)));
             RpcResult rpcResult = controller.validateContractCode(params);
-            System.out.println(rpcResult.getResult());
+            System.out.println(rpcResult);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
