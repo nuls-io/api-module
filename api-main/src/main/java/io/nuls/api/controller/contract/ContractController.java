@@ -287,6 +287,10 @@ public class ContractController {
             boolean bool = CompareJar.compareJarBytes(contractCode, validateContractCode);
             result.setResult(bool);
 
+            if(!bool) {
+                throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "Verification failed."));
+            }
+
             // 合约认证通过后，更新合约认证状态
             contractInfo.setStatus(2);
             contractInfo.setCertificationTime(System.currentTimeMillis());
