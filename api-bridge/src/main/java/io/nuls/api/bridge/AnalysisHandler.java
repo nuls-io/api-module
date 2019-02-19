@@ -534,6 +534,7 @@ public class AnalysisHandler {
         AgentInfo agentInfo = new AgentInfo();
         agentInfo.setTxHash((String) map.get("agentHash"));
         agentInfo.setCreditValue((Double) map.get("creditVal"));
+        agentInfo.setStatus((Integer) map.get("status"));
         agentInfo.setDepositCount((Integer) map.get("memberCount"));
         return agentInfo;
     }

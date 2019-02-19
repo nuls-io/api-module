@@ -104,12 +104,20 @@ public class POCConsensusController {
         if (pageSize <= 0 || pageSize > 100) {
             pageSize = 10;
         }
+//        Map<String, Integer> map = new HashMap<>();
+//        List<PocRoundItem> itemList = roundManager.getCurrentRound().getItemList();
+//        for (PocRoundItem item : itemList) {
+//            map.put(item.getPackingAddress(), 1);
+//        }
+
+
         PageInfo<AgentInfo> list = agentService.getAgentList(type, pageIndex, pageSize);
         for (AgentInfo agentInfo : list.getList()) {
             RpcClientResult<AgentInfo> clientResult = walletRPCHandler.getAgent(agentInfo.getTxHash());
             if (clientResult.isSuccess()) {
                 agentInfo.setCreditValue(clientResult.getData().getCreditValue());
                 agentInfo.setDepositCount(clientResult.getData().getDepositCount());
+                agentInfo.setStatus(clientResult.getData().getStatus());
             }
         }
         return new RpcResult().setResult(list);
