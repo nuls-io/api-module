@@ -505,6 +505,9 @@ public class ContractController {
         FileInputStream in = null;
         try {
             File file = new File(BASE + filePath);
+            if(!file.exists()) {
+                return null;
+            }
             in = new FileInputStream(file);
             List<String> strings = IOUtils.readLines(in);
             StringBuilder sb = new StringBuilder();
