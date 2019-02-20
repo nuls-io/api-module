@@ -315,6 +315,7 @@ public class RollbackService {
         depositInfoList.add(depositInfo);
         AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
         agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() - depositInfo.getAmount());
+        agentInfo.setNew(false);
         if (agentInfo.getTotalDeposit() < 0) {
             throw new RuntimeException("data error: agent[" + agentInfo.getTxHash() + "] totalDeposit < 0");
         }
@@ -337,6 +338,7 @@ public class RollbackService {
 
         AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
         agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
+        agentInfo.setNew(false);
     }
 
     private void processStopAgentTx(TransactionInfo tx) {
@@ -353,6 +355,7 @@ public class RollbackService {
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
         agentInfo.setStatus(1);
+        agentInfo.setNew(false);
         //根据交易hash查询所有取消委托的记录
         List<DepositInfo> depositInfos = depositService.getDepositListByHash(tx.getHash());
         if (!depositInfos.isEmpty()) {
@@ -403,7 +406,7 @@ public class RollbackService {
         agentInfo.setDeleteHash(null);
         agentInfo.setDeleteHeight(0);
         agentInfo.setStatus(1);
-
+        agentInfo.setNew(false);
         //根据交易hash查询所有取消委托的记录
         List<DepositInfo> depositInfos = depositService.getDepositListByHash(tx.getHash());
         if (!depositInfos.isEmpty()) {

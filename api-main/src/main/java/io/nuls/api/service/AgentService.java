@@ -77,7 +77,7 @@ public class AgentService {
         Collection<AgentInfo> agentInfos = agentMap.values();
         AgentInfo info = null;
         for (AgentInfo agent : agentInfos) {
-            if (!agent.getAgentAddress().equals(agentAddress)) {
+            if (!agentAddress.equals(agent.getAgentAddress())) {
                 continue;
             }
             if (null == info || agent.getCreateTime() > info.getCreateTime()) {
@@ -118,7 +118,7 @@ public class AgentService {
         Collection<AgentInfo> agentInfos = agentMap.values();
         AgentInfo info = null;
         for (AgentInfo agent : agentInfos) {
-            if (agent.getDeleteHash().equals(deleteHash)) {
+            if (deleteHash.equals(agent.getDeleteHash())) {
                 info = agent;
                 break;
             }
@@ -147,6 +147,7 @@ public class AgentService {
             Document document = DocumentTransferTool.toDocument(agentInfo, "txHash");
             agentMap.put(agentInfo.getTxHash(), agentInfo);
             if (agentInfo.isNew()) {
+//                System.out.println(document.get("blockHeight") + "==" + document.getString("_id"));
                 modelList.add(new InsertOneModel(document));
             } else {
                 modelList.add(new ReplaceOneModel<>(Filters.eq("_id", agentInfo.getTxHash()), document));

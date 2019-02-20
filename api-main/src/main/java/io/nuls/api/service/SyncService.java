@@ -87,6 +87,7 @@ public class SyncService {
      * @return boolean 是否保存成功
      */
     private long time;
+    private long time1000;
     private int count;
     int i = 0;
 
@@ -97,6 +98,10 @@ public class SyncService {
 
     public boolean saveNewBlock(BlockInfo blockInfo) throws Exception {
         long start = System.currentTimeMillis();
+
+        if (time1000 == 0) {
+            time1000 = System.currentTimeMillis();
+        }
 
         clear();
         long time1 = System.nanoTime();
@@ -123,15 +128,15 @@ public class SyncService {
 
 
         if (i % 1000 == 0) {
-            Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
-            time1 = System.currentTimeMillis();
+            Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1000) + "ms");
+            time1000 = System.currentTimeMillis();
         }
         i++;
         ApiContext.bestHeight = headerInfo.getHeight();
         this.time += System.currentTimeMillis() - start;
         count++;
         if (count % 1000 == 0) {
-            System.out.println("======================================block avg:" + (time / count));
+            Log.info("======================================1000 blocks use:" + time + "ms");
             time = 0;
         }
         return true;
@@ -402,6 +407,7 @@ public class SyncService {
 
         AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
         agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() + depositInfo.getAmount());
+        agentInfo.setNew(false);
     }
 
     private void processCancelDepositTx(TransactionInfo tx) {
@@ -432,6 +438,7 @@ public class SyncService {
 
         AgentInfo agentInfo = queryAgentInfo(depositInfo.getAgentHash(), 1);
         agentInfo.setTotalDeposit(agentInfo.getTotalDeposit() - depositInfo.getAmount());
+        agentInfo.setNew(false);
         if (agentInfo.getTotalDeposit() < 0) {
             throw new RuntimeException("data error: agent[" + agentInfo.getTxHash() + "] totalDeposit < 0");
         }
@@ -454,6 +461,7 @@ public class SyncService {
         agentInfo.setDeleteHash(tx.getHash());
         agentInfo.setDeleteHeight(tx.getHeight());
         agentInfo.setStatus(2);
+        agentInfo.setNew(false);
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
@@ -512,6 +520,7 @@ public class SyncService {
         agentInfo.setDeleteHash(tx.getHash());
         agentInfo.setDeleteHeight(tx.getHeight());
         agentInfo.setStatus(2);
+        agentInfo.setNew(false);
         //根据节点找到委托列表
         List<DepositInfo> depositInfos = depositService.getDepositListByAgentHash(agentInfo.getTxHash());
         if (!depositInfos.isEmpty()) {
