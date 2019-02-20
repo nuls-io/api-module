@@ -10,8 +10,10 @@ import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
+import io.nuls.sdk.core.utils.DoubleUtils;
 
 import java.math.BigInteger;
+import java.text.NumberFormat;
 import java.util.*;
 
 
@@ -85,24 +87,37 @@ public class SyncService {
      * @return boolean 是否保存成功
      */
 
-    private long time1;
     int i = 0;
+
+    private String getLongString(long value) {
+        NumberFormat numberFormat1 = NumberFormat.getNumberInstance();
+        return numberFormat1.format(value);
+    }
 
     public boolean saveNewBlock(BlockInfo blockInfo) throws Exception {
         clear();
-        if (time1 == 0) {
-            time1 = System.currentTimeMillis();
-        }
+        long time1 = System.nanoTime();
         BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
 
         findAddProcessAgentOfBlock(blockInfo);
+        Log.info("use 1 :{}", getLongString(System.nanoTime() - time1));
+        time1 = System.nanoTime();
 
         //处理交易
         processTxs(blockInfo.getTxs());
+        Log.info("use 2 :{}", getLongString(System.nanoTime() - time1));
+        time1 = System.nanoTime();
+
         //处理轮次信息
         processRoundData(blockInfo);
+        Log.info("use 3 :{}", getLongString(System.nanoTime() - time1));
+        time1 = System.nanoTime();
+
         //保存数据
         save(blockInfo);
+        Log.info("use 4 :{}", getLongString(System.nanoTime() - time1));
+        time1 = System.nanoTime();
+
 
         if (i % 1000 == 0) {
             Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
