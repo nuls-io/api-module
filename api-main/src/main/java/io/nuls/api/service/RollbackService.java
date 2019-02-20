@@ -532,17 +532,17 @@ public class RollbackService {
     public void save(BlockInfo blockInfo) throws Exception {
         Document document = blockHeaderService.getBestBlockHeightInfo();
         time1 = System.currentTimeMillis();
-
+        long height = blockInfo.getBlockHeader().getHeight();
         if (document.getBoolean("finish")) {
             accountService.saveAccounts(accountInfoMap);
-            blockHeaderService.updateStep(50);
+            blockHeaderService.updateStep(height,50);
             document.put("step", 50);
         }
         Log.info("-----------------saveAccounts: use:" + (System.currentTimeMillis() - time1) + "ms");
         time1 = System.currentTimeMillis();
         if (document.getInteger("step") == 50) {
             tokenService.saveAccountTokens(accountTokenMap);
-            blockHeaderService.updateStep(40);
+            blockHeaderService.updateStep(height,40);
             document.put("step", 40);
         }
         Log.info("-----------------saveAccountTokens: use:" + (System.currentTimeMillis() - time1) + "ms");
@@ -551,7 +551,7 @@ public class RollbackService {
 
         if (document.getInteger("step") == 40) {
             contractService.rollbackContractInfos(contractInfoMap);
-            blockHeaderService.updateStep(30);
+            blockHeaderService.updateStep(height,30);
             document.put("step", 30);
         }
         Log.info("-----------------rollbackContractInfos: use:" + (System.currentTimeMillis() - time1) + "ms");
@@ -560,7 +560,7 @@ public class RollbackService {
 
         if (document.getInteger("step") == 30) {
             agentService.rollbackAgentList(agentInfoList);
-            blockHeaderService.updateStep(20);
+            blockHeaderService.updateStep(height,20);
             document.put("step", 20);
         }
         Log.info("-----------------rollbackAgentList: use:" + (System.currentTimeMillis() - time1) + "ms");
@@ -568,7 +568,7 @@ public class RollbackService {
 
         if (document.getInteger("step") == 20) {
             utxoService.rollbackOutputs(inputList, outputMap);
-            blockHeaderService.updateStep(10);
+            blockHeaderService.updateStep(height,10);
             document.put("step", 10);
         }
         Log.info("-----------------rollbackOutputs: use:" + (System.currentTimeMillis() - time1) + "ms");
@@ -576,7 +576,7 @@ public class RollbackService {
 
 
         //回滾token转账信息
-        tokenService.rollbackTokenTransfers(tokenTransferHashList, blockInfo.getBlockHeader().getHeight());
+        tokenService.rollbackTokenTransfers(tokenTransferHashList, height);
         Log.info("-----------------rollbackTokenTransfers: use:" + (System.currentTimeMillis() - time1) + "ms");
         time1 = System.currentTimeMillis();
 
@@ -594,7 +594,7 @@ public class RollbackService {
         Log.info("-----------------rollbackDepoist: use:" + (System.currentTimeMillis() - time1) + "ms");
         time1 = System.currentTimeMillis();
         //回滚惩罚记录
-        punishService.rollbackPunishLog(punishTxHashList, blockInfo.getBlockHeader().getHeight());
+        punishService.rollbackPunishLog(punishTxHashList, height);
         Log.info("-----------------rollbackPunishLog: use:" + (System.currentTimeMillis() - time1) + "ms");
         time1 = System.currentTimeMillis();
         //回滚别名记录
@@ -614,7 +614,7 @@ public class RollbackService {
         Log.info("-----------------rollbackTxList: use:" + (System.currentTimeMillis() - time1) + "ms");
         time1 = System.currentTimeMillis();
         //回滚区块信息
-        blockHeaderService.deleteBlockHeader(blockInfo.getBlockHeader().getHeight());
+        blockHeaderService.deleteBlockHeader(height);
         Log.info("-----------------deleteBlockHeader: use:" + (System.currentTimeMillis() - time1) + "ms");
         time1 = System.currentTimeMillis();
 

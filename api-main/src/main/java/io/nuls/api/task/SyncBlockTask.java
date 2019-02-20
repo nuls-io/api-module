@@ -55,7 +55,11 @@ public class SyncBlockTask implements Runnable {
         boolean running = true;
         while (running) {
             try {
+                long start = System.currentTimeMillis();
                 running = syncBlock();
+                if (running) {
+                    Log.info("whole block use:" + (System.currentTimeMillis() - start));
+                }
             } catch (Exception e) {
                 Log.error(e);
                 running = false;
@@ -139,7 +143,7 @@ public class SyncBlockTask implements Runnable {
             //如果错误信息不是未找到最新块的话 就说明查询区块报错
             Log.error("-------获取下一区块头信息失败:" + result.getCode() + "-" + result.getMsg());
         }
-        //todo 如果返回的错误码是最新块未找到时
+        // 如果返回的错误码是最新块未找到时
         // 是否需要判断本地已保存的最新区块头和钱包里相同高度区块的一致性
         return false;
     }

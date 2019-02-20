@@ -21,6 +21,7 @@ public class BlockHeaderService {
 
     @Autowired
     private MongoDBService mongoDBService;
+    private BlockHeaderInfo bestHeader;
 
     /**
      * 获取本地存储的最新区块头
@@ -28,6 +29,10 @@ public class BlockHeaderService {
      * @return BlockHeaderInfo 最新的区块头
      */
     public BlockHeaderInfo getBestBlockHeader() {
+        if (null != bestHeader) {
+            return bestHeader;
+        }
+
         Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT));
         if (document == null) {
             return null;
@@ -62,24 +67,19 @@ public class BlockHeaderService {
      */
     public void saveNewHeightInfo(long newHeight) {
         Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
-        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
-        if (document == null) {
-            document = new Document();
-            document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false).append("step", 0);
+        Document document = new Document();
+        document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false).append("step", 0);
+        if (newHeight == 0) {
             mongoDBService.insertOne(MongoTableName.NEW_INFO, document);
         } else {
-            document.put("height", newHeight);
-            document.put("finish", false);
-            document.put("step", 0);
             mongoDBService.updateOne(MongoTableName.NEW_INFO, query, document);
         }
     }
 
-    public void updateStep(int step) {
+    public void updateStep(long height, int step) {
         Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
-        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
-        document.put("step", step);
-        document.put("finish", false);
+        Document document = new Document();
+        document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", height).append("finish", false).append("step", step);
         mongoDBService.updateOne(MongoTableName.NEW_INFO, query, document);
     }
 
@@ -141,6 +141,7 @@ public class BlockHeaderService {
     public void saveBLockHeaderInfo(BlockHeaderInfo blockHeaderInfo) {
         Document document = DocumentTransferTool.toDocument(blockHeaderInfo, "height");
         mongoDBService.insertOne(MongoTableName.BLOCK_HEADER, document);
+        this.bestHeader = blockHeaderInfo;
     }
 
 
