@@ -86,7 +86,8 @@ public class SyncService {
      * @param blockInfo 完整的区块信息
      * @return boolean 是否保存成功
      */
-
+    private long time;
+    private int count;
     int i = 0;
 
     private String getLongString(long value) {
@@ -95,27 +96,29 @@ public class SyncService {
     }
 
     public boolean saveNewBlock(BlockInfo blockInfo) throws Exception {
+        long start = System.currentTimeMillis();
+
         clear();
         long time1 = System.nanoTime();
         BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
 
         findAddProcessAgentOfBlock(blockInfo);
-        Log.info("use 1 :{}", getLongString(System.nanoTime() - time1));
+//        Log.info("use 1 :{}", getLongString(System.nanoTime() - time1));
         time1 = System.nanoTime();
 
         //处理交易
         processTxs(blockInfo.getTxs());
-        Log.info("use 2 :{}", getLongString(System.nanoTime() - time1));
+//        Log.info("use 2 :{}", getLongString(System.nanoTime() - time1));
         time1 = System.nanoTime();
 
         //处理轮次信息
         processRoundData(blockInfo);
-        Log.info("use 3 :{}", getLongString(System.nanoTime() - time1));
+//        Log.info("use 3 :{}", getLongString(System.nanoTime() - time1));
         time1 = System.nanoTime();
 
         //保存数据
         save(blockInfo);
-        Log.info("use 4 :{}", getLongString(System.nanoTime() - time1));
+//        Log.info("use 4 :{}", getLongString(System.nanoTime() - time1));
         time1 = System.nanoTime();
 
 
@@ -125,6 +128,12 @@ public class SyncService {
         }
         i++;
         ApiContext.bestHeight = headerInfo.getHeight();
+        this.time += System.currentTimeMillis() - start;
+        count++;
+        if (count % 1000 == 0) {
+            System.out.println("======================================block avg:" + (time / count));
+            time = 0;
+        }
         return true;
     }
 

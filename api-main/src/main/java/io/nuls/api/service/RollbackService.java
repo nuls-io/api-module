@@ -77,30 +77,31 @@ public class RollbackService {
     /**
      * 回滚区块和区块内的所有交易和交易产生的数据
      */
-//    private long time1;
+    private long time1;
     int i = 0;
 
     public boolean rollbackBlock(long blockHeight) throws Exception {
         clear();
-//        time1 = System.currentTimeMillis();
+        time1 = System.currentTimeMillis();
         BlockInfo blockInfo = queryBlock(blockHeight);
-//        Log.info("-----------------queryBlock: use:" + (System.currentTimeMillis() - time1) + "ms");
+        Log.info("-----------------queryBlock: use:" + (System.currentTimeMillis() - time1) + "ms");
+
 
         if (blockInfo == null) {
             rollbackComplete();
             return true;
         }
-//        time1 = System.currentTimeMillis();
+        time1 = System.currentTimeMillis();
         findAddProcessAgentOfBlock(blockInfo);
-//        Log.info("-----------------findAddProcessAgentOfBlock: use:" + (System.currentTimeMillis() - time1) + "ms");
+        Log.info("-----------------findAddProcessAgentOfBlock: use:" + (System.currentTimeMillis() - time1) + "ms");
 
-//        time1 = System.currentTimeMillis();
+        time1 = System.currentTimeMillis();
         processTxs(blockInfo.getTxs());
-//        Log.info("-----------------processTxs: use:" + (System.currentTimeMillis() - time1) + "ms");
+        Log.info("-----------------processTxs: use:" + (System.currentTimeMillis() - time1) + "ms");
         roundManager.rollback(blockInfo);
-//        time1 = System.currentTimeMillis();
+        time1 = System.currentTimeMillis();
         save(blockInfo);
-//        Log.info("-----------------save: use:" + (System.currentTimeMillis() - time1) + "ms");
+        Log.info("-----------------save: use:" + (System.currentTimeMillis() - time1) + "ms");
 //        if (i % 1000 == 0) {
 //            Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1) + "ms");
 //            time1 = System.currentTimeMillis();
@@ -527,22 +528,22 @@ public class RollbackService {
      */
     public void save(BlockInfo blockInfo) throws Exception {
         Document document = blockHeaderService.getBestBlockHeightInfo();
-//        time1 = System.currentTimeMillis();
+        time1 = System.currentTimeMillis();
 
         if (document.getBoolean("finish")) {
             accountService.saveAccounts(accountInfoMap);
             blockHeaderService.updateStep(50);
             document.put("step", 50);
         }
-//        Log.info("-----------------saveAccounts: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------saveAccounts: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
         if (document.getInteger("step") == 50) {
             tokenService.saveAccountTokens(accountTokenMap);
             blockHeaderService.updateStep(40);
             document.put("step", 40);
         }
-//        Log.info("-----------------saveAccountTokens: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------saveAccountTokens: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
 
 
         if (document.getInteger("step") == 40) {
@@ -550,8 +551,8 @@ public class RollbackService {
             blockHeaderService.updateStep(30);
             document.put("step", 30);
         }
-//        Log.info("-----------------rollbackContractInfos: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackContractInfos: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
 
 
         if (document.getInteger("step") == 30) {
@@ -559,64 +560,64 @@ public class RollbackService {
             blockHeaderService.updateStep(20);
             document.put("step", 20);
         }
-//        Log.info("-----------------rollbackAgentList: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackAgentList: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
 
         if (document.getInteger("step") == 20) {
             utxoService.rollbackOutputs(inputList, outputMap);
             blockHeaderService.updateStep(10);
             document.put("step", 10);
         }
-//        Log.info("-----------------rollbackOutputs: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackOutputs: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
 
 
         //回滾token转账信息
         tokenService.rollbackTokenTransfers(tokenTransferHashList, blockInfo.getBlockHeader().getHeight());
-//        Log.info("-----------------rollbackTokenTransfers: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackTokenTransfers: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
 
         //回滾智能合約交易
         contractService.rollbackContractTxInfos(contractTxHashList);
-//        Log.info("-----------------rollbackContractTxInfos: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackContractTxInfos: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
         //回滾合约执行结果记录
         contractService.rollbackContractResults(contractTxHashList);
-//        Log.info("-----------------roll/**/backContractResults: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackContractResults: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
 
         //回滚委托记录
         depositService.rollbackDepoist(depositInfoList);
-//        Log.info("-----------------rollbackDepoist: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackDepoist: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
         //回滚惩罚记录
         punishService.rollbackPunishLog(punishTxHashList, blockInfo.getBlockHeader().getHeight());
-//        Log.info("-----------------rollbackPunishLog: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackPunishLog: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
         //回滚别名记录
         aliasService.rollbackAliasList(aliasInfoList);
-//        Log.info("-----------------rollbackAliasList: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackAliasList: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
         //回滚交易关系记录
         transactionService.rollbackTxRelationList(blockInfo.getBlockHeader().getTxHashList());
-//        Log.info("-----------------rollbackTxRelationList: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackTxRelationList: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
         //回滚coinData记录
         utxoService.rollbackCoinDatas(blockInfo.getBlockHeader().getTxHashList());
-//        Log.info("-----------------rollbackCoinDatas: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackCoinDatas: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
         //回滚交易记录
         transactionService.rollbackTxList(blockInfo.getBlockHeader().getTxHashList());
-//        Log.info("-----------------rollbackTxList: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackTxList: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
         //回滚区块信息
         blockHeaderService.deleteBlockHeader(blockInfo.getBlockHeader().getHeight());
-//        Log.info("-----------------deleteBlockHeader: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------deleteBlockHeader: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
 
         rollbackComplete();
-//        Log.info("-----------------rollbackComplete: use:" + (System.currentTimeMillis() - time1) + "ms");
-//        time1 = System.currentTimeMillis();
+        Log.info("-----------------rollbackComplete: use:" + (System.currentTimeMillis() - time1) + "ms");
+        time1 = System.currentTimeMillis();
     }
 
 

@@ -20,12 +20,12 @@ import io.nuls.sdk.core.model.Alias;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class AgentService {
+    //todo
+    private static final Map<String, AgentInfo> agentMap = new HashMap<>();
 
     @Autowired
     private MongoDBService mongoDBService;
@@ -34,100 +34,118 @@ public class AgentService {
     @Autowired
     private AccountService accountService;
 
+    private void initCache() {
+        if (!agentMap.isEmpty()) {
+            return;
+        }
+        List<Document> list = mongoDBService.query(MongoTableName.AGENT_INFO);
+        for (Document doc : list) {
+            AgentInfo info = DocumentTransferTool.toInfo(doc, "txHash", AgentInfo.class);
+            agentMap.put(info.getTxHash(), info);
+        }
+    }
+
     public AgentInfo getAgentByPackingAddress(String packingAddress) {
-        Bson filter = Filters.and(Filters.eq("packingAddress", packingAddress));
-        List<Document> list = mongoDBService.query(MongoTableName.AGENT_INFO, filter, Sorts.descending("createTime"));
-        if (list == null || list.isEmpty()) {
-            return null;
+        initCache();
+        Collection<AgentInfo> agentInfos = agentMap.values();
+        AgentInfo info = null;
+        for (AgentInfo agent : agentInfos) {
+            if (!agent.getPackingAddress().equals(packingAddress)) {
+                continue;
+            }
+            if (null == info || agent.getCreateTime() > info.getCreateTime()) {
+                info = agent;
+            }
         }
-        Document document = list.get(0);
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
-        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
-        if (alias != null) {
-            agentInfo.setAgentAlias(alias.getAlias());
-        }
-        return agentInfo;
+        return info;
+//        Bson filter = Filters.and(Filters.eq("packingAddress", packingAddress));
+//        List<Document> list = mongoDBService.query(MongoTableName.AGENT_INFO, filter, Sorts.descending("createTime"));
+//        if (list == null || list.isEmpty()) {
+//            return null;
+//        }
+//        Document document = list.get(0);
+//        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
+//        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+//        if (alias != null) {
+//            agentInfo.setAgentAlias(alias.getAlias());
+//        }
+//        return agentInfo;
     }
 
     public AgentInfo getAgentByAgentAddress(String agentAddress) {
-        List<Document> list = mongoDBService.query(MongoTableName.AGENT_INFO, Filters.eq("agentAddress", agentAddress), Sorts.descending("createTime"));
-        if (list == null || list.isEmpty()) {
-            return null;
+        initCache();
+        Collection<AgentInfo> agentInfos = agentMap.values();
+        AgentInfo info = null;
+        for (AgentInfo agent : agentInfos) {
+            if (!agent.getAgentAddress().equals(agentAddress)) {
+                continue;
+            }
+            if (null == info || agent.getCreateTime() > info.getCreateTime()) {
+                info = agent;
+            }
         }
-        Document document = list.get(0);
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
-        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
-        if (alias != null) {
-            agentInfo.setAgentAlias(alias.getAlias());
-        }
-        return agentInfo;
-    }
-
-    public AgentInfo getAgentByAgentId(String agentId) {
-        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("agentId", agentId));
-        if (document == null) {
-            return null;
-        }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "agentId", AgentInfo.class);
-        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
-        if (alias != null) {
-            agentInfo.setAgentAlias(alias.getAlias());
-        }
-        return agentInfo;
+        return info;
+//        List<Document> list = mongoDBService.query(MongoTableName.AGENT_INFO, Filters.eq("agentAddress", agentAddress), Sorts.descending("createTime"));
+//        if (list == null || list.isEmpty()) {
+//            return null;
+//        }
+//        Document document = list.get(0);
+//        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
+//        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+//        if (alias != null) {
+//            agentInfo.setAgentAlias(alias.getAlias());
+//        }
+//        return agentInfo;
     }
 
     public AgentInfo getAgentByAgentHash(String agentHash) {
-        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("_id", agentHash));
-        if (document == null) {
-            return null;
-        }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
-        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
-        if (alias != null) {
-            agentInfo.setAgentAlias(alias.getAlias());
-        }
-        return agentInfo;
+        initCache();
+        return agentMap.get(agentHash);
+//        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("_id", agentHash));
+//        if (document == null) {
+//            return null;
+//        }
+//        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
+//        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+//        if (alias != null) {
+//            agentInfo.setAgentAlias(alias.getAlias());
+//        }
+//        return agentInfo;
     }
 
     public AgentInfo getAgentByDeleteHash(String deleteHash) {
-        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("deleteHash", deleteHash));
-        if (document == null) {
-            return null;
+        initCache();
+        Collection<AgentInfo> agentInfos = agentMap.values();
+        AgentInfo info = null;
+        for (AgentInfo agent : agentInfos) {
+            if (agent.getDeleteHash().equals(deleteHash)) {
+                info = agent;
+                break;
+            }
         }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
-        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
-        if (alias != null) {
-            agentInfo.setAgentAlias(alias.getAlias());
-        }
-        return agentInfo;
+        return info;
+//        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, Filters.eq("deleteHash", deleteHash));
+//        if (document == null) {
+//            return null;
+//        }
+//        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
+//        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+//        if (alias != null) {
+//            agentInfo.setAgentAlias(alias.getAlias());
+//        }
+//        return agentInfo;
     }
 
-    /**
-     * @param address agentAddress or packingAddress
-     * @return
-     */
-    public AgentInfo getAgentByAddress(String address) {
-        Bson bson = Filters.or(Filters.eq("agentAddress", address), Filters.eq("packingAddress", address));
-        Document document = mongoDBService.findOne(MongoTableName.AGENT_INFO, bson);
-        if (document == null) {
-            return null;
-        }
-        AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
-        AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
-        if (alias != null) {
-            agentInfo.setAgentAlias(alias.getAlias());
-        }
-        return agentInfo;
-    }
 
     public void saveAgentList(List<AgentInfo> agentInfoList) {
+        initCache();
         if (agentInfoList.isEmpty()) {
             return;
         }
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (AgentInfo agentInfo : agentInfoList) {
             Document document = DocumentTransferTool.toDocument(agentInfo, "txHash");
-
+            agentMap.put(agentInfo.getTxHash(), agentInfo);
             if (agentInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
             } else {
@@ -138,6 +156,7 @@ public class AgentService {
     }
 
     public void rollbackAgentList(List<AgentInfo> agentInfoList) {
+        initCache();
         if (agentInfoList.isEmpty()) {
             return;
         }
@@ -145,27 +164,42 @@ public class AgentService {
         for (AgentInfo agentInfo : agentInfoList) {
             if (agentInfo.isNew()) {
                 modelList.add(new DeleteOneModel(Filters.eq("_id", agentInfo.getTxHash())));
+                agentMap.remove(agentInfo.getTxHash());
             } else {
                 Document document = DocumentTransferTool.toDocument(agentInfo, "txHash");
                 modelList.add(new ReplaceOneModel<>(Filters.eq("_id", agentInfo.getTxHash()), document));
+                agentMap.put(agentInfo.getTxHash(), agentInfo);
             }
         }
         mongoDBService.bulkWrite(MongoTableName.AGENT_INFO, modelList);
     }
 
     public List<AgentInfo> getAgentList(long startHeight) {
-        Bson bson = Filters.and(Filters.lte("blockHeight", startHeight), Filters.or(Filters.eq("deleteHeight", 0), Filters.gt("deleteHeight", startHeight)));
-
-        List<Document> list = this.mongoDBService.query(MongoTableName.AGENT_INFO, bson);
+        initCache();
+        Collection<AgentInfo> agentInfos = agentMap.values();
         List<AgentInfo> resultList = new ArrayList<>();
-        for (Document document : list) {
-            AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
-            AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
-            if (alias != null) {
-                agentInfo.setAgentAlias(alias.getAlias());
+        for (AgentInfo agent : agentInfos) {
+            if (agent.getDeleteHash() != null && agent.getDeleteHeight() <= startHeight) {
+                continue;
             }
-            resultList.add(agentInfo);
+            if (agent.getBlockHeight() > startHeight) {
+                continue;
+            }
+            resultList.add(agent);
         }
+
+//        Bson bson = Filters.and(Filters.lte("blockHeight", startHeight), Filters.or(Filters.eq("deleteHeight", 0), Filters.gt("deleteHeight", startHeight)));
+//
+//        List<Document> list = this.mongoDBService.query(MongoTableName.AGENT_INFO, bson);
+
+//        for (Document document : list) {
+//            AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
+//            AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+//            if (alias != null) {
+//                agentInfo.setAgentAlias(alias.getAlias());
+//            }
+//            resultList.add(agentInfo);
+//        }
 
         return resultList;
     }
@@ -198,11 +232,25 @@ public class AgentService {
     }
 
     public long agentsCount(long startHeight) {
-        Bson bson = Filters.and(Filters.lte("blockHeight", startHeight), Filters.or(Filters.eq("deleteHeight", 0), Filters.gt("deleteHeight", startHeight)));
-        return this.mongoDBService.getCount(MongoTableName.AGENT_INFO, bson);
+        initCache();
+        Collection<AgentInfo> agentInfos = agentMap.values();
+        long count = 0;
+        for (AgentInfo agent : agentInfos) {
+            if (agent.getDeleteHash() != null && agent.getDeleteHeight() <= startHeight) {
+                continue;
+            }
+            if (agent.getBlockHeight() > startHeight) {
+                continue;
+            }
+            count++;
+        }
+        return count;
+//        Bson bson = Filters.and(Filters.lte("blockHeight", startHeight), Filters.or(Filters.eq("deleteHeight", 0), Filters.gt("deleteHeight", startHeight)));
+//        return this.mongoDBService.getCount(MongoTableName.AGENT_INFO, bson);
     }
 
     public long getConsensusCoinTotal() {
+        initCache();
         Document filter = new Document();
         filter.put("deleteHeight", 0);
 
