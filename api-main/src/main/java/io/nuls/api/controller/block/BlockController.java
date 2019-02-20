@@ -166,19 +166,22 @@ public class BlockController {
         VerifyUtils.verifyParams(params, 1);
         int count = (int) params.get(0);
         BlockHeaderInfo localBestBlockHeader;
-        for (int i = count; count > 0; count--) {
+        long useNanoTime = 0;
+        for (; count > 0; count--) {
             localBestBlockHeader = blockHeaderService.getBestBlockHeader();
             if (null != localBestBlockHeader && localBestBlockHeader.getHeight() >= 0L) {
                 try {
                     long start = System.nanoTime();
                     rollbackBlock.rollbackBlock(localBestBlockHeader.getHeight());
-                    System.out.println("rollback " + localBestBlockHeader.getHeight() + " use:" + (System.nanoTime() - start) + "ns.");
+                    useNanoTime += System.nanoTime() - start;
                 } catch (Exception e) {
                     Log.error(e);
                     throw new JsonRpcException(new RpcResultError(RpcErrorCode.SYS_UNKNOWN_EXCEPTION, "Rollback is failed"));
                 }
             }
         }
+        Log.info("rollback " + count + " use:" + useNanoTime/1000000 + "ms.");
+
         RpcResult rpcResult = new RpcResult();
         rpcResult.setResult(true);
         return rpcResult;

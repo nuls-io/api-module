@@ -74,7 +74,8 @@ public class ScheduleManager {
                 mongoDBService.createCollection(MongoTableName.TX_RELATION_INFO);
             }
             //创建索引
-            mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("type", "address", "txHash"));
+            mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("type", "address"));
+            mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("txHash"));
         }
         //账户信息表
         indexes = mongoDBService.getIndexes(MongoTableName.ACCOUNT_INFO);

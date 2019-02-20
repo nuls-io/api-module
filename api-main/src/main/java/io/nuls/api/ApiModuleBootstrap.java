@@ -96,6 +96,14 @@ public class ApiModuleBootstrap {
         server.startServer(ip, port);
 
         Log.info("api module is started!");
+        while (true) {
+            try {
+                Thread.sleep(10000L);
+                Log.info("bestHeight:" + ApiContext.bestHeight);
+            } catch (InterruptedException e) {
+                Log.error(e);
+            }
+        }
     }
 
     private static void loadWalletAddress(Properties prop) {

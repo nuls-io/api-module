@@ -1,5 +1,6 @@
 package io.nuls.api.service;
 
+import com.mongodb.client.model.DeleteManyModel;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import io.nuls.api.bean.annotation.Autowired;
@@ -44,8 +45,15 @@ public class TransactionService {
         if (txHashList.isEmpty()) {
             return;
         }
-        Bson filter = Filters.in("txHash", txHashList);
-        mongoDBService.delete(MongoTableName.TX_RELATION_INFO, filter);
+//        Bson filter = Filters.in("txHash", txHashList);
+//        mongoDBService.delete(MongoTableName.TX_RELATION_INFO, filter);
+        List<DeleteManyModel<Document>> list = new ArrayList<>();
+        for (String hash : txHashList) {
+            DeleteManyModel model = new DeleteManyModel(Filters.eq("txHash", hash));
+            list.add(model);
+        }
+        mongoDBService.bulkWrite(MongoTableName.TX_RELATION_INFO, list);
+
     }
 
 
