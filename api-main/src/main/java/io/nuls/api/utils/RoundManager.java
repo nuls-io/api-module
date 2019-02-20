@@ -111,7 +111,7 @@ public class RoundManager {
         }
         List<AgentSorter> sorterList = new ArrayList<>();
         for (AgentInfo agent : map.values()) {
-            if (agent.getTotalDeposit() >= MIN_DEPOSIT) {
+            if ((agent.getTotalDeposit() - agent.getDeposit()) >= MIN_DEPOSIT) {
                 AgentSorter sorter = new AgentSorter();
                 sorter.setAgentId(agent.getTxHash());
                 byte[] hash = ArraysTool.concatenate(AddressTool.getAddress(agent.getPackingAddress()), SerializeUtils.uint64ToByteArray(blockInfo.getBlockHeader().getRoundStartTime()));
