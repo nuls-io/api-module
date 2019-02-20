@@ -35,6 +35,9 @@ public class SyncBlockTask implements Runnable {
 
     @Override
     public void run() {
+        if (!ApiContext.doSync) {
+            return;
+        }
         /*
          * 首先检查上一同步区块时，是否有完整解析和存储区块信息，
          * 如果不完整，先需要回滚掉上个区块的数据，再重新同步

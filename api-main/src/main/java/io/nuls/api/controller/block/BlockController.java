@@ -28,6 +28,7 @@ import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
 import io.nuls.api.controller.utils.VerifyUtils;
+import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.BlockInfo;
 import io.nuls.api.core.model.PageInfo;
@@ -181,6 +182,22 @@ public class BlockController {
         RpcResult rpcResult = new RpcResult();
         rpcResult.setResult(true);
         return rpcResult;
+    }
+
+    @RpcMethod("stopSync")
+    public RpcResult stopSync(List<Object> params) {
+        ApiContext.doSync = false;
+        RpcResult result = new RpcResult();
+        result.setResult(true);
+        return result;
+    }
+
+    @RpcMethod("recoverySync")
+    public RpcResult recoverySync(List<Object> params) {
+        ApiContext.doSync = true;
+        RpcResult result = new RpcResult();
+        result.setResult(true);
+        return result;
     }
 
 }

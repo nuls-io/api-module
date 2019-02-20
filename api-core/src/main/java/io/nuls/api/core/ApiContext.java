@@ -26,6 +26,7 @@ import java.util.*;
  * @author Niels
  */
 public class ApiContext {
+    public static boolean doSync = true;
     public static long bestHeight;
     public static Properties config;
 
