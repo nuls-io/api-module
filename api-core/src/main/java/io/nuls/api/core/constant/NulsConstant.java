@@ -34,5 +34,7 @@ public class NulsConstant {
     //合约不存在错误码
     public static final int CONTRACT_NOT_EXIST = 100002;
 
+    public static final int TX_TYPE_CONTRACT_TRANSFER = 103;
+
     public static final String DEFAULT_ENCODING = "UTF-8";
 }

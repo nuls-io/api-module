@@ -28,6 +28,7 @@ package io.nuls.api.bridge;
 
 import io.nuls.api.bean.annotation.Autowired;
 import io.nuls.api.bean.annotation.Component;
+import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.*;
 import io.nuls.api.core.util.Log;
 import io.nuls.sdk.core.contast.KernelErrorCode;
@@ -158,6 +159,38 @@ public class WalletRPCHandler {
             Block block = (Block) result.getData();
             BlockInfo blockInfo = analysisHandler.toBlock(block);
             blockInfo.getBlockHeader().setHash(hash);
+            clientResult.setData(blockInfo);
+        } catch (Exception e) {
+            Log.error(e);
+            clientResult = RpcClientResult.getFailed(KernelErrorCode.DATA_PARSE_ERROR);
+        }
+        return clientResult;
+    }
+
+    /**
+     * 根据区块hash获取完整区块
+     *
+     * @param height 区块高度
+     * @return 区块信息
+     */
+    public RpcClientResult<BlockInfo> getBlock(Long height) {
+        Result result = NulsSDKTool.getBlockWithBytes(height);
+        if (result.isFailed()) {
+            return RpcClientResult.errorResult(result);
+        }
+        RpcClientResult clientResult = RpcClientResult.getSuccess();
+        try {
+            Block block = (Block) result.getData();
+            BlockInfo blockInfo = analysisHandler.toBlock(block);
+            long txCount = block.getHeader().getTxCount();
+            for (Transaction tx : block.getTxs()) {
+                if (tx.getType() == NulsConstant.TX_TYPE_CONTRACT_TRANSFER) {
+                    txCount--;
+                }
+            }
+            block.getHeader().setTxCount(txCount);
+            block.getHeader().setHash(null);
+            blockInfo.getBlockHeader().setHash(block.getHeader().getHash().getDigestHex());
             clientResult.setData(blockInfo);
         } catch (Exception e) {
             Log.error(e);

@@ -147,6 +147,7 @@ public class BlockHeaderService {
 
     public void deleteBlockHeader(long height) {
         mongoDBService.delete(MongoTableName.BLOCK_HEADER, Filters.eq("_id", height));
+        this.bestHeader = null;
     }
 
     /**

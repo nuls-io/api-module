@@ -55,11 +55,11 @@ public class SyncBlockTask implements Runnable {
         boolean running = true;
         while (running) {
             try {
-                long start = System.currentTimeMillis();
+//                long start = System.currentTimeMillis();
                 running = syncBlock();
-                if (running) {
-                    Log.info("whole block use:" + (System.currentTimeMillis() - start));
-                }
+//                if (running) {
+//                    Log.info("whole block use:" + (System.currentTimeMillis() - start));
+//                }
             } catch (Exception e) {
                 Log.error(e);
                 running = false;
@@ -91,26 +91,8 @@ public class SyncBlockTask implements Runnable {
 //            return false;
 //        }
         ApiContext.bestHeight = localBestHeight;
-        //调用RPC接口获取节点钱包下一区块
-        RpcClientResult<BlockHeaderInfo> result = null;
         try {
-            result = walletRPCHandler.getBlockHeader(localBestHeight + 1);
-        } catch (Exception e) {
-            Log.error("--------获取下一区块头信息异常:", e);
-            return false;
-        }
-//        ClientSession session = mongoDBService.startSession();
-        try {
-//            session.startTransaction();
-            boolean success;
-            //根据返回结果，做相应的处理
-            if (result.isSuccess()) {
-                success = processWithSuccessResult(result, localBestBlockHeader);
-            } else {
-                success = processWithFailResult(result, localBestBlockHeader);
-            }
-//            session.commitTransaction();
-            return success;
+            return processWithSuccessResult(localBestBlockHeader);
         } catch (Exception e) {
             Log.error(e);
 //            session.abortTransaction();
@@ -120,19 +102,25 @@ public class SyncBlockTask implements Runnable {
         }
     }
 
-    private boolean processWithSuccessResult(RpcClientResult<BlockHeaderInfo> result, BlockHeaderInfo localBestBlockHeader) throws Exception {
-        BlockHeaderInfo newBlockHeader = result.getData();
-        //验证区块连续性
-        if (checkBlockContinuity(localBestBlockHeader, newBlockHeader)) {
-            RpcClientResult<BlockInfo> blockResult = walletRPCHandler.getBlock(newBlockHeader.getHash());
-            if (blockResult.isSuccess()) {
-                return syncService.saveNewBlock(blockResult.getData());
+    private boolean processWithSuccessResult(BlockHeaderInfo localBestBlockHeader) throws Exception {
+        long start = System.nanoTime();
+        RpcClientResult<BlockInfo> blockResult = walletRPCHandler.getBlock(localBestBlockHeader.getHeight() + 1);
+        Log.info("request use:" + (System.nanoTime() - start) + "ns");
+
+        if (blockResult.isSuccess()) {
+            BlockHeaderInfo newBlockHeader = blockResult.getData().getBlockHeader();
+            start = System.nanoTime();
+            //验证区块连续性
+            if (checkBlockContinuity(localBestBlockHeader, newBlockHeader)) {
+                Log.info("check use:" + (System.nanoTime() - start) + "ns");
+                start = System.nanoTime();
+                boolean result = syncService.saveNewBlock(blockResult.getData());
+                Log.info("save use:" + (System.nanoTime() - start) + "ns");
+                return result;
             } else {
-                Log.error("--------sync new block error:" + blockResult.getMsg());
-            }
-        } else {
-            if (localBestBlockHeader != null) {
-                return rollbackBlock.rollbackBlock(localBestBlockHeader.getHeight());
+                if (localBestBlockHeader != null) {
+                    return rollbackBlock.rollbackBlock(localBestBlockHeader.getHeight());
+                }
             }
         }
         return false;
