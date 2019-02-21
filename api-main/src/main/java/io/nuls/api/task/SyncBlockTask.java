@@ -103,19 +103,19 @@ public class SyncBlockTask implements Runnable {
     }
 
     private boolean processWithSuccessResult(BlockHeaderInfo localBestBlockHeader) throws Exception {
-        long start = System.nanoTime();
+//        long start = System.nanoTime();
         RpcClientResult<BlockInfo> blockResult = walletRPCHandler.getBlock(localBestBlockHeader.getHeight() + 1);
-        Log.info("request use:" + (System.nanoTime() - start) + "ns");
+//        Log.info("request use:" + (System.nanoTime() - start) + "ns");
 
         if (blockResult.isSuccess()) {
             BlockHeaderInfo newBlockHeader = blockResult.getData().getBlockHeader();
-            start = System.nanoTime();
+//            start = System.nanoTime();
             //验证区块连续性
             if (checkBlockContinuity(localBestBlockHeader, newBlockHeader)) {
-                Log.info("check use:" + (System.nanoTime() - start) + "ns");
-                start = System.nanoTime();
+//                Log.info("check use:" + (System.nanoTime() - start) + "ns");
+//                start = System.nanoTime();
                 boolean result = syncService.saveNewBlock(blockResult.getData());
-                Log.info("save use:" + (System.nanoTime() - start) + "ns");
+//                Log.info("save use:" + (System.nanoTime() - start) + "ns");
                 return result;
             } else {
                 if (localBestBlockHeader != null) {

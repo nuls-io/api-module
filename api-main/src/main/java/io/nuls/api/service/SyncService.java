@@ -108,23 +108,23 @@ public class SyncService {
         BlockHeaderInfo headerInfo = blockInfo.getBlockHeader();
 
         findAddProcessAgentOfBlock(blockInfo);
-        Log.info("use 1 :{}", getLongString(System.nanoTime() - time1));
-        time1 = System.nanoTime();
+//        Log.info("use 1 :{}", getLongString(System.nanoTime() - time1));
+//        time1 = System.nanoTime();
 
         //处理交易
         processTxs(blockInfo.getTxs());
-        Log.info("use 2 :{}", getLongString(System.nanoTime() - time1));
-        time1 = System.nanoTime();
+//        Log.info("use 2 :{}", getLongString(System.nanoTime() - time1));
+//        time1 = System.nanoTime();
 
         //处理轮次信息
         processRoundData(blockInfo);
-        Log.info("use 3 :{}", getLongString(System.nanoTime() - time1));
-        time1 = System.nanoTime();
+//        Log.info("use 3 :{}", getLongString(System.nanoTime() - time1));
+//        time1 = System.nanoTime();
 
         //保存数据
         save(blockInfo);
-        Log.info("use 4 :{}", getLongString(System.nanoTime() - time1));
-        time1 = System.nanoTime();
+//        Log.info("use 4 :{}", getLongString(System.nanoTime() - time1));
+//        time1 = System.nanoTime();
 
 
         if (i % 1000 == 0) {
