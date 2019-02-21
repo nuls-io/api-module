@@ -43,9 +43,7 @@ import io.nuls.sdk.core.utils.VarInt;
 import org.spongycastle.util.Arrays;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 区块数据解析处理器
@@ -120,11 +118,7 @@ public class AnalysisHandler {
         List<TransactionInfo> txs = new ArrayList<>();
         for (int i = 0; i < txList.size(); i++) {
             TransactionInfo txInfo = toTransaction(txList.get(i));
-            if (txInfo.getFroms() != null && !txInfo.getFroms().isEmpty()) {
-                if (txInfo.getFroms().get(0).getAddress() == null) {
-                    txInfo.setFroms(rpcHandler.queryTxInput(txInfo.getHash()));
-                }
-            }
+
             if (txInfo.getType() == TransactionConstant.TX_TYPE_RED_PUNISH) {
                 PunishLog punishLog = (PunishLog) txInfo.getTxData();
                 punishLog.setRoundIndex(blockHeader.getRoundIndex());
@@ -161,12 +155,40 @@ public class AnalysisHandler {
         }
         info.setFroms(toInputs(tx.getCoinData(), tx));
         info.setTos(toOutputs(tx.getCoinData(), info.getHash()));
-
+        if (info.getFroms() != null && !info.getFroms().isEmpty()) {
+            if (info.getFroms().get(0).getAddress() == null) {
+                info.setFroms(rpcHandler.queryTxInput(info.getHash()));
+            }
+        }
         if (info.getType() == TransactionConstant.TX_TYPE_YELLOW_PUNISH) {
             info.setTxDataList(toTxDataList(tx));
         } else {
             info.setTxData(toTxData(tx));
         }
+
+        long value = 0;
+        if (info.getType() == TransactionConstant.TX_TYPE_COINBASE) {
+            if (info.getTos() != null) {
+                for (Output output : info.getTos()) {
+                    value += output.getValue();
+                }
+            }
+        } else if (info.getType() == TransactionConstant.TX_TYPE_TRANSFER ||
+                info.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT ||
+                info.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
+            Set<String> addressSet = new HashSet<>();
+            for (Input input : info.getFroms()) {
+                addressSet.add(input.getAddress());
+            }
+            for (Output output : info.getTos()) {
+                if (!addressSet.contains(output.getAddress())) {
+                    value += output.getValue();
+                }
+            }
+        } else if (info.getType() == TransactionConstant.TX_TYPE_ALIAS) {
+            value = 100000000;
+        }
+        info.setValue(value);
         return info;
     }
 

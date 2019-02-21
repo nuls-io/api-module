@@ -10,7 +10,6 @@ import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.RoundManager;
 import io.nuls.sdk.core.contast.TransactionConstant;
-import io.nuls.sdk.core.utils.DoubleUtils;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
