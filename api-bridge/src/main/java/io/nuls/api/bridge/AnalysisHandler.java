@@ -175,7 +175,8 @@ public class AnalysisHandler {
             }
         } else if (info.getType() == TransactionConstant.TX_TYPE_TRANSFER ||
                 info.getType() == TransactionConstant.TX_TYPE_CALL_CONTRACT ||
-                info.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER) {
+                info.getType() == TransactionConstant.TX_TYPE_CONTRACT_TRANSFER ||
+                info.getType() == TransactionConstant.TX_TYPE_DATA) {
             Set<String> addressSet = new HashSet<>();
             for (Input input : info.getFroms()) {
                 addressSet.add(input.getAddress());
