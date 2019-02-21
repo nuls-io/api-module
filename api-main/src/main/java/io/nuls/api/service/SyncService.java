@@ -119,13 +119,11 @@ public class SyncService {
         //处理轮次信息
         processRoundData(blockInfo);
 //        Log.info("use 3 :{}", getLongString(System.nanoTime() - time1));
-//        time1 = System.nanoTime();
+        time1 = System.nanoTime();
 
         //保存数据
         save(blockInfo);
-//        Log.info("use 4 :{}", getLongString(System.nanoTime() - time1));
-//        time1 = System.nanoTime();
-
+        Log.info("use 4 :{}", getLongString(System.nanoTime() - time1));
 
         if (i % 1000 == 0) {
             Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1000) + "ms");
@@ -718,8 +716,9 @@ public class SyncService {
      * 解析区块和所有交易后，将数据存储到数据库中
      */
     public void save(BlockInfo blockInfo) throws Exception {
-        long height =  blockInfo.getBlockHeader().getHeight();
+        long height = blockInfo.getBlockHeader().getHeight();
         blockHeaderService.saveNewHeightInfo(height);
+//        time1 = System.nanoTime();
         //存储区块头信息
         blockHeaderService.saveBLockHeaderInfo(blockInfo.getBlockHeader());
         //存储交易记录
@@ -741,26 +740,26 @@ public class SyncService {
         contractService.saveContractResults(contractResultList);
         //存储token转账信息
         tokenService.saveTokenTransfers(tokenTransferList);
-        blockHeaderService.updateStep(height,10);
+        blockHeaderService.updateStep(height, 10);
         /*
             涉及到统计类的表放在最后来存储，便于回滚
          */
         //根据input和output更新utxo表
         utxoService.saveOutputs(inputList, outputMap);
-        blockHeaderService.updateStep(height,20);
+        blockHeaderService.updateStep(height, 20);
         //存储共识节点列表
         agentService.saveAgentList(agentInfoList);
-        blockHeaderService.updateStep(height,30);
+        blockHeaderService.updateStep(height, 30);
         //存储智能合约记录
         contractService.saveContractInfos(contractInfoMap);
-        blockHeaderService.updateStep(height,40);
+        blockHeaderService.updateStep(height, 40);
         //存储账户token信息
         tokenService.saveAccountTokens(accountTokenMap);
-        blockHeaderService.updateStep(height,50);
+        blockHeaderService.updateStep(height, 50);
         //修改账户信息表
         accountService.saveAccounts(accountInfoMap);
         //完成解析
-        blockHeaderService.syncComplete();
+        blockHeaderService.syncComplete(height, 100);
     }
 
     private AccountInfo queryAccountInfo(String address) {

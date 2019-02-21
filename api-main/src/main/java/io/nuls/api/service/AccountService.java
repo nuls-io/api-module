@@ -17,13 +17,12 @@ import io.nuls.api.utils.CalcUtil;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class AccountService {
+
+    private static final Map<String, AccountInfo> accountMap = new HashMap<>();
 
     @Autowired
     private MongoDBService mongoDBService;
@@ -32,15 +31,29 @@ public class AccountService {
     @Autowired
     private BlockHeaderService blockHeaderService;
 
+    private void initCache() {
+        if (!accountMap.isEmpty()) {
+            return;
+        }
+        List<Document> documentList = mongoDBService.query(MongoTableName.ACCOUNT_INFO);
+        for (Document document : documentList) {
+            AccountInfo accountInfo = DocumentTransferTool.toInfo(document, "address", AccountInfo.class);
+            accountMap.put(accountInfo.getAddress(), accountInfo);
+        }
+    }
+
     public void saveAccounts(Map<String, AccountInfo> accountInfoMap) {
+        initCache();
         if (accountInfoMap.isEmpty()) {
             return;
         }
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (AccountInfo accountInfo : accountInfoMap.values()) {
+            accountMap.put(accountInfo.getAddress(), accountInfo);
             Document document = DocumentTransferTool.toDocument(accountInfo, "address");
             if (accountInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
+                accountInfo.setNew(false);
             } else {
                 modelList.add(new ReplaceOneModel<>(Filters.eq("_id", accountInfo.getAddress()), document));
             }
@@ -49,12 +62,14 @@ public class AccountService {
     }
 
     public AccountInfo getAccountInfo(String address) {
-        Document document = mongoDBService.findOne(MongoTableName.ACCOUNT_INFO, Filters.eq("_id", address));
-        if (document == null) {
-            return null;
-        }
-        AccountInfo accountInfo = DocumentTransferTool.toInfo(document, "address", AccountInfo.class);
-        return accountInfo;
+        initCache();
+        return accountMap.get(address);
+//        Document document = mongoDBService.findOne(MongoTableName.ACCOUNT_INFO, Filters.eq("_id", address));
+//        if (document == null) {
+//            return null;
+//        }
+//        AccountInfo accountInfo = DocumentTransferTool.toInfo(document, "address", AccountInfo.class);
+//        return accountInfo;
     }
 
     public PageInfo<AccountInfo> pageQuery(int pageNumber, int pageSize) {

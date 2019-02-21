@@ -103,8 +103,12 @@ public class SyncBlockTask implements Runnable {
     }
 
     private boolean processWithSuccessResult(BlockHeaderInfo localBestBlockHeader) throws Exception {
+        long nextHeight = 0;
+        if (localBestBlockHeader != null) {
+            nextHeight = localBestBlockHeader.getHeight() + 1;
+        }
 //        long start = System.nanoTime();
-        RpcClientResult<BlockInfo> blockResult = walletRPCHandler.getBlock(localBestBlockHeader.getHeight() + 1);
+        RpcClientResult<BlockInfo> blockResult = walletRPCHandler.getBlock(nextHeight);
 //        Log.info("request use:" + (System.nanoTime() - start) + "ns");
 
         if (blockResult.isSuccess()) {

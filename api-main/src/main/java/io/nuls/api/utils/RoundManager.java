@@ -95,23 +95,23 @@ public class RoundManager {
             startHeight = startHeight - 1;
         }
         List<AgentInfo> agentList = this.agentService.getAgentList(startHeight);
-        List<DepositInfo> depositList = this.depositService.getDepositList(startHeight);
+//        List<DepositInfo> depositList = this.depositService.getDepositList(startHeight);
         Map<String, AgentInfo> map = new HashMap<>();
         for (AgentInfo agent : agentList) {
-            agent.setTotalDeposit(agent.getDeposit());
+//            agent.setTotalDeposit(agent.getDeposit());
             map.put(agent.getTxHash(), agent);
         }
-        for (DepositInfo deposit : depositList) {
-            AgentInfo agent = map.get(deposit.getAgentHash());
-            if (null == agent) {
-                Log.warn("Wrong deposit！");
-                continue;
-            }
-            agent.setTotalDeposit(agent.getTotalDeposit() + deposit.getAmount());
-        }
+//        for (DepositInfo deposit : depositList) {
+//            AgentInfo agent = map.get(deposit.getAgentHash());
+//            if (null == agent) {
+//                Log.warn("Wrong deposit！");
+//                continue;
+//            }
+//            agent.setTotalDeposit(agent.getTotalDeposit() + deposit.getAmount());
+//        }
         List<AgentSorter> sorterList = new ArrayList<>();
         for (AgentInfo agent : map.values()) {
-            if ((agent.getTotalDeposit() - agent.getDeposit()) >= MIN_DEPOSIT) {
+            if ((agent.getTotalDeposit()) >= MIN_DEPOSIT) {
                 AgentSorter sorter = new AgentSorter();
                 sorter.setAgentId(agent.getTxHash());
                 byte[] hash = ArraysTool.concatenate(AddressTool.getAddress(agent.getPackingAddress()), SerializeUtils.uint64ToByteArray(blockInfo.getBlockHeader().getRoundStartTime()));
@@ -222,12 +222,12 @@ public class RoundManager {
         item.setTxCount(header.getTxCount());
         item.setReward(header.getReward());
 
-        roundService.updateRoundItem(item);
         this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() + 1);
         this.currentRound.setEndHeight(blockInfo.getBlockHeader().getHeight());
         currentRound.setLostRate(DoubleUtils.div(blockInfo.getBlockHeader().getPackingIndexOfRound() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
         this.fillPunishCount(blockInfo.getTxs(), currentRound, true);
 
+        roundService.updateRoundItem(item);
         this.roundService.updateRound(this.currentRound.toPocRound());
 
     }

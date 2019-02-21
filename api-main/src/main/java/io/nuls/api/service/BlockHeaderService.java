@@ -66,12 +66,12 @@ public class BlockHeaderService {
      * @param newHeight 最新高度
      */
     public void saveNewHeightInfo(long newHeight) {
-        Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
         Document document = new Document();
         document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", newHeight).append("finish", false).append("step", 0);
         if (newHeight == 0) {
             mongoDBService.insertOne(MongoTableName.NEW_INFO, document);
         } else {
+            Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
             mongoDBService.updateOne(MongoTableName.NEW_INFO, query, document);
         }
     }
@@ -83,10 +83,10 @@ public class BlockHeaderService {
         mongoDBService.updateOne(MongoTableName.NEW_INFO, query, document);
     }
 
-    public void syncComplete() {
+    public void syncComplete(long height, int step) {
         Bson query = Filters.eq("_id", MongoTableName.BEST_BLOCK_HEIGHT);
-        Document document = mongoDBService.findOne(MongoTableName.NEW_INFO, query);
-        document.put("finish", true);
+        Document document = new Document();
+        document.append("_id", MongoTableName.BEST_BLOCK_HEIGHT).append("height", height).append("finish", true).append("step", step);
         mongoDBService.updateOne(MongoTableName.NEW_INFO, query, document);
     }
 
