@@ -95,23 +95,26 @@ public class RoundManager {
             startHeight = startHeight - 1;
         }
         List<AgentInfo> agentList = this.agentService.getAgentList(startHeight);
-//        List<DepositInfo> depositList = this.depositService.getDepositList(startHeight);
+        List<DepositInfo> depositList = this.depositService.getDepositList(startHeight);
         Map<String, AgentInfo> map = new HashMap<>();
+        Map<String, Long> depositMap = new HashMap<>();
         for (AgentInfo agent : agentList) {
-//            agent.setTotalDeposit(agent.getDeposit());
             map.put(agent.getTxHash(), agent);
         }
-//        for (DepositInfo deposit : depositList) {
-//            AgentInfo agent = map.get(deposit.getAgentHash());
-//            if (null == agent) {
-//                Log.warn("Wrong deposit！");
-//                continue;
-//            }
-//            agent.setTotalDeposit(agent.getTotalDeposit() + deposit.getAmount());
-//        }
+        for (DepositInfo deposit : depositList) {
+            Long agentDeposit = depositMap.get(deposit.getAgentHash());
+            if (null == agentDeposit) {
+                agentDeposit = 0L;
+            }
+            depositMap.put(deposit.getAgentHash(), agentDeposit + deposit.getAmount());
+        }
         List<AgentSorter> sorterList = new ArrayList<>();
         for (AgentInfo agent : map.values()) {
-            if ((agent.getTotalDeposit()) >= MIN_DEPOSIT) {
+            Long totalDeposit = depositMap.get(agent.getTxHash());
+            if (null == totalDeposit) {
+                totalDeposit = 0L;
+            }
+            if (totalDeposit >= MIN_DEPOSIT) {
                 AgentSorter sorter = new AgentSorter();
                 sorter.setAgentId(agent.getTxHash());
                 byte[] hash = ArraysTool.concatenate(AddressTool.getAddress(agent.getPackingAddress()), SerializeUtils.uint64ToByteArray(blockInfo.getBlockHeader().getRoundStartTime()));
