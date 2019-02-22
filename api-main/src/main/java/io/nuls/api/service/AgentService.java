@@ -149,6 +149,7 @@ public class AgentService {
             if (agentInfo.isNew()) {
 //                System.out.println(document.get("blockHeight") + "==" + document.getString("_id"));
                 modelList.add(new InsertOneModel(document));
+                agentInfo.setNew(false);
             } else {
                 modelList.add(new ReplaceOneModel<>(Filters.eq("_id", agentInfo.getTxHash()), document));
             }
