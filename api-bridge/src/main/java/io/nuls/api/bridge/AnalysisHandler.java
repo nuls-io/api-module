@@ -181,9 +181,11 @@ public class AnalysisHandler {
             for (Input input : info.getFroms()) {
                 addressSet.add(input.getAddress());
             }
-            for (Output output : info.getTos()) {
-                if (!addressSet.contains(output.getAddress())) {
-                    value += output.getValue();
+            if (null != info.getTos()) {
+                for (Output output : info.getTos()) {
+                    if (!addressSet.contains(output.getAddress())) {
+                        value += output.getValue();
+                    }
                 }
             }
         } else if (info.getType() == TransactionConstant.TX_TYPE_ALIAS) {
