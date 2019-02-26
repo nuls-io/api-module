@@ -13,6 +13,7 @@ import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.model.TxRelationInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.api.core.util.Log;
 import io.nuls.api.utils.CalcUtil;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -94,9 +95,12 @@ public class AccountService {
         } else {
             filter = addressFilter;
         }
-
+//        long start = System.currentTimeMillis();
         long totalCount = mongoDBService.getCount(MongoTableName.TX_RELATION_INFO, filter);
+//        Log.info("count use:{}ms",System.currentTimeMillis()-start);
+//        start = System.currentTimeMillis();
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.TX_RELATION_INFO, filter, Sorts.descending("height", "createTime"), pageIndex, pageSize);
+//        Log.info("query use:{}ms",System.currentTimeMillis()-start);
         List<TxRelationInfo> txRelationInfoList = new ArrayList<>();
         for (Document document : docsList) {
             txRelationInfoList.add(DocumentTransferTool.toInfo(document, TxRelationInfo.class));

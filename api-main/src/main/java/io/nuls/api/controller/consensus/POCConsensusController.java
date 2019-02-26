@@ -27,6 +27,7 @@ import io.nuls.api.bridge.WalletRPCHandler;
 import io.nuls.api.controller.model.RpcErrorCode;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.controller.model.RpcResultError;
+import io.nuls.api.controller.utils.AgentComparator;
 import io.nuls.api.controller.utils.VerifyUtils;
 import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.*;
@@ -37,6 +38,7 @@ import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.DoubleUtils;
 import io.nuls.sdk.core.utils.StringUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,6 +122,9 @@ public class POCConsensusController {
                 agentInfo.setStatus(clientResult.getData().getStatus());
             }
         }
+
+        Collections.sort(list.getList(), AgentComparator.getInstance());
+
         return new RpcResult().setResult(list);
     }
 

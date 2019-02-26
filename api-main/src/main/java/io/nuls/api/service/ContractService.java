@@ -30,7 +30,9 @@ public class ContractService {
             return null;
         }
         ContractInfo tokenInfo = DocumentTransferTool.toInfo(document, "contractAddress", ContractInfo.class);
-        tokenInfo.setMethods(JSONUtils.json2list(tokenInfo.getMethodStr(), ContractMethod.class));
+        if (tokenInfo != null && tokenInfo.getMethodStr() != null) {
+            tokenInfo.setMethods(JSONUtils.json2list(tokenInfo.getMethodStr(), ContractMethod.class));
+        }
         tokenInfo.setMethodStr(null);
         return tokenInfo;
     }
