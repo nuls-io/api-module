@@ -210,11 +210,13 @@ public class AgentService {
         Bson filter = null;
         Bson deleteFilter = Filters.eq("deleteHeight", 0);
         if (type == 1) {
-            filter = Filters.and(Filters.nin("agentAddress", ApiContext.DEVELOPER_NODE_ADDRESS.addAll(ApiContext.AMBASSADOR_NODE_ADDRESS), deleteFilter));
+            List list = new ArrayList<>(ApiContext.DEVELOPER_NODE_ADDRESS);
+            list.addAll(ApiContext.AMBASSADOR_NODE_ADDRESS);
+            filter = Filters.and(Filters.nin("agentAddress", list.toArray()), deleteFilter);
         } else if (type == 2) {
-            filter = Filters.and(Filters.in("agentAddress", ApiContext.DEVELOPER_NODE_ADDRESS, deleteFilter));
+            filter = Filters.and(Filters.in("agentAddress", ApiContext.DEVELOPER_NODE_ADDRESS.toArray()), deleteFilter);
         } else if (type == 3) {
-            filter = Filters.and(Filters.in("agentAddress", ApiContext.AMBASSADOR_NODE_ADDRESS, deleteFilter));
+            filter = Filters.and(Filters.in("agentAddress", ApiContext.AMBASSADOR_NODE_ADDRESS.toArray()), deleteFilter);
         } else {
             filter = deleteFilter;
         }
@@ -228,6 +230,15 @@ public class AgentService {
                 agentInfo.setAgentAlias(alias.getAlias());
             }
             agentInfoList.add(agentInfo);
+            if (agentInfo.getType() == null && null != agentInfo.getAgentAddress()) {
+                if (ApiContext.DEVELOPER_NODE_ADDRESS.contains(agentInfo.getAgentAddress())) {
+                    agentInfo.setType(2);
+                } else if (ApiContext.AMBASSADOR_NODE_ADDRESS.contains(agentInfo.getAgentAddress())) {
+                    agentInfo.setType(3);
+                } else {
+                    agentInfo.setType(1);
+                }
+            }
         }
         PageInfo<AgentInfo> pageInfo = new PageInfo<>(pageNumber, pageSize, totalCount, agentInfoList);
         return pageInfo;

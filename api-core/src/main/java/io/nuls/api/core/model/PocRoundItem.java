@@ -152,8 +152,7 @@ public class PocRoundItem {
     public boolean isYellow() {
         if (time < TimeService.currentTimeMillis() && null == blockHash) {
             this.yellow = true;
-        }
-        if (null == yellow) {
+        } else {
             yellow = false;
         }
         return yellow;

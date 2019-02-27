@@ -103,7 +103,7 @@ public class POCConsensusController {
         if (pageIndex <= 0) {
             pageIndex = 1;
         }
-        if (pageSize <= 0 || pageSize > 100) {
+        if (pageSize <= 0 || pageSize > 200) {
             pageSize = 10;
         }
 //        Map<String, Integer> map = new HashMap<>();
@@ -111,7 +111,6 @@ public class POCConsensusController {
 //        for (PocRoundItem item : itemList) {
 //            map.put(item.getPackingAddress(), 1);
 //        }
-
 
         PageInfo<AgentInfo> list = agentService.getAgentList(type, pageIndex, pageSize);
         for (AgentInfo agentInfo : list.getList()) {

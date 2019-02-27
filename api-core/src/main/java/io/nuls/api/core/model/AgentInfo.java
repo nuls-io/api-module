@@ -52,6 +52,8 @@ public class AgentInfo extends TxData {
 
     private int version;
 
+    private Integer type;
+
     public AgentInfo() {
         totalReward = 0L;
         totalPackingCount = 0L;
@@ -255,5 +257,13 @@ public class AgentInfo extends TxData {
 
     public void setAgentReward(long agentReward) {
         this.agentReward = agentReward;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
     }
 }
