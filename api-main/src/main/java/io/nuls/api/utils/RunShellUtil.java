@@ -27,6 +27,7 @@ import io.nuls.api.core.util.Log;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +50,7 @@ public class RunShellUtil {
                 Log.error("执行脚本超时5秒....");
             }
             //获取输出
-            BufferedReader br = new BufferedReader(new InputStreamReader(ps.getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(ps.getInputStream(), StandardCharsets.UTF_8));
             String line;
             while ((line = br.readLine()) != null) {
                 resultList.add(line);

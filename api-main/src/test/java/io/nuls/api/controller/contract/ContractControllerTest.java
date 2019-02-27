@@ -4,6 +4,7 @@ import io.nuls.api.ApiModuleBootstrap;
 import io.nuls.api.bean.SpringLiteContext;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.core.util.Log;
+import io.nuls.sdk.core.contast.ContractConstant;
 import io.nuls.sdk.core.utils.StringUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -13,18 +14,28 @@ import org.junit.Test;
 import javax.swing.*;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
 
 public class ContractControllerTest {
 
     private static String BASE;
+
+    private static void initSys() throws Exception {
+        System.setProperty("file.encoding", UTF_8.name());
+        Field charset = Charset.class.getDeclaredField("defaultCharset");
+        charset.setAccessible(true);
+        charset.set(null, UTF_8);
+    }
 
     private static void getBase() {
         String serverHome = System.getProperty("api.server.home");
@@ -45,7 +56,8 @@ public class ContractControllerTest {
     }
 
     @BeforeClass
-    public static void startUp() {
+    public static void startUp() throws Exception {
+        initSys();
         getBase();
         ApiModuleBootstrap.main(null);
     }
@@ -54,11 +66,11 @@ public class ContractControllerTest {
     public void validateContractCode() {
         FileInputStream in=  null;
         try {
-            TimeUnit.SECONDS.sleep(3);
+            TimeUnit.SECONDS.sleep(5);
             ContractController controller = SpringLiteContext.getBean(ContractController.class);
             List<Object> params = new ArrayList<>();
-            String address = "TTb42Ekgkaug3iVQsAnCoE3VEiiWFdbg";
-            File file = new File(BASE + "/contract/code/ddd.zip");
+            String address = "TTb4Y6qzJyzHDrcNkczN7quV5mdbtMgy";
+            File file = new File(BASE + "/contract/code/red_envelope.zip");
             in = new FileInputStream(file);
             params.add(address);
             params.add("mockHeader," + Base64.getEncoder().encodeToString(IOUtils.toByteArray(in)));

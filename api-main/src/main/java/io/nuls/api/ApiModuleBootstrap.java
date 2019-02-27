@@ -35,7 +35,11 @@ import io.nuls.sdk.core.utils.RestFulUtils;
 import io.nuls.sdk.core.utils.StringUtils;
 import io.nuls.sdk.core.utils.TimeService;
 
+import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.Properties;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author Niels
@@ -54,6 +58,11 @@ public class ApiModuleBootstrap {
         String dbName = "nuls";
         Boolean clearDB = false;
         try {
+            System.setProperty("file.encoding", UTF_8.name());
+            Field charset = Charset.class.getDeclaredField("defaultCharset");
+            charset.setAccessible(true);
+            charset.set(null, UTF_8);
+
             Properties prop = ConfigLoader.loadProperties("cfg.properties");
             ApiContext.config = prop;
             String ipOfCfg = prop.getProperty("listener.ip");
@@ -96,14 +105,14 @@ public class ApiModuleBootstrap {
         server.startServer(ip, port);
 
         Log.info("api module is started!");
-        while (true) {
-            try {
-                Thread.sleep(10000L);
-                Log.info("bestHeight:" + ApiContext.bestHeight);
-            } catch (InterruptedException e) {
-                Log.error(e);
-            }
-        }
+        //while (true) {
+        //    try {
+        //        Thread.sleep(10000L);
+        //        Log.info("bestHeight:" + ApiContext.bestHeight);
+        //    } catch (InterruptedException e) {
+        //        Log.error(e);
+        //    }
+        //}
     }
 
     private static void loadWalletAddress(Properties prop) {

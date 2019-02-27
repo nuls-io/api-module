@@ -266,6 +266,10 @@ public class MethodCode {
         localVariables = new ArrayList<>(arrayListInitialCapacity(localVariableNodes.size()));
 
         for (LocalVariableNode localVariableNode : localVariableNodes) {
+            // skip localVariable named 'i$' and desc 'Ljava/util/Iterator;'
+            if("i$".equals(localVariableNode.name) && "Ljava/util/Iterator;".equals(localVariableNode.desc)) {
+                continue;
+            }
             localVariables.add(new LocalVariableCode(localVariableNode));
         }
 
