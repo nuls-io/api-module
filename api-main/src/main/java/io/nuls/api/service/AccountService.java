@@ -122,8 +122,8 @@ public class AccountService {
         long totalCount = mongoDBService.getCount(MongoTableName.ACCOUNT_INFO, filter);
         for (Document document : docsList) {
             AccountInfo accountInfo = DocumentTransferTool.toInfo(document, "address", AccountInfo.class);
-            List<Output> outputs = utxoService.getAccountUtxos(accountInfo.getAddress());
-            CalcUtil.calcBalance(accountInfo, outputs, blockHeaderService.getBestBlockHeight());
+//            List<Output> outputs = utxoService.getAccountUtxos(accountInfo.getAddress());
+//            CalcUtil.calcBalance(accountInfo, outputs, blockHeaderService.getBestBlockHeight());
             accountInfoList.add(accountInfo);
         }
         PageInfo<AccountInfo> pageInfo = new PageInfo<>(pageIndex, pageSize, totalCount, accountInfoList);

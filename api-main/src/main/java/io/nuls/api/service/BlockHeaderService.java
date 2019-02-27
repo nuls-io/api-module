@@ -9,6 +9,7 @@ import io.nuls.api.core.model.BlockHeaderInfo;
 import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.DocumentTransferTool;
+import io.nuls.api.core.util.Log;
 import io.nuls.sdk.core.utils.StringUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
