@@ -31,7 +31,10 @@ public enum RpcErrorCode {
     CONTRACT_NOT_VALIDATION_ERROR(100, "Contract code not certified!"),
 
     // 合约已验证
-    CONTRACT_VALIDATION_ERROR(100, "The contract code has been certified!"),
+    CONTRACT_VALIDATION_ERROR(101, "The contract code has been certified!"),
+
+    // 合约验证失败
+    CONTRACT_VALIDATION_FAILED(102, "Contract verification failed."),
 
     //数据未找到
     DATA_NOT_EXISTS(404, "Data is not exists!"),

@@ -111,6 +111,10 @@ public final class Log {
         }
     }
 
+    public static boolean isDebugEnabled() {
+        return LOG.isDebugEnabled();
+    }
+
     /**
      * 提供info级别基本的日志输出
      *

@@ -254,6 +254,10 @@ public class ContractController {
                 result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "File Data error."));
                 return result;
             }
+
+            Log.debug("contract validate home: {}", VALIDATE_HOME);
+            Log.debug("base home: {}", BASE);
+
             String headerInfo = arr[0];
             String body = arr[1];
             byte[] fileContent = Base64.getDecoder().decode(body);
@@ -288,25 +292,28 @@ public class ContractController {
 
                 // 比较代码指令
                 isValidationPass = CompareJar.compareJarBytes(contractCode, validateContractCode);
-                result.setResult(isValidationPass);
 
                 if(!isValidationPass) {
+                    result.setError(new RpcResultError(RpcErrorCode.CONTRACT_VALIDATION_FAILED));
                     break;
                 }
 
                 // 合约认证通过后，更新合约认证状态
+                result.setResult(isValidationPass);
                 contractInfo.setStatus(2);
                 contractInfo.setCertificationTime(System.currentTimeMillis());
                 contractService.updateContractInfo(contractInfo);
             } while (false);
 
-            if(!isValidationPass) {
-                // 删除上传的文件
-                if(zipFile.exists()) {
-                    zipFile.delete();
+            if(!Log.isDebugEnabled()) {
+                if(!isValidationPass) {
+                    // 删除上传的文件
+                    if(zipFile.exists()) {
+                        zipFile.delete();
+                    }
+                    delFolder(VALIDATE_HOME + contractAddress);
+                    return result;
                 }
-                delFolder(VALIDATE_HOME + contractAddress);
-                return new RpcResult().setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "Verification failed."));
             }
 
 
