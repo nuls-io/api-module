@@ -25,6 +25,7 @@ package io.nuls.api.controller.contract;
 
 import io.nuls.api.core.model.ContractCode;
 import io.nuls.api.core.model.ContractCodeNode;
+import io.nuls.sdk.core.utils.StringUtils;
 import org.junit.Test;
 
 import java.io.File;
@@ -56,6 +57,39 @@ public class ContractCodeTreeTest {
         File[] files = src.listFiles();
         recursive(src.listFiles(), children);
         System.out.println(root);
+    }
+
+    @Test
+    public void checkSourceFile() {
+        File src = new File("/Users/pierreluo/IdeaProjects/api-module/api-main/target/test-classes/contract/code/TTb4Y6qzJyzHDrcNkczN7quV5mdbtMgy/src");
+        String illegalFile = recursiveCheck(src.listFiles());
+        if(StringUtils.isNotBlank(illegalFile)) {
+            System.out.println("An illegal file was detected. The file name is " + illegalFile);
+        }
+    }
+
+    private String recursiveCheck(File[] files) {
+        for(File file : files) {
+            if(file.isDirectory()) {
+                String result = recursiveCheck(file.listFiles());
+                if(StringUtils.isNotBlank(result)) {
+                    return result;
+                }
+            } else {
+                System.out.println(file.getName());
+                if(!permissibleFile(file.getName())) {
+                    return file.getName();
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean permissibleFile(String fileName) {
+        if(fileName != null && fileName.endsWith(".java")) {
+            return true;
+        }
+        return false;
     }
 
     private void recursive(File[] files, List<ContractCodeNode> children) {
