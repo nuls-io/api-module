@@ -107,7 +107,7 @@ public class ApiModuleBootstrap {
         Log.info("api module is started!");
         while (true) {
             try {
-                Thread.sleep(10000L);
+                Thread.sleep(60000L);
                 Log.info("bestHeight:" + ApiContext.bestHeight);
             } catch (InterruptedException e) {
                 Log.error(e);

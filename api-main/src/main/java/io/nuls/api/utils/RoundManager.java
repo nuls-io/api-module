@@ -184,6 +184,28 @@ public class RoundManager {
         round.setLostRate(DoubleUtils.div(header.getPackingIndexOfRound() - round.getProducedBlockCount(), round.getMemberCount()));
 
         fillPunishCount(blockInfo.getTxs(), round, true);
+        if (round.getIndex() == 1) {
+            CurrentRound round1 = new CurrentRound();
+            round1.setStartTime(header.getRoundStartTime());
+            round1.setStartHeight(0);
+            round1.setProducedBlockCount(1);
+            round1.setMemberCount(1);
+            round1.setIndex(1);
+            round1.setEndTime(header.getCreateTime());
+            round1.setEndHeight(0);
+            List<PocRoundItem> itemList1 = new ArrayList<>();
+            PocRoundItem item = new PocRoundItem();
+            itemList1.add(item);
+            item.setTime(header.getCreateTime());
+            item.setTxCount(1);
+            item.setBlockHash(header.getHash());
+            item.setBlockHeight(0);
+            item.setPackingAddress(header.getPackingAddress());
+            item.setRoundIndex(1);
+            item.setOrder(1);
+            round1.setItemList(itemList);
+            round = round1;
+        }
         this.currentRound = round;
 //        Log.warn("++++++++{}({})+++++++" + round.toString(), blockInfo.getBlockHeader().getHeight(), startHeight);
         roundService.saveRoundItemList(round.getItemList());

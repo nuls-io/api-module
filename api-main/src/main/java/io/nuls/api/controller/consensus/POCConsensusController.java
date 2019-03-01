@@ -38,10 +38,7 @@ import io.nuls.sdk.core.utils.AddressTool;
 import io.nuls.sdk.core.utils.DoubleUtils;
 import io.nuls.sdk.core.utils.StringUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Niels
@@ -63,6 +60,9 @@ public class POCConsensusController {
     private StatisticalService statisticalService;
     @Autowired
     private WalletRPCHandler walletRPCHandler;
+
+    @Autowired
+    private BlockHeaderService headerService;
 
     @RpcMethod("getBestRoundItemList")
     public RpcResult getBestRoundItemList(List<Object> params) {
@@ -273,6 +273,10 @@ public class POCConsensusController {
     public RpcResult getRoundInfo(List<Object> params) {
         VerifyUtils.verifyParams(params, 1);
         long roundIndex = Long.parseLong(params.get(0) + "");
+        if (roundIndex == 1) {
+            return getFirstRound();
+        }
+
         CurrentRound round = new CurrentRound();
         PocRound pocRound = roundService.getRound(roundIndex);
         if (pocRound == null) {
@@ -281,6 +285,33 @@ public class POCConsensusController {
         List<PocRoundItem> itemList = roundService.getRoundItemList(roundIndex);
         round.setItemList(itemList);
         round.initByPocRound(pocRound);
+        return new RpcResult().setResult(round);
+    }
+
+    private RpcResult getFirstRound() {
+        BlockHeaderInfo headerInfo = headerService.getBlockHeaderInfoByHeight(0);
+        if (null == headerInfo) {
+            return new RpcResult();
+        }
+        CurrentRound round = new CurrentRound();
+        round.setStartTime(headerInfo.getRoundStartTime());
+        round.setStartHeight(0);
+        round.setProducedBlockCount(1);
+        round.setMemberCount(1);
+        round.setIndex(1);
+        round.setEndTime(headerInfo.getCreateTime());
+        round.setEndHeight(0);
+        List<PocRoundItem> itemList = new ArrayList<>();
+        PocRoundItem item = new PocRoundItem();
+        itemList.add(item);
+        item.setTime(headerInfo.getCreateTime());
+        item.setTxCount(1);
+        item.setBlockHash(headerInfo.getHash());
+        item.setBlockHeight(0);
+        item.setPackingAddress(headerInfo.getPackingAddress());
+        item.setRoundIndex(1);
+        item.setOrder(1);
+        round.setItemList(itemList);
         return new RpcResult().setResult(round);
     }
 
