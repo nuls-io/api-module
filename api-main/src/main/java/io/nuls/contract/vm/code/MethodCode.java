@@ -38,7 +38,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.nuls.contract.vm.util.Utils.arrayListInitialCapacity;
 
@@ -266,8 +267,8 @@ public class MethodCode {
         localVariables = new ArrayList<>(arrayListInitialCapacity(localVariableNodes.size()));
 
         for (LocalVariableNode localVariableNode : localVariableNodes) {
-            // skip localVariable named 'i$' and desc 'Ljava/util/Iterator;'
-            if("i$".equals(localVariableNode.name) && "Ljava/util/Iterator;".equals(localVariableNode.desc)) {
+            // skip localVariable'name contains '$'
+            if(localVariableNode.name != null && localVariableNode.name.contains("$")) {
                 continue;
             }
             localVariables.add(new LocalVariableCode(localVariableNode));
