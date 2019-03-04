@@ -50,9 +50,9 @@ public class AgentComparator implements Comparator<AgentInfo> {
         } else if (o1.getCreditValue() < o2.getCreditValue()) {
             return 1;
         }
-        if (o1.getCommissionRate() > o2.getCommissionRate()) {
+        if (o1.getCommissionRate() < o2.getCommissionRate()) {
             return -1;
-        } else if (o1.getCommissionRate() < o2.getCommissionRate()) {
+        } else if (o1.getCommissionRate() > o2.getCommissionRate()) {
             return 1;
         }
         if (o1.getTotalDeposit() < o2.getTotalDeposit()) {
