@@ -26,10 +26,13 @@ import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.core.ApiContext;
 import io.nuls.api.core.model.AccountInfo;
+import io.nuls.api.core.model.Output;
 import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.service.AccountService;
 import io.nuls.api.service.AgentService;
+import io.nuls.api.service.UTXOService;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,8 @@ public class LedgerController {
     private AccountService accountService;
     @Autowired
     private AgentService agentService;
+    @Autowired
+    private UTXOService utxoService;
 
     @RpcMethod("getCoinInfo")
     public RpcResult getCoinInfo(List<Object> params) {
@@ -58,6 +63,31 @@ public class LedgerController {
 
         PageInfo<AccountInfo> pageInfo = accountService.getCoinRanking(pageIndex, pageSize, sortType);
         return new RpcResult().setResult(pageInfo);
+    }
+
+    @RpcMethod("getUTXO")
+    public RpcResult getUTXO(List<Object> params) {
+        String address = (String) params.get(0);
+        long amount = Long.parseLong(params.get(1).toString());
+
+        //金额再加3个NULS的最高手续费
+        amount += 300000000L;
+
+        long value = 0L;
+        List<Output> outputs = utxoService.getAccountUtxos(address);
+        List<Output> list = new ArrayList<>();
+        for (int i = 0; i < outputs.size(); i++) {
+            Output output = outputs.get(i);
+            value += output.getValue();
+            output.setKey("");
+            list.add(output);
+            if (value >= amount) {
+                break;
+            } else if (i >= 6000) {
+                break;
+            }
+        }
+        return new RpcResult().setResult(list);
     }
 
 }
