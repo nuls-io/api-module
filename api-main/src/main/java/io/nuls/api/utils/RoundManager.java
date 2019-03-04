@@ -249,7 +249,7 @@ public class RoundManager {
 
         this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() + 1);
         this.currentRound.setEndHeight(blockInfo.getBlockHeader().getHeight());
-        currentRound.setLostRate(DoubleUtils.div(blockInfo.getBlockHeader().getPackingIndexOfRound() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
+        currentRound.setLostRate(DoubleUtils.div(currentRound.getMemberCount() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
         this.fillPunishCount(blockInfo.getTxs(), currentRound, true);
 
         roundService.updateRoundItem(item);

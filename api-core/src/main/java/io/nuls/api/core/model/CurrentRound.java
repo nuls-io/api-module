@@ -110,5 +110,6 @@ public class CurrentRound extends PocRound {
         this.setMemberCount(round.getMemberCount());
         this.setStartHeight(round.getStartHeight());
         this.setIndex(round.getIndex());
+        this.setLostRate(round.getLostRate());
     }
 }
