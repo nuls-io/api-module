@@ -69,6 +69,7 @@ public class CurrentRound extends PocRound {
         round.setStartHeight(this.getStartHeight());
         round.setStartTime(this.getStartTime());
         round.setYellowCardCount(this.getYellowCardCount());
+        round.setLostRate(this.getLostRate());
         return round;
     }
 
