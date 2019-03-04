@@ -70,7 +70,7 @@ public class ContractControllerTest {
             ContractController controller = SpringLiteContext.getBean(ContractController.class);
             List<Object> params = new ArrayList<>();
             String address = "TTb4Y6qzJyzHDrcNkczN7quV5mdbtMgy";
-            File file = new File(BASE + "/contract/code/red_envelope.zip");
+            File file = new File(BASE + "/contract/code/nrc20_clean.zip");
             in = new FileInputStream(file);
             params.add(address);
             params.add("mockHeader," + Base64.getEncoder().encodeToString(IOUtils.toByteArray(in)));

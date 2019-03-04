@@ -275,6 +275,14 @@ public class ContractController {
                     result.setError(new RpcResultError(RpcErrorCode.TX_SHELL_ERROR));
                     break;
                 }
+
+                // 检查智能合约源代码zip包验证，不能包含非java文件
+                String illegalFile = checkSourceFile(VALIDATE_HOME + contractAddress + File.separator + "src");
+                if(StringUtils.isNotBlank(illegalFile)) {
+                    result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR).setMessage("An illegal file was detected. The file name is " + illegalFile));
+                    break;
+                }
+
                 File jarFile = new File(VALIDATE_HOME + contractAddress + File.separator + contractAddress + ".jar");
                 jarIn = new FileInputStream(jarFile);
                 byte[] validateContractCode = IOUtils.toByteArray(jarIn);
@@ -325,6 +333,34 @@ public class ContractController {
             IOUtils.closeQuietly(out);
         }
         return result;
+    }
+
+    public String checkSourceFile(String path) {
+        File src = new File(path);
+        return recursiveCheck(src.listFiles());
+    }
+
+    private String recursiveCheck(File[] files) {
+        for(File file : files) {
+            if(file.isDirectory()) {
+                String result = recursiveCheck(file.listFiles());
+                if(StringUtils.isNotBlank(result)) {
+                    return result;
+                }
+            } else {
+                if(!permissibleFile(file.getName())) {
+                    return file.getName();
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean permissibleFile(String fileName) {
+        if(fileName != null && fileName.endsWith(".java")) {
+            return true;
+        }
+        return false;
     }
 
     private void delFolder(String folderPath) {

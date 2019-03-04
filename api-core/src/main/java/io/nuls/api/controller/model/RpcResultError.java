@@ -59,24 +59,27 @@ public class RpcResultError {
         return code;
     }
 
-    public void setCode(int code) {
+    public RpcResultError setCode(int code) {
         this.code = code;
+        return this;
     }
 
     public String getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
+    public RpcResultError setMessage(String message) {
         this.message = message;
+        return this;
     }
 
     public Object getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public RpcResultError setData(Object data) {
         this.data = data;
+        return this;
     }
 
     @Override
