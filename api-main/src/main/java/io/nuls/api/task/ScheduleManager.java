@@ -75,8 +75,10 @@ public class ScheduleManager {
             }
             //创建索引
             mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("address"));
-            mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("type"));
+//            mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("type"));
+            mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("address", "type"));
             mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.ascending("txHash"));
+            mongoDBService.createIndex(MongoTableName.TX_RELATION_INFO, Indexes.descending("height", "createTime"));
         }
         //账户信息表
         indexes = mongoDBService.getIndexes(MongoTableName.ACCOUNT_INFO);
