@@ -31,6 +31,8 @@ import io.nuls.api.core.model.PageInfo;
 import io.nuls.api.service.AccountService;
 import io.nuls.api.service.AgentService;
 import io.nuls.api.service.UTXOService;
+import io.nuls.sdk.accountledger.utils.LedgerUtil;
+import io.nuls.sdk.core.crypto.Hex;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,12 +77,18 @@ public class LedgerController {
 
         long value = 0L;
         List<Output> outputs = utxoService.getAccountUtxos(address);
-        List<Output> list = new ArrayList<>();
+        List<Map<String, Object>> list = new ArrayList<>();
+
         for (int i = 0; i < outputs.size(); i++) {
+            Map<String, Object> map = new HashMap<>();
             Output output = outputs.get(i);
             value += output.getValue();
-            output.setKey("");
-            list.add(output);
+
+            map.put("fromHash", output.getTxHash());
+            map.put("fromIndex", LedgerUtil.getIndex(Hex.decode(output.getKey())));
+            map.put("lockTime", output.getLockTime());
+            map.put("value", output.getValue());
+            list.add(map);
             if (value >= amount) {
                 break;
             } else if (i >= 6000) {
