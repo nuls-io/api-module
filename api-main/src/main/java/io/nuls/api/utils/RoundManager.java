@@ -181,7 +181,7 @@ public class RoundManager {
 
         round.setRedCardCount(0);
         round.setYellowCardCount(0);
-        round.setLostRate(DoubleUtils.div(header.getPackingIndexOfRound() - round.getProducedBlockCount(), round.getMemberCount()));
+        round.setLostRate(DoubleUtils.div(header.getPackingIndexOfRound() - round.getProducedBlockCount(), header.getPackingIndexOfRound()));
 
         fillPunishCount(blockInfo.getTxs(), round, true);
         if (round.getIndex() == 1) {
@@ -249,7 +249,7 @@ public class RoundManager {
 
         this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() + 1);
         this.currentRound.setEndHeight(blockInfo.getBlockHeader().getHeight());
-        currentRound.setLostRate(DoubleUtils.div(currentRound.getMemberCount() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
+        currentRound.setLostRate(DoubleUtils.div(header.getPackingIndexOfRound() - currentRound.getProducedBlockCount(), header.getPackingIndexOfRound()));
         this.fillPunishCount(blockInfo.getTxs(), currentRound, true);
 
         roundService.updateRoundItem(item);
@@ -277,7 +277,7 @@ public class RoundManager {
         roundService.updateRoundItem(item);
         this.currentRound.setProducedBlockCount(this.currentRound.getProducedBlockCount() - 1);
         this.currentRound.setEndHeight(blockInfo.getBlockHeader().getHeight() - 1);
-        currentRound.setLostRate(DoubleUtils.div(blockInfo.getBlockHeader().getPackingIndexOfRound() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
+        currentRound.setLostRate(DoubleUtils.div(currentRound.getMemberCount() - currentRound.getProducedBlockCount(), currentRound.getMemberCount()));
         this.fillPunishCount(blockInfo.getTxs(), currentRound, false);
 
         this.roundService.updateRound(this.currentRound.toPocRound());

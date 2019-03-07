@@ -64,6 +64,9 @@ public class POCConsensusController {
     @Autowired
     private BlockHeaderService headerService;
 
+    @Autowired
+    private AliasService aliasService;
+
     @RpcMethod("getBestRoundItemList")
     public RpcResult getBestRoundItemList(List<Object> params) {
         List<PocRoundItem> itemList = roundManager.getCurrentRound().getItemList();
@@ -119,6 +122,12 @@ public class POCConsensusController {
                 agentInfo.setCreditValue(clientResult.getData().getCreditValue());
                 agentInfo.setDepositCount(clientResult.getData().getDepositCount());
                 agentInfo.setStatus(clientResult.getData().getStatus());
+                if (agentInfo.getAgentAlias() == null) {
+                    AliasInfo info = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+                    if (null != info) {
+                        agentInfo.setAgentAlias(info.getAlias());
+                    }
+                }
             }
         }
 
@@ -162,6 +171,12 @@ public class POCConsensusController {
             AgentInfo agent = result.getData();
             agentInfo.setCreditValue(agent.getCreditValue());
             agentInfo.setDepositCount(agent.getDepositCount());
+            if (agentInfo.getAgentAlias() == null) {
+                AliasInfo info = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+                if (null != info) {
+                    agentInfo.setAgentAlias(info.getAlias());
+                }
+            }
         }
 
         return new RpcResult().setResult(agentInfo);
