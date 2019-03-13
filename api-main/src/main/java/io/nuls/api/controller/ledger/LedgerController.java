@@ -93,7 +93,7 @@ public class LedgerController {
                 if (output.getLockTime() >= NulsConstant.BlOCKHEIGHT_TIME_DIVIDE && output.getLockTime() > currentTime) {
                     continue;
                 }
-                if (output.getLockTime() > ApiContext.bestHeight) {
+                if (output.getLockTime() < NulsConstant.BlOCKHEIGHT_TIME_DIVIDE && output.getLockTime() > ApiContext.bestHeight) {
                     continue;
                 }
             }
@@ -111,4 +111,43 @@ public class LedgerController {
         return new RpcResult().setResult(list);
     }
 
+    @RpcMethod("getUTXOS")
+    public RpcResult getUTXOS(List<Object> params) {
+        String address = (String) params.get(0);
+        long amount = Long.parseLong(params.get(1).toString());
+
+        //金额再加3个NULS的最高手续费
+        amount += 300000000L;
+        long value = 0L;
+        List<Output> outputs = utxoService.getAccountUtxos(address);
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        long currentTime = TimeService.currentTimeMillis();
+        for (int i = 0; i < outputs.size(); i++) {
+            Map<String, Object> map = new HashMap<>();
+            Output output = outputs.get(i);
+            value += output.getValue();
+            if (output.getLockTime() < 0) {
+                continue;
+            }
+            if (output.getLockTime() > 0) {
+                if (output.getLockTime() >= NulsConstant.BlOCKHEIGHT_TIME_DIVIDE && output.getLockTime() > currentTime) {
+                    continue;
+                }
+                if (output.getLockTime() < NulsConstant.BlOCKHEIGHT_TIME_DIVIDE && output.getLockTime() > ApiContext.bestHeight) {
+                    continue;
+                }
+            }
+            map.put("owner", output.getKey());
+            map.put("lockTime", output.getLockTime());
+            map.put("value", output.getValue());
+            list.add(map);
+            if (value >= amount) {
+                break;
+            } else if (i >= 6000) {
+                break;
+            }
+        }
+        return new RpcResult().setResult(list);
+    }
 }
