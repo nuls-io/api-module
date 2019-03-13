@@ -60,7 +60,6 @@ public class ScheduleManager {
         executorService.scheduleAtFixedRate(syncBlockTask, 1, 10, TimeUnit.SECONDS);
         executorService.scheduleAtFixedRate(statisticalNulsTask, 1, 20, TimeUnit.MINUTES);
         executorService.scheduleAtFixedRate(statisticalTask, 1, 60, TimeUnit.MINUTES);
-
     }
 
     private void initTables() {

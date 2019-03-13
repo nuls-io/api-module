@@ -177,7 +177,6 @@ public class BlockHeaderService {
     }
 
     public long getMaxHeight(long endTime) {
-
         return this.mongoDBService.getMax(MongoTableName.BLOCK_HEADER, "_id", Filters.lte("createTime", endTime));
     }
 }

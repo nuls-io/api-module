@@ -1,8 +1,5 @@
 package io.nuls.api.core.constant;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class NulsConstant {
 
     //黄牌惩罚

@@ -25,6 +25,7 @@ import io.nuls.api.bean.annotation.Controller;
 import io.nuls.api.bean.annotation.RpcMethod;
 import io.nuls.api.controller.model.RpcResult;
 import io.nuls.api.core.ApiContext;
+import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.model.AccountInfo;
 import io.nuls.api.core.model.Output;
 import io.nuls.api.core.model.PageInfo;
@@ -33,6 +34,7 @@ import io.nuls.api.service.AgentService;
 import io.nuls.api.service.UTXOService;
 import io.nuls.sdk.accountledger.utils.LedgerUtil;
 import io.nuls.sdk.core.crypto.Hex;
+import io.nuls.sdk.core.utils.TimeService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,11 +81,22 @@ public class LedgerController {
         List<Output> outputs = utxoService.getAccountUtxos(address);
         List<Map<String, Object>> list = new ArrayList<>();
 
+        long currentTime = TimeService.currentTimeMillis();
         for (int i = 0; i < outputs.size(); i++) {
             Map<String, Object> map = new HashMap<>();
             Output output = outputs.get(i);
             value += output.getValue();
-
+            if (output.getLockTime() < 0) {
+                continue;
+            }
+            if (output.getLockTime() > 0) {
+                if (output.getLockTime() >= NulsConstant.BlOCKHEIGHT_TIME_DIVIDE && output.getLockTime() > currentTime) {
+                    continue;
+                }
+                if (output.getLockTime() > ApiContext.bestHeight) {
+                    continue;
+                }
+            }
             map.put("fromHash", output.getTxHash());
             map.put("fromIndex", LedgerUtil.getIndex(Hex.decode(output.getKey())));
             map.put("lockTime", output.getLockTime());
