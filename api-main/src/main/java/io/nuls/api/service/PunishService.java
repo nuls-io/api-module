@@ -93,7 +93,6 @@ public class PunishService {
         if (txHashs.isEmpty()) {
             return;
         }
-
         mongoDBService.delete(MongoTableName.PUNISH_INFO, Filters.eq("blockHeight", height));
     }
 }

@@ -53,7 +53,6 @@ public class TransactionService {
             list.add(model);
         }
         mongoDBService.bulkWrite(MongoTableName.TX_RELATION_INFO, list);
-
     }
 
 

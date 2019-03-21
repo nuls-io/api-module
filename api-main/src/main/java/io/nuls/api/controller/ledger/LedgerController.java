@@ -82,6 +82,7 @@ public class LedgerController {
         List<Map<String, Object>> list = new ArrayList<>();
 
         long currentTime = TimeService.currentTimeMillis();
+        int count = 0;
         for (int i = 0; i < outputs.size(); i++) {
             Map<String, Object> map = new HashMap<>();
             Output output = outputs.get(i);
@@ -97,6 +98,7 @@ public class LedgerController {
                     continue;
                 }
             }
+            count++;
             value += output.getValue();
             map.put("fromHash", output.getTxHash());
             map.put("fromIndex", LedgerUtil.getIndex(Hex.decode(output.getKey())));
@@ -105,7 +107,7 @@ public class LedgerController {
             list.add(map);
             if (value >= amount) {
                 break;
-            } else if (i >= 6000) {
+            } else if (count >= 6000) {
                 break;
             }
         }
@@ -123,6 +125,7 @@ public class LedgerController {
         List<Output> outputs = utxoService.getAccountUtxos(address);
         List<Map<String, Object>> list = new ArrayList<>();
         long currentTime = TimeService.currentTimeMillis();
+        int count = 0;
         for (int i = 0; i < outputs.size(); i++) {
             Map<String, Object> map = new HashMap<>();
             Output output = outputs.get(i);
@@ -138,7 +141,7 @@ public class LedgerController {
                     continue;
                 }
             }
-
+            count++;
             value += output.getValue();
             map.put("owner", output.getKey());
             map.put("lockTime", output.getLockTime());
@@ -146,7 +149,7 @@ public class LedgerController {
             list.add(map);
             if (value >= amount) {
                 break;
-            } else if (i >= 6000) {
+            } else if (count >= 6000) {
                 break;
             }
         }
