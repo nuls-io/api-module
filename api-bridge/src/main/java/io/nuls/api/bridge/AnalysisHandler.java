@@ -455,8 +455,8 @@ public class AnalysisHandler {
         map = (Map<String, Object>) map.get("data");
         if (map != null) {
             resultInfo.setTxHash(hash);
-            resultInfo.setErrorMessage((String) map.get("errorMessage"));
             resultInfo.setSuccess((Boolean) map.get("success"));
+            resultInfo.setErrorMessage((String) map.get("errorMessage"));
             resultInfo.setResult((String) map.get("result"));
             resultInfo.setContractAddress((String) map.get("contractAddress"));
 
