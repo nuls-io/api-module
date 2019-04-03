@@ -48,14 +48,14 @@ public class RpcMethodInvoker {
             result = (RpcResult) method.invoke(bean, jsonParams);
         } catch (Exception e) {
             Log.error("\n" + method.toString());
-            Log.error(e);
-            //    Log.error(e);
+
             if (e.getCause() instanceof JsonRpcException) {
                 JsonRpcException jsonRpcException = (JsonRpcException) e.getCause();
                 result = new RpcResult();
                 result.setError(jsonRpcException.getError());
-
+                Log.error("errorCode:" + result.getError().getCode() + ",message: " + result.getError().getMessage());
             } else {
+                Log.error(e);
                 result = new RpcResult();
                 RpcResultError error = new RpcResultError();
                 error.setMessage(e.getMessage());

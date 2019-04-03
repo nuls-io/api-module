@@ -51,9 +51,9 @@ public class JsonRpcServer {
         NetworkListener listener = new NetworkListener("NULS-RPC", ip, port);
         TCPNIOTransport transport = listener.getTransport();
         ThreadPoolConfig workerPool = ThreadPoolConfig.defaultConfig()
-                .setCorePoolSize(4)
-                .setMaxPoolSize(4)
-                .setQueueLimit(1000)
+                .setCorePoolSize(16)
+                .setMaxPoolSize(16)
+                .setQueueLimit(5000)
                 .setThreadFactory((new ThreadFactoryBuilder()).setNameFormat("grizzly-http-server-%d").build());
         transport.configureBlocking(false);
         transport.setSelectorRunnersCount(2);

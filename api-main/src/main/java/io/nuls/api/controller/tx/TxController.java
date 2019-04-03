@@ -167,6 +167,4 @@ public class TxController {
         List list = this.statisticalService.getStatisticalList(type, "txCount");
         return new RpcResult().setResult(list);
     }
-
-
 }

@@ -36,6 +36,20 @@ public class RpcResult {
 
     private RpcResultError error;
 
+    public static RpcResult failed(RpcErrorCode errorCode) {
+        RpcResult rpcResult = new RpcResult();
+        RpcResultError error = new RpcResultError(errorCode.getCode(), errorCode.getMessage(), null);
+        rpcResult.setError(error);
+        return rpcResult;
+    }
+
+    public static RpcResult failed(RpcErrorCode errorCode, String message) {
+        RpcResult rpcResult = new RpcResult();
+        RpcResultError error = new RpcResultError(errorCode.getCode(), errorCode.getMessage(), message);
+        rpcResult.setError(error);
+        return rpcResult;
+    }
+
     public String getJsonrpc() {
         return jsonrpc;
     }
