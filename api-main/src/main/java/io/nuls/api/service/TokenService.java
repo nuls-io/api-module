@@ -98,6 +98,10 @@ public class TokenService {
     }
 
     public PageInfo<TokenTransfer> getTokenTransfers(String address, String contractAddress, int pageIndex, int pageSize) {
+        return this.getTokenTransfersWithTimestamp(address, contractAddress, pageIndex, pageSize, null, null);
+    }
+
+    public PageInfo<TokenTransfer> getTokenTransfersWithTimestamp(String address, String contractAddress, int pageIndex, int pageSize, Long start, Long end) {
         Bson filter;
         if (StringUtils.isNotBlank(address) && StringUtils.isNotBlank(contractAddress)) {
             Bson addressFilter = Filters.or(Filters.eq("fromAddress", address), Filters.eq("toAddress", address));
@@ -107,6 +111,12 @@ public class TokenService {
         } else {
             filter = Filters.or(Filters.eq("fromAddress", address), Filters.eq("toAddress", address));
         }
+
+        if(start != null && end != null) {
+            Bson timeCondition = Filters.and(Filters.gte("time", start), Filters.lte("time", end));
+            filter = Filters.and(filter, timeCondition);
+        }
+
         Bson sort = Sorts.descending("time");
         List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.TOKEN_TRANSFER_INFO, filter, sort, pageIndex, pageSize);
         List<TokenTransfer> tokenTransfers = new ArrayList<>();

@@ -157,6 +157,38 @@ public class ContractController {
 
     }
 
+    @RpcMethod("getTokenTransfersWithTimestamp")
+    public RpcResult getTokenTransfersWithTimestamp(List<Object> params) {
+        VerifyUtils.verifyParams(params, 6);
+        int pageNumber = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        String address = (String) params.get(2);
+        String contractAddress = (String) params.get(3);
+        long start = (long) params.get(4);
+        long end = (long) params.get(5);
+
+        if (StringUtils.isBlank(address) && StringUtils.isBlank(contractAddress)) {
+            throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "[address] or [contractAddress] is inValid"));
+        }
+        if (pageNumber <= 0) {
+            pageNumber = 1;
+        }
+        if (pageSize <= 0) {
+            pageSize = 10;
+        }
+        if (start < 0) {
+            start = 0L;
+        }
+        if (end < 0) {
+            end = 0L;
+        }
+        PageInfo<TokenTransfer> pageInfo = tokenService.getTokenTransfersWithTimestamp(address, contractAddress, pageNumber, pageSize, start, end);
+        RpcResult result = new RpcResult();
+        result.setResult(pageInfo);
+        return result;
+
+    }
+
     @RpcMethod("getContract")
     public RpcResult getContract(List<Object> params) {
         VerifyUtils.verifyParams(params, 1);
