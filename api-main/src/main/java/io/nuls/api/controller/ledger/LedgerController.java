@@ -186,4 +186,33 @@ public class LedgerController {
         }
         return new RpcResult().setResult(list);
     }
+
+    @RpcMethod("getFreeze")
+    public RpcResult getFreeze(List<Object> params) {
+        String address = (String) params.get(0);
+        List<Output> outputs = utxoService.getAccountUtxos(address);
+        List<Map<String, Object>> list = new ArrayList<>();
+        long currentTime = TimeService.currentTimeMillis();
+        for (int i = 0; i < outputs.size(); i++) {
+            Map<String, Object> map = new HashMap<>();
+            Output output = outputs.get(i);
+            if (output.getLockTime() == 0) {
+                continue;
+            }
+            if (output.getLockTime() > 0) {
+                if (output.getLockTime() >= NulsConstant.BlOCKHEIGHT_TIME_DIVIDE && output.getLockTime() < currentTime) {
+                    continue;
+                }
+                if (output.getLockTime() < NulsConstant.BlOCKHEIGHT_TIME_DIVIDE && output.getLockTime() < ApiContext.bestHeight) {
+                    continue;
+                }
+            }
+            map.put("fromHash", output.getTxHash());
+            map.put("fromIndex", LedgerUtil.getIndex(Hex.decode(output.getKey())));
+            map.put("lockTime", output.getLockTime());
+            map.put("value", output.getValue());
+            list.add(map);
+        }
+        return new RpcResult().setResult(list);
+    }
 }
