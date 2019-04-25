@@ -309,8 +309,8 @@ public class MethodCode {
                     String thisInnerName = classCode.name.substring(classCode.name.lastIndexOf("$") + 1);
                     String firstVariableType = variableTypes.get(0).getType();
                     String firstLocalVariableName = this.localVariables.get(0).name;
-                    if(innerName.equals(thisInnerName)
-                            && outerName.equals(firstVariableType)
+                    if(thisInnerName.equals(innerName)
+                            && firstVariableType.equals(outerName)
                             && "this".equals(firstLocalVariableName)) {
                         start = 1;
                     }
