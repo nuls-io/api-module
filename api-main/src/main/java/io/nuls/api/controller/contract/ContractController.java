@@ -259,9 +259,11 @@ public class ContractController {
         RpcResult result = new RpcResult();
         OutputStream out = null;
         InputStream jarIn = null;
+        String contractAddress = null;
+        File zipFile = null;
         try {
             VerifyUtils.verifyParams(params, 2);
-            String contractAddress = (String) params.get(0);
+            contractAddress = (String) params.get(0);
             if (!AddressTool.validAddress(contractAddress)) {
                 result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "contractAddress is inValid."));
                 return result;
@@ -293,7 +295,7 @@ public class ContractController {
             String headerInfo = arr[0];
             String body = arr[1];
             byte[] fileContent = Base64.getDecoder().decode(body);
-            File zipFile = new File(VALIDATE_HOME + contractAddress + ".zip");
+            zipFile = new File(VALIDATE_HOME + contractAddress + ".zip");
             out = new FileOutputStream(zipFile);
             IOUtils.write(fileContent, out);
 
@@ -310,7 +312,7 @@ public class ContractController {
 
                 // 检查智能合约源代码zip包验证，不能包含非java文件
                 String illegalFile = checkSourceFile(VALIDATE_HOME + contractAddress + File.separator + "src");
-                if(StringUtils.isNotBlank(illegalFile)) {
+                if (StringUtils.isNotBlank(illegalFile)) {
                     result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR).setMessage("An illegal file was detected. The file name is " + illegalFile));
                     break;
                 }
@@ -333,7 +335,7 @@ public class ContractController {
                 // 比较代码指令
                 isValidationPass = CompareJar.compareJarBytes(contractCode, validateContractCode);
 
-                if(!isValidationPass) {
+                if (!isValidationPass) {
                     result.setError(new RpcResultError(RpcErrorCode.CONTRACT_VALIDATION_FAILED));
                     break;
                 }
@@ -345,10 +347,10 @@ public class ContractController {
                 contractService.updateContractInfo(contractInfo);
             } while (false);
 
-            if(!Log.isDebugEnabled()) {
-                if(!isValidationPass) {
+            if (!Log.isDebugEnabled()) {
+                if (!isValidationPass) {
                     // 删除上传的文件
-                    if(zipFile.exists()) {
+                    if (zipFile.exists()) {
                         zipFile.delete();
                     }
                     delFolder(VALIDATE_HOME + contractAddress);
@@ -359,6 +361,15 @@ public class ContractController {
 
         } catch (Exception e) {
             Log.error(e);
+            if (!Log.isDebugEnabled()) {
+                // 删除上传的文件
+                if (zipFile != null && zipFile.exists()) {
+                    zipFile.delete();
+                }
+                if (StringUtils.isNotBlank(contractAddress)) {
+                    delFolder(VALIDATE_HOME + contractAddress);
+                }
+            }
             throw new JsonRpcException(new RpcResultError(RpcErrorCode.PARAMS_ERROR, e.getMessage()));
         } finally {
             IOUtils.closeQuietly(jarIn);
@@ -373,14 +384,14 @@ public class ContractController {
     }
 
     private String recursiveCheck(File[] files) {
-        for(File file : files) {
-            if(file.isDirectory()) {
+        for (File file : files) {
+            if (file.isDirectory()) {
                 String result = recursiveCheck(file.listFiles());
-                if(StringUtils.isNotBlank(result)) {
+                if (StringUtils.isNotBlank(result)) {
                     return result;
                 }
             } else {
-                if(!permissibleFile(file.getName())) {
+                if (!permissibleFile(file.getName())) {
                     return file.getName();
                 }
             }
@@ -389,7 +400,7 @@ public class ContractController {
     }
 
     private boolean permissibleFile(String fileName) {
-        if(fileName != null && fileName.endsWith(".java")) {
+        if (fileName != null && fileName.endsWith(".java")) {
             return true;
         }
         return false;
@@ -402,7 +413,8 @@ public class ContractController {
             File myFilePath = new File(folderPath);
             //删除空文件夹
             myFilePath.delete();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     private boolean delAllFile(String path) {
@@ -554,7 +566,7 @@ public class ContractController {
             // 提取文件内容
             String filePath = (String) params.get(1);
             String code = contractCodeCaches.get(filePath);
-            if(StringUtils.isBlank(code)) {
+            if (StringUtils.isBlank(code)) {
                 result.setError(new RpcResultError(RpcErrorCode.DATA_NOT_EXISTS, "Fail to read contract code."));
                 return result;
             }
@@ -580,7 +592,7 @@ public class ContractController {
         FileInputStream in = null;
         try {
             File file = new File(BASE + filePath);
-            if(!file.exists()) {
+            if (!file.exists()) {
                 return null;
             }
             in = new FileInputStream(file);
