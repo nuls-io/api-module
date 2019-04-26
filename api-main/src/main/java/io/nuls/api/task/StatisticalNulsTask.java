@@ -25,6 +25,7 @@ public class StatisticalNulsTask implements Runnable {
         long consensusTotal = agentService.getConsensusCoinTotal();
         //团队持有数量
         long teamNuls = accountService.getAccountLockBalance(ApiContext.TEAM_ADDRESS);
+
         //销毁数量
         long destroyNuls = accountService.getAccountTotalBalance(ApiContext.DESTROY_ADDRESS);
 //        //商务持有数量
