@@ -157,6 +157,7 @@ public class AccountService {
             return 0;
         }
         List<Output> outputs = utxoService.getAccountUtxos(address);
+
         CalcUtil.calcBalance(accountInfo, outputs, blockHeaderService.getBestBlockHeight());
         return accountInfo.getTimeLock();
     }
