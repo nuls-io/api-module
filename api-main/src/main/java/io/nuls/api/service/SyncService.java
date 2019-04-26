@@ -60,7 +60,6 @@ public class SyncService {
     private List<AgentInfo> agentInfoList = new ArrayList<>();
     //记录每个区块委托共识的信息
     private List<DepositInfo> depositInfoList = new ArrayList<>();
-
     //记录每个区块的红黄牌信息
     private List<PunishLog> punishLogList = new ArrayList<>();
     //记录每个区块新创建的智能合约信息
@@ -601,6 +600,7 @@ public class SyncService {
      */
     private AccountTokenInfo processNrc20ForAccount(ContractInfo contractInfo, String address, BigInteger value, int type) {
         AccountTokenInfo tokenInfo = queryAccountTokenInfo(address + contractInfo.getContractAddress());
+
         BigInteger balanceValue;
         if (tokenInfo == null) {
             AccountInfo accountInfo = queryAccountInfo(address);
@@ -608,16 +608,20 @@ public class SyncService {
 
             tokenInfo = new AccountTokenInfo(address, contractInfo.getContractAddress(), contractInfo.getTokenName(), contractInfo.getSymbol(), contractInfo.getDecimals());
         }
+
+        Log.error("tokenInfo:" + tokenInfo.getTokenSymbol() + ",balance:" + tokenInfo.getBalance() + ",value:" + value.toString() + ",type:" + type);
+
         balanceValue = new BigInteger(tokenInfo.getBalance());
         if (type == 1) {
             balanceValue = balanceValue.add(value);
         } else {
             balanceValue = balanceValue.subtract(value);
         }
-
-        if (balanceValue.compareTo(BigInteger.ZERO) < 0) {
-            throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
-        }
+        Log.error("ContractInfo:" + contractInfo.getContractAddress());
+//
+//        if (balanceValue.compareTo(BigInteger.ZERO) < 0) {
+//            throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
+//        }
         tokenInfo.setBalance(balanceValue.toString());
         if (!accountTokenMap.containsKey(tokenInfo.getKey())) {
             accountTokenMap.put(tokenInfo.getKey(), tokenInfo);

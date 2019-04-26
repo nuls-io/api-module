@@ -151,4 +151,7 @@ public class AccountService {
         return accountInfo.getTotalBalance();
     }
 
+    public long getAccountLockBalance(String address) {
+        return getAccountInfo(address).getTimeLock();
+    }
 }
