@@ -24,14 +24,14 @@ public class StatisticalNulsTask implements Runnable {
         //统计所有参与共识的nuls数量
         long consensusTotal = agentService.getConsensusCoinTotal();
         //团队持有数量
-        long teamNuls = accountService.getAccountLockBalance(ApiContext.TEAM_ADDRESS);
+        long teamNuls = accountService.getAccountUsableBalance(ApiContext.TEAM_ADDRESS);
 
         //销毁数量
         long destroyNuls = accountService.getAccountTotalBalance(ApiContext.DESTROY_ADDRESS);
-//        //商务持有数量
-//        long businessNuls = accountService.getAccountTotalBalance(ApiContext.BUSINESS_ADDRESS);
-//        //社区持有数量
-//        long communityNuls = accountService.getAccountTotalBalance(ApiContext.COMMUNITY_ADDRESS);
+        //商务持有数量
+        long businessNuls = accountService.getAccountTotalBalance(ApiContext.BUSINESS_ADDRESS);
+        //社区持有数量
+        long communityNuls = accountService.getAccountTotalBalance(ApiContext.COMMUNITY_ADDRESS);
         //映射地址数量
         long mappingNuls = 0;
         for (String address : ApiContext.MAPPING_ADDRESS) {
@@ -43,7 +43,7 @@ public class StatisticalNulsTask implements Runnable {
 //            ambassadorNuls += accountService.getAccountTotalBalance(address);
 //        }
         //流通量
-        long circulationNuls = totalNuls - teamNuls - destroyNuls - mappingNuls;
+        long circulationNuls = totalNuls - teamNuls - destroyNuls - mappingNuls - businessNuls - communityNuls;
         ApiContext.NULS_MAP.put("total", totalNuls);
         ApiContext.NULS_MAP.put("consensusTotal", consensusTotal);
         ApiContext.NULS_MAP.put("circulation", circulationNuls);

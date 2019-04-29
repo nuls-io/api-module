@@ -161,4 +161,16 @@ public class AccountService {
         CalcUtil.calcBalance(accountInfo, outputs, blockHeaderService.getBestBlockHeight());
         return accountInfo.getTimeLock();
     }
+
+
+    public long getAccountUsableBalance(String address) {
+        AccountInfo accountInfo = getAccountInfo(address);
+        if (accountInfo == null) {
+            return 0;
+        }
+        List<Output> outputs = utxoService.getAccountUtxos(address);
+
+        CalcUtil.calcBalance(accountInfo, outputs, blockHeaderService.getBestBlockHeight());
+        return accountInfo.getBalance();
+    }
 }
