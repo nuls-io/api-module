@@ -21,6 +21,8 @@
 package io.nuls.api;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import io.nuls.api.bean.SpringLiteContext;
 import io.nuls.api.core.ApiContext;
@@ -89,7 +91,15 @@ public class ApiModuleBootstrap {
         RestFulUtils.getInstance().setServerUri("http://" + walletIp + ":" + walletPort + "/" + walletUrl);
         SDKBootstrap.init(walletIp, walletPort, Integer.parseInt(walletChainId));
         TimeService.getInstance().start();
-        MongoClient mongoClient = new MongoClient(dbIp, dbPort);
+
+        MongoClientOptions options = MongoClientOptions.builder()
+                .connectionsPerHost(100)
+                .threadsAllowedToBlockForConnectionMultiplier(100)
+                .maxWaitTime(120000)
+                .connectTimeout(30000)
+                .build();
+        ServerAddress serverAddress = new ServerAddress(dbIp, dbPort);
+        MongoClient mongoClient = new MongoClient(serverAddress, options);
         MongoDatabase mongoDatabase = mongoClient.getDatabase(dbName);
         MongoDBService dbService = new MongoDBService(mongoClient, mongoDatabase);
         SpringLiteContext.putBean("dbService", dbService);
