@@ -94,7 +94,8 @@ public class ApiModuleBootstrap {
 
         MongoClientOptions options = MongoClientOptions.builder()
                 .connectionsPerHost(100)
-                .threadsAllowedToBlockForConnectionMultiplier(100)
+                .threadsAllowedToBlockForConnectionMultiplier(5)
+                .localThreshold(15)
                 .maxWaitTime(120000)
                 .connectTimeout(30000)
                 .build();
