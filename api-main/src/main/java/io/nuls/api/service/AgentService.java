@@ -244,6 +244,32 @@ public class AgentService {
         return pageInfo;
     }
 
+    public PageInfo<AgentInfo> getAgentList(int pageNumber, int pageSize) {
+
+        long totalCount = this.mongoDBService.getCount(MongoTableName.AGENT_INFO);
+        List<Document> docsList = this.mongoDBService.pageQuery(MongoTableName.AGENT_INFO, Sorts.descending("createTime"), pageNumber, pageSize);
+        List<AgentInfo> agentInfoList = new ArrayList<>();
+        for (Document document : docsList) {
+            AgentInfo agentInfo = DocumentTransferTool.toInfo(document, "txHash", AgentInfo.class);
+            AliasInfo alias = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+            if (alias != null) {
+                agentInfo.setAgentAlias(alias.getAlias());
+            }
+            agentInfoList.add(agentInfo);
+            if (agentInfo.getType() == null && null != agentInfo.getAgentAddress()) {
+                if (ApiContext.DEVELOPER_NODE_ADDRESS.contains(agentInfo.getAgentAddress())) {
+                    agentInfo.setType(2);
+                } else if (ApiContext.AMBASSADOR_NODE_ADDRESS.contains(agentInfo.getAgentAddress())) {
+                    agentInfo.setType(3);
+                } else {
+                    agentInfo.setType(1);
+                }
+            }
+        }
+        PageInfo<AgentInfo> pageInfo = new PageInfo<>(pageNumber, pageSize, totalCount, agentInfoList);
+        return pageInfo;
+    }
+
     public long agentsCount(long startHeight) {
         initCache();
         Collection<AgentInfo> agentInfos = agentMap.values();

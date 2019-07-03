@@ -26,7 +26,6 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import io.nuls.api.bean.SpringLiteContext;
 import io.nuls.api.core.ApiContext;
-import io.nuls.api.core.constant.NulsConstant;
 import io.nuls.api.core.mongodb.MongoDBService;
 import io.nuls.api.core.util.Log;
 import io.nuls.api.jsonrpc.JsonRpcServer;
@@ -67,6 +66,7 @@ public class ApiModuleBootstrap {
 
             Properties prop = ConfigLoader.loadProperties("cfg.properties");
             ApiContext.config = prop;
+
             String ipOfCfg = prop.getProperty("listener.ip");
             if (!StringUtils.isBlank(ipOfCfg)) {
                 ip = ipOfCfg;

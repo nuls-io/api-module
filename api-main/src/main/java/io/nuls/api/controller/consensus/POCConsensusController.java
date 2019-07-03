@@ -109,13 +109,41 @@ public class POCConsensusController {
         if (pageSize <= 0 || pageSize > 200) {
             pageSize = 10;
         }
-//        Map<String, Integer> map = new HashMap<>();
-//        List<PocRoundItem> itemList = roundManager.getCurrentRound().getItemList();
-//        for (PocRoundItem item : itemList) {
-//            map.put(item.getPackingAddress(), 1);
-//        }
 
         PageInfo<AgentInfo> list = agentService.getAgentList(type, pageIndex, pageSize);
+        for (AgentInfo agentInfo : list.getList()) {
+            RpcClientResult<AgentInfo> clientResult = walletRPCHandler.getAgent(agentInfo.getTxHash());
+            if (clientResult.isSuccess()) {
+                agentInfo.setCreditValue(clientResult.getData().getCreditValue());
+                agentInfo.setDepositCount(clientResult.getData().getDepositCount());
+                agentInfo.setStatus(clientResult.getData().getStatus());
+                if (agentInfo.getAgentAlias() == null) {
+                    AliasInfo info = aliasService.getAliasByAddress(agentInfo.getAgentAddress());
+                    if (null != info) {
+                        agentInfo.setAgentAlias(info.getAlias());
+                    }
+                }
+            }
+        }
+
+        Collections.sort(list.getList(), AgentComparator.getInstance());
+
+        return new RpcResult().setResult(list);
+    }
+
+    @RpcMethod("getAllConsensusNodes")
+    public RpcResult getAllConsensusNodes(List<Object> params) {
+        VerifyUtils.verifyParams(params, 2);
+        int pageIndex = (int) params.get(0);
+        int pageSize = (int) params.get(1);
+        if (pageIndex <= 0) {
+            pageIndex = 1;
+        }
+        if (pageSize <= 0 || pageSize > 200) {
+            pageSize = 10;
+        }
+
+        PageInfo<AgentInfo> list = agentService.getAgentList(pageIndex, pageSize);
         for (AgentInfo agentInfo : list.getList()) {
             RpcClientResult<AgentInfo> clientResult = walletRPCHandler.getAgent(agentInfo.getTxHash());
             if (clientResult.isSuccess()) {
