@@ -288,7 +288,6 @@ public class ContractController {
                 result.setError(new RpcResultError(RpcErrorCode.PARAMS_ERROR, "File Data error."));
                 return result;
             }
-
             Log.debug("contract validate home: {}", VALIDATE_HOME);
             Log.debug("base home: {}", BASE);
 

@@ -534,7 +534,7 @@ public class RollbackService {
         time1 = System.currentTimeMillis();
         long height = blockInfo.getBlockHeader().getHeight();
         if (document.getBoolean("finish")) {
-            accountService.saveAccounts(accountInfoMap);
+            accountService.saveAccounts(accountInfoMap, 0);
             blockHeaderService.updateStep(height,50);
             document.put("step", 50);
         }

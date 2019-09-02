@@ -87,7 +87,6 @@ public class SyncService {
     private long time;
     private long time1000;
     private int count;
-    int i = 0;
 
     private String getLongString(long value) {
         NumberFormat numberFormat1 = NumberFormat.getNumberInstance();
@@ -123,18 +122,12 @@ public class SyncService {
         save(blockInfo);
 //        Log.info("use 4 :{}", getLongString(System.nanoTime() - time1));
 
-        if (i % 1000 == 0) {
+        if (blockInfo.getBlockHeader().getHeight() % 1000 == 0) {
             Log.info("-----------------height:" + blockInfo.getBlockHeader().getHeight() + ", tx:" + blockInfo.getTxs().size() + ", use:" + (System.currentTimeMillis() - time1000) + "ms");
             time1000 = System.currentTimeMillis();
         }
-        i++;
         ApiContext.bestHeight = headerInfo.getHeight();
         this.time += System.currentTimeMillis() - start;
-        count++;
-        if (count % 1000 == 0) {
-            Log.info("======================================1000 blocks use:" + time + "ms");
-            time = 0;
-        }
         return true;
     }
 
@@ -445,8 +438,9 @@ public class SyncService {
             Output output = tx.getTos().get(i);
             AccountInfo accountInfo = queryAccountInfo(output.getAddress());
             accountInfo.setTxCount(accountInfo.getTxCount() + 1);
-            if (i == 0) {
+            if (tx.getTos().get(i).getLockTime() > 0) {
                 accountInfo.setTotalBalance(accountInfo.getTotalBalance() - tx.getFee());
+                accountInfo.setTotalOut(accountInfo.getTotalOut() + tx.getFee());
             }
             txRelationInfoSet.add(new TxRelationInfo(accountInfo.getAddress(), tx, output.getValue(), accountInfo.getTotalBalance()));
         }
@@ -609,7 +603,7 @@ public class SyncService {
             tokenInfo = new AccountTokenInfo(address, contractInfo.getContractAddress(), contractInfo.getTokenName(), contractInfo.getSymbol(), contractInfo.getDecimals());
         }
 
-        Log.error("tokenInfo:" + tokenInfo.getTokenSymbol() + ",balance:" + tokenInfo.getBalance() + ",value:" + value.toString() + ",type:" + type);
+   //     Log.error("tokenInfo:" + tokenInfo.getTokenSymbol() + ",balance:" + tokenInfo.getBalance() + ",value:" + value.toString() + ",type:" + type);
 
         balanceValue = new BigInteger(tokenInfo.getBalance());
         if (type == 1) {
@@ -617,7 +611,7 @@ public class SyncService {
         } else {
             balanceValue = balanceValue.subtract(value);
         }
-        Log.error("ContractInfo:" + contractInfo.getContractAddress());
+  //      Log.error("ContractInfo:" + contractInfo.getContractAddress());
 //
 //        if (balanceValue.compareTo(BigInteger.ZERO) < 0) {
 //            throw new RuntimeException("data error: " + address + " token[" + contractInfo.getSymbol() + "] balance < 0");
@@ -760,7 +754,7 @@ public class SyncService {
         tokenService.saveAccountTokens(accountTokenMap);
         blockHeaderService.updateStep(height, 50);
         //修改账户信息表
-        accountService.saveAccounts(accountInfoMap);
+        accountService.saveAccounts(accountInfoMap, blockInfo.getBlockHeader().getHeight());
         //完成解析
         blockHeaderService.syncComplete(height, 100);
     }

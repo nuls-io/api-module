@@ -43,7 +43,7 @@ public class AccountService {
         }
     }
 
-    public void saveAccounts(Map<String, AccountInfo> accountInfoMap) {
+    public void saveAccounts(Map<String, AccountInfo> accountInfoMap, long blockHeight) {
         initCache();
         if (accountInfoMap.isEmpty()) {
             return;
@@ -51,6 +51,12 @@ public class AccountService {
         List<WriteModel<Document>> modelList = new ArrayList<>();
         for (AccountInfo accountInfo : accountInfoMap.values()) {
             accountMap.put(accountInfo.getAddress(), accountInfo);
+            long calc = accountInfo.getTotalIn() - accountInfo.getTotalOut();
+            if (accountInfo.getTotalBalance() != calc) {
+                Log.info("---------------------height:" + blockHeight);
+                Log.info("---------------------" + accountInfo.getAddress() + ", calc:" + (calc - accountInfo.getTotalBalance()));
+            }
+
             Document document = DocumentTransferTool.toDocument(accountInfo, "address");
             if (accountInfo.isNew()) {
                 modelList.add(new InsertOneModel(document));
